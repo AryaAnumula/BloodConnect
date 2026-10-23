@@ -1,0 +1,888 @@
+openapi: 3.0.3
+info:
+  title: BloodConnect Sprint 1 API — proposed contracts
+  version: 0.1.0
+  description: BB-01–BB-12 only. Contract proposals are not completed features. See
+    x-implementation-status. No trailing slashes. Same-origin session auth is a provisional
+    bootstrap default; SAD JWT was a proposal, not an approved requirement.
+servers:
+- url: http://localhost:8000
+  description: Local development only. Production requires HTTPS and approved deployment
+    settings.
+paths:
+  /api/v1/health/live:
+    get:
+      operationId: healthLive
+      summary: Process liveness
+      tags:
+      - Infrastructure
+      x-owner: Arya
+      x-stories:
+      - BB-03
+      x-requirements:
+      - NFR-002
+      x-allowed-roles:
+      - PUBLIC
+      x-implementation-status: implemented-infrastructure
+      description: Proposed contract; approve docs/decisions.md before feature implementation.
+        Implemented infrastructure only.
+      security: []
+      responses:
+        '200':
+          description: Infrastructure response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Liveness'
+  /api/v1/health/ready:
+    get:
+      operationId: healthReady
+      summary: Database connectivity readiness
+      tags:
+      - Infrastructure
+      x-owner: Arya
+      x-stories:
+      - BB-03
+      x-requirements:
+      - NFR-002
+      x-allowed-roles:
+      - PUBLIC
+      x-implementation-status: implemented-infrastructure
+      description: Proposed contract; approve docs/decisions.md before feature implementation.
+        Implemented infrastructure only.
+      security: []
+      responses:
+        '200':
+          description: Infrastructure response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Readiness'
+        '503':
+          description: Database unavailable; never includes raw database error details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Readiness'
+  /api/v1/auth/csrf:
+    get:
+      operationId: csrfToken
+      summary: Initialize same-origin CSRF token
+      tags:
+      - Accounts
+      x-owner: Arnav / Yashwitha
+      x-stories:
+      - BB-01
+      - BB-02
+      x-requirements:
+      - SEC-004
+      x-allowed-roles:
+      - PUBLIC
+      x-implementation-status: implemented-infrastructure
+      description: Proposed contract; approve docs/decisions.md before feature implementation.
+        Implemented infrastructure only.
+      security: []
+      responses:
+        '200':
+          description: Infrastructure response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CsrfToken'
+  /api/v1/auth/login:
+    post:
+      operationId: login
+      summary: Authenticate supported account roles
+      tags:
+      - Accounts
+      x-owner: Ankitha; Arnav session integration
+      x-stories:
+      - BB-01
+      - BB-02
+      - BB-05
+      x-requirements:
+      - FR-002
+      - SEC-001
+      - SEC-004
+      - SEC-006
+      x-allowed-roles:
+      - PUBLIC
+      x-implementation-status: stub
+      description: Proposed contract; approve docs/decisions.md before feature implementation.
+        Current scaffold returns explicit 501 after applicable CSRF/authentication
+        gates; no business success is implemented.
+      security: []
+      responses:
+        '200':
+          description: Target response for the approved implementation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginOutput'
+        '400':
+          description: validation_error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: invalid_credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: csrf_failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '501':
+          description: Explicit scaffold response. No business action has occurred.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginInput'
+      parameters:
+      - name: X-CSRFToken
+        in: header
+        required: true
+        schema: &id001
+          type: string
+        description: Obtain from GET /api/v1/auth/csrf and send with same-origin cookies,
+          including for public login/registration.
+  /api/v1/auth/register:
+    post:
+      operationId: register
+      summary: Create a donor account/profile only
+      tags:
+      - Accounts
+      x-owner: Ankitha
+      x-stories:
+      - BB-06
+      - BB-10
+      - BB-11
+      x-requirements:
+      - FR-001
+      - SEC-001
+      - SEC-003
+      - NFR-003
+      x-allowed-roles:
+      - PUBLIC
+      x-implementation-status: stub
+      description: Proposed contract; approve docs/decisions.md before feature implementation.
+        Current scaffold returns explicit 501 after applicable CSRF/authentication
+        gates; no business success is implemented.
+      security: []
+      responses:
+        '201':
+          description: Target response for the approved implementation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegistrationOutput'
+        '400':
+          description: validation_error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: csrf_failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: duplicate_contact
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '501':
+          description: Explicit scaffold response. No business action has occurred.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegistrationInput'
+      parameters:
+      - name: X-CSRFToken
+        in: header
+        required: true
+        schema: *id001
+        description: Obtain from GET /api/v1/auth/csrf and send with same-origin cookies,
+          including for public login/registration.
+  /api/v1/auth/logout:
+    post:
+      operationId: logout
+      summary: Invalidate the current session
+      tags:
+      - Accounts
+      x-owner: Arnav
+      x-stories:
+      - BB-02
+      x-requirements:
+      - SEC-004
+      x-allowed-roles:
+      - AUTHENTICATED
+      x-implementation-status: stub
+      description: Proposed contract; approve docs/decisions.md before feature implementation.
+        Current scaffold returns explicit 501 after applicable CSRF/authentication
+        gates; no business success is implemented.
+      security:
+      - sessionCookie: []
+      responses:
+        '204':
+          description: Target logout success; no response body.
+        '403':
+          description: authentication_required, forbidden or csrf_failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '501':
+          description: Explicit scaffold response. No business action has occurred.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: X-CSRFToken
+        in: header
+        required: true
+        schema: *id001
+        description: Obtain from GET /api/v1/auth/csrf and send with same-origin cookies,
+          including for public login/registration.
+  /api/v1/auth/me:
+    get:
+      operationId: currentUser
+      summary: Return current account metadata without health data
+      tags:
+      - Accounts
+      x-owner: Arnav
+      x-stories:
+      - BB-04
+      x-requirements:
+      - SEC-002
+      x-allowed-roles:
+      - AUTHENTICATED
+      x-implementation-status: stub
+      description: Proposed contract; approve docs/decisions.md before feature implementation.
+        Current scaffold returns explicit 501 after applicable CSRF/authentication
+        gates; no business success is implemented.
+      security:
+      - sessionCookie: []
+      responses:
+        '200':
+          description: Target response for the approved implementation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthUser'
+        '403':
+          description: authentication_required or forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '501':
+          description: Explicit scaffold response. No business action has occurred.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/donors:
+    get:
+      operationId: searchDonors
+      summary: Search safe donor summaries
+      tags:
+      - Donors
+      x-owner: Yashwitha; Ankitha API review
+      x-stories:
+      - BB-09
+      - BB-11
+      - BB-12
+      x-requirements:
+      - FR-005
+      - NFR-001
+      - SEC-002
+      - SEC-003
+      - SEC-005
+      x-allowed-roles:
+      - STAFF_UNDER_APPROVED_SEARCH_POLICY
+      x-implementation-status: stub
+      description: Proposed contract; approve docs/decisions.md before feature implementation.
+        Current scaffold returns explicit 501 after applicable CSRF/authentication
+        gates; no business success is implemented.
+      security:
+      - sessionCookie: []
+      responses:
+        '200':
+          description: Target response for the approved implementation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DonorPage'
+        '400':
+          description: validation_error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: authentication_required or forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '501':
+          description: Explicit scaffold response. No business action has occurred.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: blood_group
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - A+
+          - A-
+          - B+
+          - B-
+          - AB+
+          - AB-
+          - O+
+          - O-
+        description: Exact group match; encode + as %2B.
+      - name: location
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 120
+        description: Proposed case-insensitive substring match; use parameterized
+          ORM queries.
+      - name: eligibility_status
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - ELIGIBLE
+          - INELIGIBLE
+          - NOT_SCREENED
+          - STALE
+        description: Approved freshness/state policy required.
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+        description: Page number.
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+        description: Bounded page size.
+  /api/v1/donors/{donor_id}:
+    get:
+      operationId: donorProfile
+      summary: Read an authorized donor profile
+      tags:
+      - Donors
+      x-owner: Arnav
+      x-stories:
+      - BB-12
+      x-requirements:
+      - SEC-005
+      - SEC-002
+      x-allowed-roles:
+      - OWN_DONOR
+      - AUTHORIZED_STAFF
+      x-implementation-status: stub
+      description: Proposed contract; approve docs/decisions.md before feature implementation.
+        Current scaffold returns explicit 501 after applicable CSRF/authentication
+        gates; no business success is implemented.
+      security:
+      - sessionCookie: []
+      responses:
+        '200':
+          description: Target response for the approved implementation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DonorProfile'
+        '403':
+          description: authentication_required or forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: not_found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '501':
+          description: Explicit scaffold response. No business action has occurred.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - &id002
+        name: donor_id
+        in: path
+        required: true
+        schema: &id003
+          type: string
+          format: uuid
+        description: UUID of donor profile, not account UUID. Object authorization
+          is mandatory.
+  /api/v1/donors/{donor_id}/eligibility:
+    post:
+      operationId: screenDonor
+      summary: Screen donor and persist result
+      tags:
+      - Donors
+      x-owner: Ankitha
+      x-stories:
+      - BB-07
+      - BB-11
+      - BB-12
+      x-requirements:
+      - FR-003
+      - SEC-003
+      - SEC-005
+      x-allowed-roles:
+      - OWN_DONOR
+      - AUTHORIZED_STAFF
+      x-implementation-status: stub
+      description: Proposed contract; approve docs/decisions.md before feature implementation.
+        Current scaffold returns explicit 501 after applicable CSRF/authentication
+        gates; no business success is implemented.
+      security:
+      - sessionCookie: []
+      responses:
+        '200':
+          description: Target response for the approved implementation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EligibilityResult'
+        '400':
+          description: validation_error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: authentication_required, forbidden or csrf_failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: not_found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: policy_unresolved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '501':
+          description: Explicit scaffold response. No business action has occurred.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - *id002
+      - name: X-CSRFToken
+        in: header
+        required: true
+        schema: *id001
+        description: Obtain from GET /api/v1/auth/csrf and send with same-origin cookies,
+          including for public login/registration.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScreeningInput'
+  /api/v1/donors/{donor_id}/eligibility/result:
+    get:
+      operationId: eligibilityResult
+      summary: Read the latest authorized persisted result
+      tags:
+      - Donors
+      x-owner: Yashwitha; Arnav privacy review
+      x-stories:
+      - BB-08
+      - BB-12
+      x-requirements:
+      - FR-004
+      - SEC-005
+      x-allowed-roles:
+      - OWN_DONOR
+      - AUTHORIZED_STAFF
+      x-implementation-status: stub
+      description: Proposed contract; approve docs/decisions.md before feature implementation.
+        Current scaffold returns explicit 501 after applicable CSRF/authentication
+        gates; no business success is implemented.
+      security:
+      - sessionCookie: []
+      responses:
+        '200':
+          description: Target response for the approved implementation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EligibilityResult'
+        '403':
+          description: authentication_required or forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: not_found or no_result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: policy_unresolved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '501':
+          description: Explicit scaffold response. No business action has occurred.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - *id002
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: sessionid
+      description: Django HttpOnly session cookie; unsafe requests ALSO require X-CSRFToken.
+        Session auth uses 403 authentication_required when unauthenticated, distinct
+        from 403 forbidden.
+  schemas:
+    Error:
+      type: object
+      additionalProperties: false
+      properties:
+        error:
+          type: object
+          additionalProperties: false
+          properties:
+            code: *id001
+            message: *id001
+            fields:
+              type: object
+              additionalProperties: true
+            request_id:
+              type: string
+              description: Correlation UUID when request middleware has run.
+          required:
+          - code
+          - message
+          - fields
+          - request_id
+      required:
+      - error
+    AuthUser:
+      type: object
+      additionalProperties: false
+      properties:
+        id: *id003
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum:
+          - DONOR
+          - STAFF
+          - REQUESTER
+          - ADMIN
+      required:
+      - id
+      - email
+      - role
+    LoginInput:
+      type: object
+      additionalProperties: false
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        password:
+          type: string
+          writeOnly: true
+      required:
+      - email
+      - password
+    LoginOutput:
+      type: object
+      additionalProperties: false
+      properties:
+        user:
+          $ref: '#/components/schemas/AuthUser'
+        session_expires_at: &id004
+          type: string
+          format: date-time
+      required:
+      - user
+      - session_expires_at
+    RegistrationInput:
+      type: object
+      additionalProperties: false
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        mobile:
+          type: string
+          pattern: ^\+[1-9][0-9]{7,14}$
+          description: PROPOSED E.164 format; no implicit country-code guessing. D-05
+            must approve.
+        password:
+          type: string
+          minLength: 12
+          writeOnly: true
+        full_name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        blood_group:
+          type: string
+          enum:
+          - A+
+          - A-
+          - B+
+          - B-
+          - AB+
+          - AB-
+          - O+
+          - O-
+        location:
+          type: string
+          minLength: 1
+          maxLength: 120
+      required:
+      - email
+      - mobile
+      - password
+      - full_name
+      - blood_group
+      - location
+    RegistrationOutput:
+      type: object
+      additionalProperties: false
+      properties:
+        donor_id: *id003
+        user:
+          $ref: '#/components/schemas/AuthUser'
+      required:
+      - donor_id
+      - user
+    DonorSummary:
+      type: object
+      additionalProperties: false
+      properties:
+        id: *id003
+        blood_group:
+          type: string
+        location: *id001
+        eligibility_status:
+          type: string
+          enum:
+          - ELIGIBLE
+          - INELIGIBLE
+          - NOT_SCREENED
+          - STALE
+          description: Proposed states; D-08 must approve stale-result treatment.
+      required:
+      - id
+      - blood_group
+      - location
+      - eligibility_status
+    DonorProfile:
+      type: object
+      additionalProperties: false
+      properties:
+        id: *id003
+        user_id: *id003
+        full_name: *id001
+        email:
+          type: string
+          format: email
+        mobile: *id001
+        blood_group: *id001
+        location: *id001
+      required:
+      - id
+      - user_id
+      - full_name
+      - email
+      - mobile
+      - blood_group
+      - location
+    DonorPage:
+      type: object
+      additionalProperties: false
+      properties:
+        count:
+          type: integer
+          minimum: 0
+        page:
+          type: integer
+          minimum: 1
+        page_size:
+          type: integer
+          minimum: 1
+          maximum: 100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/DonorSummary'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+    ScreeningInput:
+      type: object
+      additionalProperties: false
+      properties:
+        age_years:
+          type: integer
+          minimum: 0
+          description: Answer field, NOT the approved eligible age range.
+        weight_kg:
+          type: string
+          pattern: ^[0-9]+(\.[0-9]{1,2})?$
+        last_donation_date:
+          type: string
+          format: date
+          nullable: true
+      required:
+      - age_years
+      - weight_kg
+      - last_donation_date
+    EligibilityResult:
+      type: object
+      additionalProperties: false
+      properties:
+        id: *id003
+        donor_id: *id003
+        status:
+          type: string
+          enum:
+          - ELIGIBLE
+          - INELIGIBLE
+        reason_codes:
+          type: array
+          items: *id001
+        reasons:
+          type: array
+          items: *id001
+        assessed_at: *id004
+        rules_version: *id001
+        is_stale:
+          type: boolean
+      required:
+      - id
+      - donor_id
+      - status
+      - reason_codes
+      - reasons
+      - assessed_at
+      - rules_version
+      - is_stale
+    Liveness:
+      type: object
+      additionalProperties: false
+      properties:
+        status:
+          type: string
+          enum:
+          - ok
+        scope:
+          type: string
+          enum:
+          - process_only
+        business_features:
+          type: string
+          enum:
+          - not_implemented
+      required:
+      - status
+      - scope
+      - business_features
+    Readiness:
+      type: object
+      additionalProperties: false
+      properties:
+        status:
+          type: string
+          enum:
+          - ready
+          - not_ready
+        checks:
+          type: object
+          additionalProperties: false
+          properties:
+            database:
+              type: string
+              enum:
+              - ok
+              - unavailable
+          required:
+          - database
+      required:
+      - status
+      - checks
+    CsrfToken:
+      type: object
+      additionalProperties: false
+      properties:
+        csrf_token: *id001
+      required:
+      - csrf_token

@@ -1,0 +1,36 @@
+openapi: 3.0.3
+info:
+  title: BloodConnect internal notification scaffold
+  version: 0.1.0
+  description: Only health and authentication gate are scaffolded. Delivery, durable
+    intent and retries are deferred; no 202 delivery success in Sprint 1.
+servers:
+- url: http://notifications:3000
+  description: Docker-private internal service; not publicly published.
+paths:
+  /health/live:
+    get:
+      operationId: notificationLiveness
+      security: []
+      responses:
+        '200':
+          description: Process alive; delivery remains not_implemented.
+  /internal/notifications:
+    post:
+      operationId: internalNotificationStub
+      security:
+      - internalBearer: []
+      x-implementation-status: stub
+      responses:
+        '401':
+          description: Missing/invalid backend service token; never browser credentials.
+        '501':
+          description: Authenticated request, delivery not implemented. No record
+            or receipt created.
+components:
+  securitySchemes:
+    internalBearer:
+      type: http
+      scheme: bearer
+      description: Dedicated generated backend-to-Node token. Never send to browser
+        or commit.

@@ -1,0 +1,13 @@
+{
+  "warning": "Approval register, not runtime clinical configuration. Do not mark decisions approved on behalf of the team.",
+  "bootstrap_defaults_approved": false,
+  "authentication_policy_approved": false,
+  "donor_fields_approved": false,
+  "screening_rules_approved": false,
+  "first_time_donor_policy_approved": false,
+  "freshness_policy_approved": false,
+  "health_access_policy_approved": false,
+  "audit_policy_approved": false,
+  "availability_window_approved": false,
+  "performance_load_approved": false
+}

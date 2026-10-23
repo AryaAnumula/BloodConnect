@@ -1,0 +1,2 @@
+-r requirements.in
+openapi-spec-validator>=0.7,<0.8

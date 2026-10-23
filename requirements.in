@@ -1,0 +1,5 @@
+# Bootstrap-default version families. requirements.txt is the tested resolved lock.
+Django>=5.2,<5.3
+djangorestframework>=3.16,<3.17
+psycopg[binary]>=3.2,<4
+python-dotenv>=1.1,<2

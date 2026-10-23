@@ -1,0 +1,279 @@
+{
+  "BB-01": {
+    "allowed_files": [
+      "backend/accounts/api/login.py",
+      "backend/accounts/services/login.py",
+      "frontend/templates/login.html",
+      "frontend/static/js/pages/login.js",
+      "backend/accounts/tests/test_login.py"
+    ],
+    "interfaces": [
+      "accounts.models.User",
+      "accounts.services.sessions.establish_session",
+      "audit.events.record_security_event"
+    ],
+    "endpoints": [
+      "POST /api/v1/auth/login",
+      "GET /api/v1/auth/csrf",
+      "GET /api/v1/auth/me"
+    ],
+    "test_focus": [
+      "valid/invalid credentials; inactive users; CSRF; protected-route integration; no sensitive error detail"
+    ],
+    "gates": [
+      "BB-02 session contract; BB-04 me/permissions; BB-05 audit hook"
+    ]
+  },
+  "BB-02": {
+    "allowed_files": [
+      "backend/accounts/services/sessions.py",
+      "backend/accounts/api/logout.py",
+      "backend/accounts/tests/test_sessions.py"
+    ],
+    "interfaces": [
+      "accounts.models.User",
+      "accounts.services.login.authenticate_user"
+    ],
+    "endpoints": [
+      "POST /api/v1/auth/login",
+      "POST /api/v1/auth/logout",
+      "GET /api/v1/auth/me",
+      "GET /api/v1/auth/csrf"
+    ],
+    "test_focus": [
+      "hash verification; missing/invalid/expired cookie; logout invalidation; rotation; CSRF"
+    ],
+    "gates": [
+      "D-03/04 approval; shared User schema coordination with Ankitha"
+    ]
+  },
+  "BB-03": {
+    "allowed_files": [
+      "backend/core/health.py",
+      "backend/core/tests/test_health_monitoring.py",
+      "docs/availability.md",
+      "scripts/measure_availability.py"
+    ],
+    "interfaces": [
+      "Django database connection; independent process/DB probes"
+    ],
+    "endpoints": [
+      "GET /api/v1/health/live",
+      "GET /api/v1/health/ready"
+    ],
+    "test_focus": [
+      "200/503 probes; redaction; observation accounting; maintenance exclusions; missing observation cannot pass"
+    ],
+    "gates": [
+      "D-11 approval; full operating-window evidence; later validation is allowed"
+    ]
+  },
+  "BB-04": {
+    "allowed_files": [
+      "backend/accounts/permissions.py",
+      "backend/accounts/api/me.py",
+      "backend/accounts/tests/test_permissions.py"
+    ],
+    "interfaces": [
+      "accounts.models.User",
+      "accounts.services.sessions",
+      "audit.events.record_security_event"
+    ],
+    "endpoints": [
+      "GET /api/v1/auth/me",
+      "GET /api/v1/donors",
+      "GET /api/v1/donors/{donor_id}",
+      "POST /api/v1/donors/{donor_id}/eligibility"
+    ],
+    "test_focus": [
+      "all role fixtures; permitted/denied API calls; cross-record access; inactive account"
+    ],
+    "gates": [
+      "D-09 role/clinical policy; API owners add approved gates without conflicting edits"
+    ]
+  },
+  "BB-05": {
+    "allowed_files": [
+      "backend/audit/events.py",
+      "backend/audit/models/event.py",
+      "backend/audit/tests/test_events.py"
+    ],
+    "interfaces": [
+      "audit.events.record_security_event (provider); endpoint owners add hooks"
+    ],
+    "endpoints": [
+      "POST /api/v1/auth/login",
+      "all role/object-denied endpoints"
+    ],
+    "test_focus": [
+      "failed login/denied access create sanitized durable event; forbidden sensitive fields absent; audit failures follow approved policy"
+    ],
+    "gates": [
+      "D-10 approval; caller owners wire hooks; generate audit migration after schema review"
+    ]
+  },
+  "BB-06": {
+    "allowed_files": [
+      "backend/accounts/api/registration.py",
+      "backend/accounts/services/registration.py",
+      "backend/donors/models/profile.py",
+      "backend/accounts/tests/test_registration.py",
+      "frontend/templates/register.html",
+      "frontend/static/js/pages/registration.js"
+    ],
+    "interfaces": [
+      "accounts.models.User",
+      "accounts.services.registration.register_donor",
+      "core.validation shared primitives"
+    ],
+    "endpoints": [
+      "POST /api/v1/auth/register",
+      "POST /api/v1/auth/login"
+    ],
+    "test_focus": [
+      "201 happy path; missing/malformed fields; normalized duplicates; race/constraint handling; rollback; forbidden role fields; login after registration"
+    ],
+    "gates": [
+      "D-05; User/Profile schema review Arnav; BB-01/02/04 integration; BB-10 review"
+    ]
+  },
+  "BB-07": {
+    "allowed_files": [
+      "backend/donors/api/screening.py",
+      "backend/donors/services/screening.py",
+      "backend/donors/models/eligibility.py",
+      "backend/donors/configuration.py",
+      "backend/donors/tests/test_screening.py",
+      "frontend/templates/screening.html",
+      "frontend/static/js/pages/screening.js"
+    ],
+    "interfaces": [
+      "donors.services.screening.screen_donor",
+      "donors.configuration.approved_screening_rules",
+      "accounts.permissions.may_view_donor_health"
+    ],
+    "endpoints": [
+      "POST /api/v1/donors/{donor_id}/eligibility"
+    ],
+    "test_focus": [
+      "below/at/above boundaries; null/first donor; missing input; saved rule version/result; ownership; stale policy"
+    ],
+    "gates": [
+      "D-07/08/09; registered or seeded donor; coordinate result schema with Yashwitha"
+    ]
+  },
+  "BB-08": {
+    "allowed_files": [
+      "backend/donors/api/result.py",
+      "backend/donors/selectors/results.py",
+      "backend/donors/tests/test_results.py",
+      "frontend/templates/eligibility.html",
+      "frontend/static/js/pages/eligibility.js"
+    ],
+    "interfaces": [
+      "donors.selectors.results.latest_eligibility_result",
+      "accounts.permissions.may_view_donor_health",
+      "EligibilityResult schema owned by Ankitha"
+    ],
+    "endpoints": [
+      "GET /api/v1/donors/{donor_id}/eligibility/result"
+    ],
+    "test_focus": [
+      "eligible/ineligible reason consistency; multiple failed rules; no result; stale result; other donor denied; safe text rendering"
+    ],
+    "gates": [
+      "BB-07 result contract; BB-12 access gate; D-08 freshness"
+    ]
+  },
+  "BB-09": {
+    "allowed_files": [
+      "backend/donors/api/search.py",
+      "backend/donors/selectors/search.py",
+      "backend/donors/tests/test_search.py",
+      "frontend/templates/search.html",
+      "frontend/static/js/pages/search.js"
+    ],
+    "interfaces": [
+      "donors.selectors.search.search_donors",
+      "approved staff-search gate; safe DonorSummary schema"
+    ],
+    "endpoints": [
+      "GET /api/v1/donors"
+    ],
+    "test_focus": [
+      "each filter + AND combinations; plus-sign encoding; empty/invalid input; stable bounded pagination; unauthorized caller; no health exposure; approved load"
+    ],
+    "gates": [
+      "BB-06/07 data; D-08/09/12; Ankitha query review; Arya load evidence"
+    ]
+  },
+  "BB-10": {
+    "allowed_files": [
+      "frontend/templates/register.html",
+      "frontend/static/js/pages/registration.js",
+      "frontend/static/css/app.css",
+      "docs/usability-walkthrough.md",
+      "tests/frontend-registration.test.mjs"
+    ],
+    "interfaces": [
+      "frontend/static/js/api/client.js (shared, coordination required)",
+      "RegistrationInput/Output schemas"
+    ],
+    "endpoints": [
+      "POST /api/v1/auth/register"
+    ],
+    "test_focus": [
+      "<=5 agreed primary screens; mobile/desktop agreed viewports; labels/errors/loading/success; real API integration; no mock success claim"
+    ],
+    "gates": [
+      "BB-06; coordinate same registration page files with Ankitha before edits; agreed screen definition"
+    ]
+  },
+  "BB-11": {
+    "allowed_files": [
+      "backend/core/validation.py",
+      "backend/core/tests/test_validation.py",
+      "docs/input-validation-matrix.md"
+    ],
+    "interfaces": [
+      "shared validation rules provided by Arya; per-endpoint serializers remain endpoint-owner controlled"
+    ],
+    "endpoints": [
+      "POST /api/v1/auth/login",
+      "POST /api/v1/auth/register",
+      "POST /api/v1/donors/{donor_id}/eligibility",
+      "GET /api/v1/donors"
+    ],
+    "test_focus": [
+      "types/length/enums; malicious-looking synthetic input handled safely; bypass UI; no invalid persistence; safe output rendering and non-sensitive errors"
+    ],
+    "gates": [
+      "implemented input endpoints; owner coordination for serializer fixes; no destructive text stripping; shared rules approval"
+    ]
+  },
+  "BB-12": {
+    "allowed_files": [
+      "backend/accounts/permissions.py",
+      "backend/donors/api/profile.py",
+      "backend/donors/selectors/profile.py",
+      "backend/donors/tests/test_privacy.py"
+    ],
+    "interfaces": [
+      "accounts.permissions.may_view_donor_health",
+      "donors.selectors.profile.donor_profile_for_actor",
+      "feature queries enforce own/authorized-staff restrictions"
+    ],
+    "endpoints": [
+      "GET /api/v1/donors/{donor_id}",
+      "GET /api/v1/donors/{donor_id}/eligibility/result",
+      "POST /api/v1/donors/{donor_id}/eligibility",
+      "GET /api/v1/donors"
+    ],
+    "test_focus": [
+      "own donor allowed; other donor/requester denied; authorized staff allowed; admin alone denied; list field redaction; direct UUID access denied"
+    ],
+    "gates": [
+      "D-09; BB-04 shared permissions coordination; BB-06/07/08 data"
+    ]
+  }
+}

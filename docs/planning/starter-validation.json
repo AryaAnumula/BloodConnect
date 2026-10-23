@@ -1,0 +1,60 @@
+{
+  "package": "main-base",
+  "scope": "BB-01 through BB-12 only",
+  "django_tests_passed": 12,
+  "javascript_node_tests_passed": 5,
+  "availability_tool_tests_passed": 0,
+  "openapi_specs_validated": 2,
+  "private_prompt_count": 0,
+  "private_member_guide_count": 0,
+  "browser_smoke": {
+    "result": "PASS",
+    "viewport": "390x844",
+    "loginMessage": "501 This business feature is scaffolded but not implemented.",
+    "registrationMessage": "501 This business feature is scaffolded but not implemented.",
+    "horizontalOverflow": false,
+    "pageErrors": [],
+    "health": {
+      "live": 200,
+      "ready": 200,
+      "anonymousSearch": 403
+    }
+  },
+  "browser_execution": "Executed on this branch",
+  "database_used_for_local_validation": "SQLite smoke-only, explicitly opted in",
+  "docker_postgresql_runtime_tested": false,
+  "remote_ci_run": false,
+  "business_stories_completed": false,
+  "validation_commands": [
+    {
+      "command": "python backend/manage.py migrate --noinput",
+      "exit_code": 0
+    },
+    {
+      "command": "python scripts/validate_repository.py",
+      "exit_code": 0
+    },
+    {
+      "command": "python backend/manage.py check",
+      "exit_code": 0
+    },
+    {
+      "command": "python backend/manage.py makemigrations --check --dry-run",
+      "exit_code": 0
+    },
+    {
+      "command": "python backend/manage.py test core.tests accounts.tests --verbosity 2",
+      "exit_code": 0
+    },
+    {
+      "command": "node --test notification-service/tests/server.test.mjs tests/frontend-api.test.mjs",
+      "exit_code": 0
+    }
+  ],
+  "known_limits": [
+    "No operational availability observation/approval",
+    "Feature APIs still stubs",
+    "No chosen-engine runtime/concurrency acceptance",
+    "No Docker or remote GitHub execution"
+  ]
+}

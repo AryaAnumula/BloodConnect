@@ -1,0 +1,17 @@
+{
+  "warning": "Synthetic only. Expected clinical decisions require approved rules; these are case descriptions, not passing test results.",
+  "cases": [
+    {
+      "label": "first_time_donor",
+      "age_years": 25,
+      "weight_kg": "60.00",
+      "last_donation_date": null
+    },
+    {
+      "label": "boundary_example_requires_approval",
+      "age_years": 18,
+      "weight_kg": "50.00",
+      "last_donation_date": "2025-01-01"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+# LOCAL DEVELOPMENT ONLY. runserver is not a production server.
+services:
+  db:
+    image: postgres:16-bookworm
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?Run bootstrap_env.py}
+      POSTGRES_USER: ${POSTGRES_USER:?Run bootstrap_env.py}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run bootstrap_env.py}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  web:
+    build: .
+    env_file: .env
+    environment:
+      POSTGRES_HOST: db
+      NOTIFICATION_BASE_URL: http://notifications:3000
+    command: ["sh", "-c", "python backend/manage.py migrate --noinput && python backend/manage.py runserver 0.0.0.0:8000"]
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      notifications:
+        condition: service_started
+  notifications:
+    build: ./notification-service
+    environment:
+      PORT: "3000"
+      NOTIFICATION_INTERNAL_TOKEN: ${NOTIFICATION_INTERNAL_TOKEN:?Run bootstrap_env.py}
+    expose:
+      - "3000"
+volumes:
+  postgres_data:

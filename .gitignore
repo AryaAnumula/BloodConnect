@@ -1,0 +1,24 @@
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.sqlite3
+.coverage
+htmlcov/
+.pytest_cache/
+node_modules/
+logs/
+*.log
+.DS_Store
+.vscode/
+.idea/
+artifacts/local/
+config/decisions.local.json
+files/
+# PRIVATE team work material — available in separate workpack, never push to main.
+docs/ai-prompts/
+docs/team/
+TEAM_WORKPACK.md

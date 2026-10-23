@@ -1,0 +1,14 @@
+{
+  "scope": "BB-01 through BB-12 only",
+  "adopted_markdown": {
+    "filename": "BloodConnect_24_User_Stories.md",
+    "sha256": "386a48eeea3351a12f78e109f5c11b3f0b3320662a034a658dd2626f34811d42",
+    "included": "first 12 blocks verbatim in adopted-sprint1-stories.md"
+  },
+  "baseline_pdf": {
+    "filename": "Team5_SRS_SAD_STP.pdf",
+    "sha256": "4a001be8a3038fbc03c5fee7afc03e9d74a38421bea93bc3797fabfa275ce549"
+  },
+  "assignment_source": "Latest named assignments explicitly supplied in the build request; reviewer descriptions retained from the Notion planning table.",
+  "repository_input": "No existing repository was supplied; this is a new starter, not a merge into existing code."
+}

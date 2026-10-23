@@ -1,0 +1,4 @@
+{% load static %}
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{% block title %}BloodConnect{% endblock %}</title><link rel="stylesheet" href="{% static 'css/app.css' %}"></head>
+<body><header><a href="/">BloodConnect</a><nav aria-label="Main"><a href="/login">Login</a><a href="/register">Register</a><a href="/screening">Screening shell</a><a href="/staff/donors">Search shell</a></nav></header>
+<main><p class="notice"><strong>Starter only:</strong> business features are not implemented. These public page shells contain no donor records and do not grant API access.</p>{% block content %}{% endblock %}<p id="status" role="status" aria-live="polite"></p></main>{% block scripts %}{% endblock %}</body></html>
