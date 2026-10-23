@@ -26,3 +26,7 @@ This report records executed checks, not completion of BB-01–BB-12.
 ## Reproduce
 
 Use README.md, docs/testing.md and scripts/check.sh. Command exit codes are recorded in docs/planning/starter-validation.json. Tests of stub/probe behavior must evolve deliberately as actual features land; do not delete assertions merely to hide failures.
+
+## BB-03 implementation checkpoint
+
+The original baseline results above are retained as historical starter evidence. This BB-03 change additionally passed 16 total Django tests, 29 monitoring-tool tests and 5 JavaScript/Node regression tests. Both API specifications, system checks, SQLite migration consistency and protocol dry-run passed. Operational approval/window, Docker/PostgreSQL and remote CI remain unverified. See [BB-03 handoff](docs/handoffs/BB-03.md) for scope and actual evidence limits.
