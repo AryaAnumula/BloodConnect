@@ -1,5 +1,6 @@
 """BB-02 tests. All users are synthetic example.test accounts."""
 from datetime import timedelta
+from unittest.mock import patch
 
 from django.conf import settings
 from django.contrib.auth import SESSION_KEY, get_user_model
@@ -106,8 +107,56 @@ class SessionExpiryTests(TestCase):
         self.assertNotIn(SESSION_KEY, SessionStore(session_key=key))
 
     def test_provisional_policy_values_are_in_settings(self):
-        # PROVISIONAL (D-04 not approved). Update deliberately if the team changes it.
+        # D-03/04 approved for Sprint 1 (Arya). Update deliberately if the team changes it.
         self.assertEqual(settings.SESSION_COOKIE_AGE, 1800)
         self.assertFalse(settings.SESSION_SAVE_EVERY_REQUEST)
         self.assertTrue(settings.SESSION_COOKIE_HTTPONLY)
         self.assertEqual(settings.SESSION_COOKIE_SAMESITE, 'Lax')
+
+
+class AbsoluteExpiryTests(TestCase):
+    """D-03/04: 30 minutes from sign-in; later session writes must not extend it."""
+
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            email='abs1@example.test', password=PASSWORD)
+
+    def expire_date(self, key):
+        return Session.objects.get(session_key=key).expire_date
+
+    def test_expiry_is_login_time_plus_policy_lifetime(self):
+        before = timezone.now()
+        request = make_request()
+        establish_session(request=request, user=self.user)
+        request.session.save()
+        after = timezone.now()
+        lifetime = timedelta(seconds=settings.SESSION_COOKIE_AGE)
+        expire = self.expire_date(request.session.session_key)
+        self.assertGreaterEqual(expire, before + lifetime)
+        self.assertLessEqual(expire, after + lifetime)
+
+    def test_later_session_write_does_not_extend_expiry(self):
+        request = make_request()
+        establish_session(request=request, user=self.user)
+        request.session.save()
+        key = request.session.session_key
+        first = self.expire_date(key)
+        ten_minutes_later = timezone.now() + timedelta(minutes=10)
+        with patch('django.utils.timezone.now', return_value=ten_minutes_later):
+            later = SessionStore(session_key=key)
+            later['unrelated'] = 'x'
+            later.save()
+        self.assertEqual(self.expire_date(key), first)
+
+    def test_session_dies_at_lifetime_even_if_written_to_midway(self):
+        request = make_request()
+        establish_session(request=request, user=self.user)
+        request.session.save()
+        key = request.session.session_key
+        start = timezone.now()
+        with patch('django.utils.timezone.now', return_value=start + timedelta(minutes=20)):
+            midway = SessionStore(session_key=key)
+            midway['unrelated'] = 'x'
+            midway.save()
+        with patch('django.utils.timezone.now', return_value=start + timedelta(minutes=31)):
+            self.assertNotIn(SESSION_KEY, SessionStore(session_key=key))
