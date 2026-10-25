@@ -14,7 +14,7 @@ Source requirement references are preserved. Infrastructure test names below are
 | BB-08 | FR-004; SEC-005. | `BB-08.md` (private team workpack) | Unimplemented / approval and integration needed |
 | BB-09 | FR-005; SEC-002; SEC-005; NFR-001. | `BB-09.md` (private team workpack) | Unimplemented / approval and integration needed |
 | BB-10 | NFR-003; FR-001. | `BB-10.md` (private team workpack) | Unimplemented / approval and integration needed |
-| BB-11 | SEC-003. | `BB-11.md` (private team workpack) | Unimplemented / approval and integration needed |
+| BB-11 | SEC-003. | `BB-11.md` (private team workpack) | Shared validation/parser candidate implemented; feature-owner wiring, approvals and complete acceptance pending; see docs/handoffs/BB-11.md |
 | BB-12 | SEC-005; SEC-002. | `BB-12.md` (private team workpack) | Unimplemented / approval and integration needed |
 
 ## Starter infrastructure evidence only

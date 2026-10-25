@@ -73,6 +73,8 @@ def validate_shared_input(*, value, rule_name: str):
 
 PROPOSED public interface. Owner: Arya / BB-11; endpoint serializers remain feature-owned. Coordinate signature changes.
 
+BB-11 implements this provider as a review candidate. Returns a validated value for email/mobile/full_name/location, raises DRF ValidationError otherwise; no DB writes, transactions or network side effects. StrictInputSerializer/input_schemas and opt-in core.parsers.StrictJSONParser are documented in docs/input-validation-matrix.md. Providers do not wire themselves into feature endpoints or approve D-05 policy.
+
 ### `backend/donors/configuration.py`
 
 ```python
