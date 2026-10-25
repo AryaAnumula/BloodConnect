@@ -10,15 +10,22 @@ def is_authorized_staff(*, user) -> bool:
         return False
     if not getattr(user, 'is_active', False):
         return False
-    # D-09 (PROPOSED, not approved): STAFF role AND the explicit clinical permission
-    # are both required. ADMIN role or superuser status alone never grants access.
+    # D-09 (approved): STAFF role AND an explicitly granted permission.
+    # Django's has_perm() returns True for EVERY active superuser, which would be a
+    # silent bypass, so superusers are refused before has_perm() is consulted.
+    if getattr(user, 'is_superuser', False):
+        return False
     if getattr(user, 'role', None) != 'STAFF':
         return False
     return user.has_perm(VIEW_DONOR_HEALTH)
 
 
 class IsAuthorizedStaff(BasePermission):
-    """DRF gate for staff-only endpoints. Endpoint owners add it to permission_classes.
+    """DRF gate for STAFF-ONLY routes (for example donor search).
+
+    Do NOT use this alone on own-donor-or-staff routes (profile, screening,
+    eligibility result): it would block legitimate donors. See
+    docs/permissions-usage.md.
 
     Anonymous callers get the standard 403 authentication_required envelope;
     signed-in callers without staff authorization get 403 forbidden.

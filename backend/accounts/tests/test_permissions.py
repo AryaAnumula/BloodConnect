@@ -1,4 +1,4 @@
-"""BB-04 tests. Synthetic example.test users only. Policy is PROVISIONAL (D-09 not approved)."""
+"""BB-04 tests. Synthetic example.test users only. Policy per approved D-09."""
 from types import SimpleNamespace
 
 from django.contrib.auth import get_user_model
@@ -54,7 +54,7 @@ class IsAuthorizedStaffTests(TestCase):
     def test_admin_role_alone_is_denied(self):
         self.assertFalse(is_authorized_staff(user=make_user('ADMIN', 'admin2')))
 
-    def test_admin_with_clinical_permission_is_still_denied_under_proposed_policy(self):
+    def test_admin_with_clinical_permission_is_still_denied(self):
         user = with_clinical_permission(make_user('ADMIN', 'admin3'))
         self.assertFalse(is_authorized_staff(user=user))
 
@@ -110,3 +110,25 @@ class IsAuthorizedStaffPermissionClassTests(TestCase):
         user = with_clinical_permission(make_user('STAFF', 'staff7'))
         request = SimpleNamespace(user=user)
         self.assertTrue(IsAuthorizedStaff().has_permission(request, None))
+
+
+class SuperuserBypassTests(TestCase):
+    def make_superuser_with_staff_role(self):
+        return get_user_model().objects.create_superuser(
+            email='super2@example.test', password=PASSWORD, role='STAFF')
+
+    def test_superuser_with_staff_role_is_denied_despite_django_bypass(self):
+        user = self.make_superuser_with_staff_role()
+        self.assertTrue(user.has_perm('accounts.view_donor_health'))  # Django's automatic bypass
+        self.assertFalse(is_authorized_staff(user=user))
+
+    def test_superuser_with_staff_role_gets_403_from_staff_only_route(self):
+        request = APIRequestFactory().get('/synthetic-staff-only')
+        force_authenticate(request, user=self.make_superuser_with_staff_role())
+        response = StaffOnlyView.as_view()(request)
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.data['error']['code'], 'forbidden')
+
+    def test_django_is_staff_flag_alone_grants_nothing(self):
+        user = make_user('STAFF', 'staff8', is_staff=True)
+        self.assertFalse(is_authorized_staff(user=user))
