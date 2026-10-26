@@ -1,10 +1,12 @@
 openapi: 3.0.3
 info:
-  title: BloodConnect Sprint 1 API — proposed contracts
+  title: BloodConnect Sprint 1 API — implementation and proposed feature contracts
   version: 0.1.0
-  description: BB-01–BB-12 only. Contract proposals are not completed features. See
-    x-implementation-status. No trailing slashes. Same-origin session auth is a provisional
-    bootstrap default; SAD JWT was a proposal, not an approved requirement.
+  description: >-
+    BB-01–BB-12 only. Same-origin session/CSRF and session policy are recorded
+    in docs/decisions.md. Implemented authentication is not proof of donor-feature
+    acceptance. Donor feature schemas and unresolved policies remain proposals.
+    See x-implementation-status per operation. No trailing slashes.
 servers:
 - url: http://localhost:8000
   description: Local development only. Production requires HTTPS and approved deployment
@@ -100,33 +102,34 @@ paths:
       - BB-01
       - BB-02
       - BB-05
+      - BB-11
       x-requirements:
       - FR-002
       - SEC-001
       - SEC-004
       - SEC-006
+      - SEC-003
       x-allowed-roles:
       - PUBLIC
-      x-implementation-status: stub
-      description: Proposed contract; approve docs/decisions.md before feature implementation.
-        Current scaffold returns explicit 501 after applicable CSRF/authentication
-        gates; no business success is implemented.
+      x-implementation-status: implemented-component
+      description: Implemented component; recorded session/role decisions apply.
+        Runtime implementation is present; full story acceptance still requires its evidence.
       security: []
       responses:
         '503':
-          description: Proposed D-10 audit persistence failure; no raw storage details.
+          description: Implemented audit-storage failure response; D-10 operational policy remains unresolved.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
         '200':
-          description: Target response for the approved implementation.
+          description: Implemented response.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/LoginOutput'
         '400':
-          description: validation_error
+          description: validation_error or invalid_json; strict JSON object, no unknown or duplicate keys
           content:
             application/json:
               schema:
@@ -143,8 +146,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-        '501':
-          description: Explicit scaffold response. No business action has occurred.
+
+        '415':
+          description: Unsupported media type; use application/json.
           content:
             application/json:
               schema:
@@ -243,33 +247,27 @@ paths:
       - SEC-004
       x-allowed-roles:
       - AUTHENTICATED
-      x-implementation-status: stub
-      description: Proposed contract; approve docs/decisions.md before feature implementation.
-        Current scaffold returns explicit 501 after applicable CSRF/authentication
-        gates; no business success is implemented.
+      x-implementation-status: implemented-component
+      description: Implemented component; recorded session/role decisions apply.
+        Runtime implementation is present; full story acceptance still requires its evidence.
       security:
       - sessionCookie: []
       responses:
         '503':
-          description: Proposed D-10 audit persistence failure; no raw storage details.
+          description: Implemented audit-storage failure response; D-10 operational policy remains unresolved.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
         '204':
-          description: Target logout success; no response body.
+          description: Implemented logout success; no response body.
         '403':
           description: authentication_required, forbidden or csrf_failed
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-        '501':
-          description: Explicit scaffold response. No business action has occurred.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+
       parameters:
       - name: X-CSRFToken
         in: header
@@ -290,21 +288,20 @@ paths:
       - SEC-002
       x-allowed-roles:
       - AUTHENTICATED
-      x-implementation-status: stub
-      description: Proposed contract; approve docs/decisions.md before feature implementation.
-        Current scaffold returns explicit 501 after applicable CSRF/authentication
-        gates; no business success is implemented.
+      x-implementation-status: implemented-component
+      description: Implemented component; recorded session/role decisions apply.
+        Runtime implementation is present; full story acceptance still requires its evidence.
       security:
       - sessionCookie: []
       responses:
         '503':
-          description: Proposed D-10 audit persistence failure; no raw storage details.
+          description: Implemented audit-storage failure response; D-10 operational policy remains unresolved.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
         '200':
-          description: Target response for the approved implementation.
+          description: Implemented response.
           content:
             application/json:
               schema:
@@ -315,12 +312,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-        '501':
-          description: Explicit scaffold response. No business action has occurred.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+
   /api/v1/donors:
     get:
       operationId: searchDonors
@@ -693,9 +685,11 @@ components:
           type: string
           format: email
           maxLength: 254
+          minLength: 1
         password:
           type: string
           writeOnly: true
+          minLength: 1
       required:
       - email
       - password

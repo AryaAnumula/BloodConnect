@@ -1,36 +1,70 @@
-# Sprint 1 endpoint guide
+# Sprint 1 API guide — runtime versus feature contracts
 
-**Status:** endpoint designs are proposals pending approval. The executable scaffold only provides liveness/readiness, CSRF initialization and fail-closed business stubs. OpenAPI is the field/schema authority, not proof of implementation.
+Base: main `fcf58cf` plus BB-11 PR #33 and this refresh. Field/schema authority: [OpenAPI](openapi.yaml). Stories/requirements stay as adopted. **Route existence does not prove feature completion.**
 
-| Method/path | Owner | Allowed caller (target) | Input → output | Stories | Current status |
-| --- | --- | --- | --- | --- | --- |
-| `GET /api/v1/health/live` | Arya | PUBLIC | none → Liveness | BB-03 | implemented-infrastructure |
-| `GET /api/v1/health/ready` | Arya | PUBLIC | none → Readiness | BB-03 | implemented-infrastructure |
-| `GET /api/v1/auth/csrf` | Arnav / Yashwitha | PUBLIC | none → CsrfToken | BB-01, BB-02 | implemented-infrastructure |
-| `POST /api/v1/auth/login` | Ankitha; Arnav session integration | PUBLIC | LoginInput → LoginOutput | BB-01, BB-02, BB-05 | stub |
-| `POST /api/v1/auth/register` | Ankitha | PUBLIC | RegistrationInput → RegistrationOutput | BB-06, BB-10, BB-11 | stub |
-| `POST /api/v1/auth/logout` | Arnav | AUTHENTICATED | none → no body | BB-02 | stub |
-| `GET /api/v1/auth/me` | Arnav | AUTHENTICATED | none → AuthUser | BB-04 | stub |
-| `GET /api/v1/donors` | Yashwitha; Ankitha API review | STAFF_UNDER_APPROVED_SEARCH_POLICY | none → DonorPage | BB-09, BB-11, BB-12 | stub |
-| `GET /api/v1/donors/{donor_id}` | Arnav | OWN_DONOR, AUTHORIZED_STAFF | none → DonorProfile | BB-12 | stub |
-| `POST /api/v1/donors/{donor_id}/eligibility` | Ankitha | OWN_DONOR, AUTHORIZED_STAFF | ScreeningInput → EligibilityResult | BB-07, BB-11, BB-12 | stub |
-| `GET /api/v1/donors/{donor_id}/eligibility/result` | Yashwitha; Arnav privacy review | OWN_DONOR, AUTHORIZED_STAFF | none → EligibilityResult | BB-08, BB-12 | stub |
+| Method / path | Primary owner | Allowed caller / gate | Request → response | Runtime status |
+| --- | --- | --- | --- | --- |
+| GET /api/v1/health/live | Arya / BB-03 | public | none → Liveness 200 | implemented infrastructure |
+| GET /api/v1/health/ready | Arya / BB-03 | public | none → Readiness 200/503 | implemented infrastructure |
+| GET /api/v1/auth/csrf | Arnav; frontend Yashwitha | public, retain cookies | none → CsrfToken 200 | implemented |
+| POST /api/v1/auth/login | Ankitha / BB-01; Arnav BB-02; Arya BB-05/11 | public + CSRF | LoginInput → LoginOutput 200 | implemented reference with strict validation |
+| POST /api/v1/auth/logout | Arnav / BB-02 | active authenticated + CSRF | no body → 204 **empty body** | implemented |
+| GET /api/v1/auth/me | Arnav / BB-04 | active authenticated | none → AuthUser 200 | implemented, metadata only |
+| POST /api/v1/auth/register | Ankitha / BB-06, UI Yashwitha BB-10 | public + CSRF; never public elevated-role provisioning | RegistrationInput → RegistrationOutput | 501 stub; proposed fields/policy |
+| GET /api/v1/donors | Yashwitha / BB-09; Arnav access review | target: IsAuthorizedStaff | query → DonorPage | stub: anonymous 403, authenticated 501; staff gate must be wired |
+| GET /api/v1/donors/{donor_id} | Arnav / BB-12 | target: own donor OR authorized clinical staff | UUID → DonorProfile | stub; object authorization/projection unfinished |
+| POST /api/v1/donors/{donor_id}/eligibility | Ankitha / BB-07; Arnav privacy review | target: own donor OR authorized clinical staff + CSRF | UUID + ScreeningInput → EligibilityResult | stub; no clinical evaluation/write |
+| GET /api/v1/donors/{donor_id}/eligibility/result | Yashwitha / BB-08; Arnav privacy review | target: own donor OR authorized clinical staff | UUID → EligibilityResult | stub; no real results |
 
-## Conventions
+Full owner/story/FR/SEC mappings, types, required fields, outputs, response codes and parameters are in each OpenAPI operation. No separate endpoint is invented for SEC-003. Frontend calls Django, never Python imports or the internal Node service.
 
-- `/api/v1/`, no trailing slashes, JSON bodies and `snake_case` field names. UUIDs identify accounts, donor profiles and results; donor UUID is not the account UUID.
-- Proposed email normalization: trim surrounding whitespace and lowercase consistently. Database uniqueness must match it. Proposed mobile format: E.164, no inferred country. D-05 approval required.
-- Search: AND selected filters, exact blood group, case-insensitive substring location; proposed stable ordering by donor UUID, bounded page size 1–100. Schema values for stale/not-screened require D-08 approval.
-- Never include health answers, credentials or tokens in donor search summaries. Profile/result object access is separate from list visibility.
-- Timestamps are offset-aware ISO 8601; store UTC. Local screen/date-boundary interpretation uses Asia/Kolkata provisionally. Future report boundaries remain a separate unresolved policy.
-- Success shapes are exact schemas in `openapi.yaml`; validation error: 400, duplicate contact: 409, absent record/result: 404, unfinished feature: 501.
-- Session-auth protected calls return **403 `authentication_required`** when unsigned-in and **403 `forbidden`** when signed-in but denied. Invalid login credentials target **401 `invalid_credentials`**. CSRF failure is **403 `csrf_failed`**. This follows the provisional cookie-session design; do not silently promise JWT-style 401 semantics.
-- Every error uses `{error: {code, message, fields, request_id}}`. Never echo sensitive field values in messages. X-Request-ID is a correlation UUID, not an account identifier.
-- Obtain a CSRF token from `GET /api/v1/auth/csrf`, retain cookies, then send X-CSRFToken on POST, including login/register. Refresh the cached token after successful login because Django rotates it. No browser tokens in localStorage.
-- Security/quality stories govern these endpoints; no invented `/security`, `/validation` or `/privacy` API.
+## Exact ingress contracts
 
-## Current behavior versus target behavior
+All POST feature bodies are JSON **objects**, not lists/null; field names use snake_case, no undeclared privilege fields. Login uses StrictJSONParser now; feature owners opt in when implementing other JSON views. Duplicate keys, invalid syntax/UTF-8, NaN/Infinity and overflow such as 1e999 produce redacted 400 `invalid_json` on the wired login. Do not manually prefilter raw input before strict validation.
 
-Public business stubs return 501 after CSRF checks. Protected stubs return 403 when anonymous and 501 when authenticated. **Role/object checks and business actions are not implemented.** No data is returned by a stub. Health checks do not establish user authentication, 99% availability, performance or medical safety.
+| Schema / ingress | Required fields / validation | Gate / effects |
+| --- | --- | --- |
+| LoginInput | email: string, valid email, max254, trim/lowercase; password: nonempty string, exact whitespace retained | implemented before credential evaluation; no guessed max password length |
+| RegistrationInput | email max254; mobile E.164 `+` then 8–15 digits, nonzero first digit; password string min12 **PROPOSED**; full_name and location trimmed nonblank max120; blood_group enum | D-04 password and D-05 approval required; provider does not enforce DB uniqueness or create account/profile |
+| ScreeningInput | age_years JSON integer >=0 (not eligible age); weight_kg nonnegative decimal **string**, at most 2 decimal places; last_donation_date required ISO YYYY-MM-DD or null | D-07/08 approve clinical/null/freshness behavior; no provider clinical thresholds |
+| SearchInput | optional blood_group, location max120 (empty allowed), eligibility_status; page integer digits >=1 default1; page_size1..100 default20; duplicate or unknown query keys rejected | D-08 states/freshness and staff gate required; no medical answers in summary |
 
-The Node adapter uses `/internal/notifications` on the private service. It accepts only the dedicated service token, then returns 501. There is no frontend-to-Node call, real carrier or recorded delivery. No Sprint-2 endpoints/models/prompts are included.
+blood_group: `A+ A- B+ B- AB+ AB- O+ O-`. Proposed search eligibility_status: `ELIGIBLE INELIGIBLE NOT_SCREENED STALE`. Result status: `ELIGIBLE INELIGIBLE`, with is_stale separately. Encode a plus sign in queries (`O%2B`); use URLSearchParams rather than manual concatenation. Do not derive medical eligibility from a valid payload.
+
+## Output projections (exact property types in OpenAPI)
+
+- LoginOutput: `{user: {id, email, role}, session_expires_at}`. No password, health data or bearer token.
+- AuthUser: `{id, email, role}` only.
+- RegistrationOutput: `{donor_id, user: {id, email, role}}` (target; not returned by the stub).
+- DonorProfile: `{id, user_id, full_name, email, mobile, blood_group, location}` target allowlist; field-visibility policy still requires BB-12 approval.
+- DonorPage: `{count, page, page_size, results: [{id, blood_group, location, eligibility_status}]}`. Empty real results use `count: 0, results: []`, not 404 or a fabricated success while stubbed.
+- EligibilityResult: `{id, donor_id, status, reason_codes, reasons, assessed_at, rules_version, is_stale}`. No raw screening answers in general summaries.
+
+Identifiers are UUID strings; **donor_id is not user_id**. Timestamps are aware ISO 8601, stored UTC; date-only values stay YYYY-MM-DD, not silently converted to timestamps. Proposed local date interpretation Asia/Kolkata needs boundary/policy review. Proposed search: AND filters, exact group, case-insensitive location substring, stable donor-UUID ordering, bounded pagination. Implementation/performance evidence pending.
+
+## Errors and security
+
+Error body: `{ "error": { "code": "validation_error", "message": "Request validation failed.", "fields": {"email": ["Enter a valid email address."]}, "request_id": "<correlation UUID>" } }`.
+Never echo raw input, DB exceptions, passwords, sessions or health data. Correlation ID is not identity. Validation error fields are controlled rule messages, not arbitrary input names.
+
+- Login: 200 valid; 400 validation_error/invalid_json; 401 invalid_credentials (same generic message for unknown, wrong or inactive); 403 csrf_failed; 415 unsupported media type; 503 audit_unavailable.
+- Signed-in routes: missing/invalid/expired cookie session normally 403 authentication_required/invalid_authentication, not JWT-style 401. Signed-in role denial 403 forbidden. Denial-audit storage failure may return redacted 503. CSRF failure 403 csrf_failed.
+- Proposed business responses: 400 invalid input, 409 duplicate contact, 404 missing record/result, 200/201 per OpenAPI. Hidden-object denial 403 versus 404 remains a policy decision: do not guess or globally audit every 404.
+- Unfinished public business stub returns 501 after CSRF; protected stubs return anonymous403/authenticated501. They do not create data. Shape validators do not authorize requests, guarantee transactions, SQL safety in unrelated raw queries or sanitize HTML/URL/CSS contexts.
+
+## Real frontend reference
+
+```javascript
+import { apiFetch, resetCsrfToken, showStatus } from '/static/js/api/client.js';
+// In a served same-origin module; do not log credentials.
+await apiFetch('/api/v1/auth/login', { method: 'POST', body: { email, password } });
+resetCsrfToken(); // login rotates CSRF: next POST must initialize a fresh token
+const me = await apiFetch('/api/v1/auth/me');
+showStatus(`Signed in as ${me.email}`); // actual helper uses textContent
+await apiFetch('/api/v1/auth/logout', { method: 'POST' }); // returns null for 204
+resetCsrfToken();
+```
+
+`apiFetch` accepts only agreed same-origin API paths, sends cookies, initializes CSRF, serializes JSON, throws controlled error.message/code/status and handles 204 without JSON parsing. Caller owns UI state and clearing cached CSRF after session changes. No tokens/localStorage, no real donor fixtures. Browser controls/client validation are convenience, not server security.
+
+The mocked Node `/internal/notifications` remains private token-authenticated and 501; no frontend calls or delivery claims. Sprint 2 is excluded.

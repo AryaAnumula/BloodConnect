@@ -2,7 +2,7 @@
 
 ## Bootstrap defaults: PROPOSED, NOT APPROVED
 
-These defaults exist to make one runnable common base, not to resolve project policy on behalf of the team. Arya records real team approval, date and affected files in a PR. Do not mark these approved automatically. Change defaults once centrally BEFORE parallel feature work; changing the auth/database basis later affects all members.
+These defaults exist to make one runnable common base, not to resolve project policy on behalf of the team. Arya records real team approval, 25-10-26 25-10-26 and affected files in a PR. Do not mark these approved automatically. Change defaults once centrally BEFORE parallel feature work; changing the auth/database basis later affects all members.
 
 | ID | Provisional choice and reason | Alternative / approval action |
 | --- | --- | --- |
@@ -25,6 +25,20 @@ Camp action-by-role conflict, walk-in model/capacity, late-booking reminder poli
 
 ## Approval record template
 
-Decision ID | Approved wording | Approver(s) | Date | Affected contracts/models/tests | PR
+Decision ID | Approved wording | Approver(s) | 25-10-26 25-10-26 | Affected contracts/models/tests | PR
 
 The example `config/decisions.example.json` is an approval checklist, not medical configuration or permission to bypass open questions.
+
+## Approval record — Sprint 1 design approvals
+
+Reference: Arya's design-review reply to Arnav on the BB-02/BB-04 handoff. These are design approvals only, not code approval or permission to merge. They do not approve other provisional D-04 settings such as the password policy.
+
+| Decision ID | Approved wording | Approver(s) | 25-10-26 | Affected contracts/models/tests | PR |
+| --- | --- | --- | --- | --- | --- |
+| D-03 | Same-origin Django database-backed sessions with CSRF | Arya | <25-10-26
+> | accounts/services/sessions.py; accounts/api/logout.py; tests/test_sessions.py, test_logout_api.py | #31 |
+| D-04 (session part) | 30-minute absolute lifetime from successful sign-in, no automatic sliding renewal; session rotation on login; server-side invalidation on logout; HTTPS and secure cookies outside loopback development | Arya | <25-10-26> | accounts/services/sessions.py; tests/test_sessions.py (AbsoluteExpiryTests) | #31 |
+| D-09 | Authorized clinical staff = STAFF role + explicitly granted view_donor_health. ADMIN alone gets no clinical access, including a Django superuser (no superuser bypass). Permission grant/provisioning stays controlled; public registration never accepts role or permission assignment | Arya | <25-10-26> | accounts/permissions.py; tests/test_permissions.py | BB-04 PR |
+| Role matrix | Public: health, CSRF, login, registration. Any active authenticated user: logout, /auth/me. Own donor or authorized clinical staff: donor profile, screening, eligibility result (with object-level checks). Authorized staff only: donor search (summary fields, no health answers). ADMIN/REQUESTER gain no donor access through a generic signed-in check | Arya | <25-10-26> | accounts/permissions.py, accounts/api/me.py; tests/test_me_api.py, test_permissions.py | BB-04 PR |
+
+Integration evidence (BB-11 refresh): `core.tests.test_bb11_reference_flow` injects successful-login audit-storage failure for fresh and existing anonymous sessions. The response is redacted 503 and no authenticated session persists with the current Django middleware. This is a bounded regression result, not approval of all D-10 failure/retention policies. Re-run it whenever session persistence or middleware changes; do not describe this previously suspected path as a confirmed defect.
