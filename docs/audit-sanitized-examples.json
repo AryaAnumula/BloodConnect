@@ -1,0 +1,7 @@
+{
+  "status": "illustrative synthetic examples, NOT captured production evidence",
+  "events": [
+    {"id": "00000000-0000-4000-8000-000000000001", "occurred_at": "2026-01-01T00:00:00Z", "event_type": "login", "actor_id": null, "request_id": "00000000-0000-4000-8000-000000000002", "outcome": "failure"},
+    {"id": "00000000-0000-4000-8000-000000000003", "occurred_at": "2026-01-01T00:00:01Z", "event_type": "access_denied", "actor_id": "00000000-0000-4000-8000-000000000004", "request_id": "00000000-0000-4000-8000-000000000005", "outcome": "denied"}
+  ]
+}

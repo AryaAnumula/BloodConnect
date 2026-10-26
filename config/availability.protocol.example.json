@@ -1,0 +1,14 @@
+{
+  "protocol_id": null,
+  "environment_name": null,
+  "source_revision": null,
+  "approved_by": null,
+  "approved_at": null,
+  "approval_reference": null,
+  "start": "2026-01-01T09:00:00+05:30",
+  "end": "2026-01-01T10:00:00+05:30",
+  "interval_seconds": 10,
+  "timeout_seconds": 2,
+  "maintenance": [],
+  "note": "Shape example only. Dates/interval are not approved. Replace dates with the actual future approved observation window. Never invent approval or a deployment revision."
+}

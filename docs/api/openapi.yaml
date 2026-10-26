@@ -113,6 +113,12 @@ paths:
         gates; no business success is implemented.
       security: []
       responses:
+        '503':
+          description: Proposed D-10 audit persistence failure; no raw storage details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '200':
           description: Target response for the approved implementation.
           content:
@@ -244,6 +250,12 @@ paths:
       security:
       - sessionCookie: []
       responses:
+        '503':
+          description: Proposed D-10 audit persistence failure; no raw storage details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '204':
           description: Target logout success; no response body.
         '403':
@@ -285,6 +297,12 @@ paths:
       security:
       - sessionCookie: []
       responses:
+        '503':
+          description: Proposed D-10 audit persistence failure; no raw storage details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '200':
           description: Target response for the approved implementation.
           content:
@@ -329,6 +347,12 @@ paths:
       security:
       - sessionCookie: []
       responses:
+        '503':
+          description: Proposed D-10 audit persistence failure; no raw storage details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '200':
           description: Target response for the approved implementation.
           content:
@@ -427,6 +451,12 @@ paths:
       security:
       - sessionCookie: []
       responses:
+        '503':
+          description: Proposed D-10 audit persistence failure; no raw storage details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '200':
           description: Target response for the approved implementation.
           content:
@@ -486,6 +516,12 @@ paths:
       security:
       - sessionCookie: []
       responses:
+        '503':
+          description: Proposed D-10 audit persistence failure; no raw storage details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '200':
           description: Target response for the approved implementation.
           content:
@@ -559,6 +595,12 @@ paths:
       security:
       - sessionCookie: []
       responses:
+        '503':
+          description: Proposed D-10 audit persistence failure; no raw storage details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '200':
           description: Target response for the approved implementation.
           content:
