@@ -122,8 +122,10 @@ class LoginApiTests(TestCase):
         self.assertNotIn('_auth_user_id', self.client.session)
 
     def test_login_unlocks_authenticated_endpoint(self):
-        # BB-04 (/me) is still a stub on main, so a signed-in user gets 501 instead of 200.
-        # What this proves: anonymous is blocked (403) and the login session is accepted.
+        # BB-04 (/me) is merged: anonymous is blocked, a signed-in donor gets their account.
         self.assertEqual(Client().get('/api/v1/auth/me').status_code, 403)
         self.assertEqual(self.login().status_code, 200)
-        self.assertNotEqual(self.client.get('/api/v1/auth/me').status_code, 403)
+        r = self.client.get('/api/v1/auth/me')
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json()['email'], 'donor@example.test')
+        self.assertEqual(r.json()['role'], 'DONOR')
