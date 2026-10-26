@@ -15,7 +15,7 @@ export async function apiFetch(path, { method = 'GET', body } = {}) {
   if (body !== undefined) headers['Content-Type'] = 'application/json';
   if (!['GET', 'HEAD', 'OPTIONS'].includes(method)) headers['X-CSRFToken'] = await getCsrfToken();
   const response = await fetch(path, { method, headers, credentials: 'same-origin', body: body === undefined ? undefined : JSON.stringify(body) });
-  const payload = await response.json();
+  const payload = response.status === 204 ? null : await response.json();
   if (!response.ok) {
     const error = new Error(payload.error?.message || 'Request failed.');
     error.status = response.status; error.code = payload.error?.code;
