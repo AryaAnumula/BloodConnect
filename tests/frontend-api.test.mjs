@@ -20,3 +20,14 @@ test('client initializes CSRF and sends same-origin cookie request', async () =>
     assert.equal(calls[0].options.credentials, 'same-origin');
   } finally { globalThis.fetch = original; resetCsrfToken(); }
 });
+
+
+test('client accepts the real logout contract: 204 with no JSON body', async () => {
+  resetCsrfToken();
+  const original = globalThis.fetch;
+  globalThis.fetch = async url => url.endsWith('/csrf')
+    ? new Response(JSON.stringify({ csrf_token: 'synthetic-csrf' }), { status: 200 })
+    : new Response(null, { status: 204 });
+  try { assert.equal(await apiFetch('/api/v1/auth/logout', { method: 'POST' }), null); }
+  finally { globalThis.fetch = original; resetCsrfToken(); }
+});
