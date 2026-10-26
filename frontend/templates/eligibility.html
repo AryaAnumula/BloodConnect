@@ -1,1 +1,47 @@
-{% extends 'base.html' %}{% block content %}<h1>Eligibility result — shell</h1><p>BB-08: render the authorized saved result and controlled ineligibility reasons.</p>{% endblock %}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Eligibility Result — BloodConnect{% endblock %}
+
+{% block content %}
+<h1>Eligibility result</h1>
+<p>View a previously saved eligibility assessment for a donor.</p>
+<p class="notice">
+  This page displays saved results only. It does not perform a medical assessment.
+  The backend feature is not yet implemented.
+</p>
+
+<form id="eligibility-form">
+  <label for="donor-id">Donor profile UUID</label>
+  <input
+    id="donor-id"
+    name="donor_id"
+    type="text"
+    required
+    maxlength="36"
+    pattern="[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
+    placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+    aria-describedby="donor-id-help"
+  >
+  <p id="donor-id-help">Enter the donor profile ID, not the account ID.</p>
+  <button type="submit">Load saved result</button>
+</form>
+
+<section id="eligibility-result" aria-labelledby="result-heading" hidden>
+  <h2 id="result-heading">Saved assessment</h2>
+  <dl>
+    <dt>Assessment ID</dt><dd id="result-id"></dd>
+    <dt>Donor profile ID</dt><dd id="result-donor-id"></dd>
+    <dt>Status</dt><dd id="result-status"></dd>
+    <dt>Reason codes</dt><dd id="result-reason-codes"></dd>
+    <dt>Reasons</dt><dd id="result-reasons"></dd>
+    <dt>Assessed at</dt><dd id="result-assessed-at"></dd>
+    <dt>Rules version</dt><dd id="result-rules-version"></dd>
+    <dt>Stale assessment</dt><dd id="result-stale"></dd>
+  </dl>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script type="module" src="{% static 'js/pages/eligibility.js' %}"></script>
+{% endblock %}
