@@ -24,6 +24,28 @@ def exception_handler(exc, context):
     if response is None:
         return None  # Unexpected failures remain failures, not fabricated success.
     request = context.get('request')
+    # BB-05: only raised DRF authentication/permission exceptions reach this hook.
+    # Login PR #30 handles its local LoginRejected and records directly: no duplicate.
+    if isinstance(exc, (LoginRejected, AuthenticationFailed, NotAuthenticated, PermissionDenied)):
+        from uuid import UUID, uuid4
+        from audit.events import AuditUnavailable, record_security_event
+        try:
+            correlation = str(UUID(str(getattr(request, 'request_id', ''))))
+        except (ValueError, TypeError, AttributeError):
+            correlation = str(uuid4())
+        if request is not None:
+            request.request_id = correlation
+        user = getattr(request, 'user', None)
+        actor_id = getattr(user, 'pk', None) if getattr(user, 'is_authenticated', False) else None
+        event_type, outcome = ('login', 'failure') if isinstance(exc, LoginRejected) else ('access_denied', 'denied')
+        try:
+            record_security_event(event_type=event_type, actor_id=actor_id,
+                                  request_id=correlation, outcome=outcome)
+        except AuditUnavailable:
+            response.status_code = 503
+            response.data = envelope(request, 'audit_unavailable',
+                                     'Security audit storage is temporarily unavailable.')
+            return response
     fields = {}
     if isinstance(exc, NotAuthenticated):
         code, message = 'authentication_required', 'Sign in to use this endpoint.'

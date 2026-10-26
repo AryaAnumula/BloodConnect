@@ -65,6 +65,8 @@ def record_security_event(*, event_type: str, actor_id: UUID | None, request_id:
 
 PROPOSED public interface. Owner: Arya / BB-05; caller hooks Ankitha/Arnav. Coordinate signature changes.
 
+BB-05 candidate implements this signature. `login/failure` (actor null), `login/success` (actor UUID) match PR #30; `access_denied/denied` is proposed for the shared exception hook. Returns None, raises ValueError for invalid metadata or AuditUnavailable (503) on persistence failure. Owns an atomic write/savepoint, not an independent outer commit. See docs/audit.md for caller/transaction/session-failure obligations; D-10 is not approved.
+
 ### `backend/core/validation.py`
 
 ```python
