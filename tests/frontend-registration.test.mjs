@@ -52,7 +52,7 @@ test('registration form controls have visible labels', () => {
   assert.match(registrationHtml, /<label>Full name<input/);
   assert.match(registrationHtml, /<label>Email<input/);
   assert.match(registrationHtml, /<label>Mobile[^<]*<input/);
-  assert.match(registrationHtml, /<label>Password<input/);
+  assert.match(registrationHtml, /<label>Password[^<]*<input/);
   assert.match(registrationHtml, /<label>Blood group<select/);
   assert.match(registrationHtml, /<label>Location<input/);
 });
