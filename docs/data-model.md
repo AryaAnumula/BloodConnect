@@ -6,13 +6,13 @@
 
 Normalization in manager is only foundational; BB-06 must validate and normalize all ingress paths and enforce uniqueness consistently. Prefer database-backed normalized uniqueness, transaction-safe duplicate handling and real-database tests. Do not assume manager normalization alone covers direct model writes.
 
-## Proposed models — not created until approval
+## Proposed models and candidate schema — approval required before shared rollout
 
 | Model / file | Relationships and minimum proposed fields | Owner / gate |
 | --- | --- | --- |
 | DonorProfile / donors/models/profile.py | UUID; one-to-one User; full_name; unique normalized mobile; blood_group; location; created_at/updated_at | Ankitha; Arnav reviews schema/constraints; D-05 |
 | EligibilityResult / donors/models/eligibility.py | UUID; FK profile; assessed answers needed for approved rules; status; controlled reason codes/messages; assessed_at; rules_version; freshness metadata | Ankitha; Yashwitha consumes; Arnav privacy review; D-07/08/09 |
-| SecurityEvent / audit/models/event.py | UUID; timestamp; allowlisted event_type; actor UUID nullable; request_id; outcome; no credential/health payload | Arya; Arnav schema review; D-10 |
+| SecurityEvent / audit/models/event.py | Candidate schema and initial migration now provided for local review: UUID; timestamp; allowlisted event_type/outcome pairs; actor UUID nullable; request_id; no credential/health payload | Arya; Arnav schema review; D-10 NOT approved; do not apply to shared environments until approval |
 | Rule configuration | Versioned authorized mechanism; no public write endpoint or assumed new admin screen | Ankitha; D-07 |
 
 Mobile/email and donor-account creation must be atomic. UUID account IDs and donor-profile IDs are distinct. Do not expose health answers through list summaries. Do not attach arbitrary request bodies to audit events.
