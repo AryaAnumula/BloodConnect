@@ -19,13 +19,15 @@ class StarterSmokeTests(APITestCase):
         self.assertEqual(response.status_code, 503)
         self.assertNotIn('private connection detail', response.content.decode())
 
-    def test_browser_login_requires_csrf_even_while_stubbed(self):
+    def test_browser_login_requires_csrf_and_validates_input(self):
+        # BB-01: login is implemented, so the old 501 stub assertion was replaced.
+        # The CSRF requirement is still verified.
         client = APIClient(enforce_csrf_checks=True)
         self.assertEqual(client.post('/api/v1/auth/login', {}, format='json').status_code, 403)
         token = client.get('/api/v1/auth/csrf').json()['csrf_token']
         response = client.post('/api/v1/auth/login', {}, format='json', HTTP_X_CSRFTOKEN=token)
-        self.assertEqual(response.status_code, 501)
-        self.assertEqual(response.json()['error']['code'], 'not_implemented')
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()['error']['code'], 'validation_error')
 
     def test_registration_is_not_fabricated_success(self):
         response = self.client.post('/api/v1/auth/register', {}, format='json')
