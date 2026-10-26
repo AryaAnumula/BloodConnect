@@ -2,14 +2,25 @@
 
 **This is a common foundation, not the completed application.** This clean main base contains proposed API contracts, isolated module files, smoke tests and local development setup. The separate private team workpack supplies 12 AI prompts and four member guides; those paths are ignored by Git. No BB-13–24 implementation or prompts are included.
 
+## Current integration handoff — BB-11 refresh
+
+**Read [BB-11 start here](docs/bb11-start-here.md)** before continuing feature work.
+Main fcf58cf includes BB-01–BB-05 components; this BB-11 refresh adds shared validation plus a real login/session/me/logout reference. Donor registration, screening, results, search and privacy integration remain feature-owned work, not completed by this package. Full BB-11 acceptance remains pending feature evidence.
+
+- [Runtime/API contracts](docs/api/endpoints.md) distinguish implemented endpoints from honest501 stubs.
+- [Feature-owner recipes](docs/api/bb11-feature-recipes.md) give exact imports, calls, payloads, gates, transaction boundaries and tests.
+- [Adoption/ownership](docs/bb11-consumer-handoff.md) and [evidence matrix](docs/input-validation-matrix.md) explain each member's next work.
+- Merge the reviewed provider into main, then merge main into clean member branches. Do not copy a ZIP over an existing repo, reapply the original patch or duplicate shared validators.
+- Authentication/session approvals are recorded in decisions.md; remaining proposed choices still need approval. Read later bootstrap notes as historical setup guidance, not a blanket claim that merged providers are still stubs.
+
 ## Start here
 
 For Arya's repository/bootstrap handoff, start with [START_HERE.md](START_HERE.md).
 
-1. Read [decisions](docs/decisions.md). PostgreSQL 16, Django 5.2/DRF, same-origin session+CSRF, Node 24 and manual GitHub Actions are provisional defaults. The SAD mentioned JWT as a proposal; it did not settle authentication. Approve/change these once centrally before member branches diverge.
+1. Read [decisions](docs/decisions.md). Same-origin session+CSRF and session policy now have recorded approvals; password/registration and clinical policy remain separate proposals. Shared environment target: PostgreSQL16, Python3.13/Django5.2/DRF and Node24. Manual GitHub Actions is still a draft; do not claim automatic PR checks.
 2. Review [ownership](docs/ownership.md), [API guide](docs/api/endpoints.md), [interfaces](docs/interfaces.md) and [data model](docs/data-model.md).
-3. Arya creates one reviewed base commit in the shared repository; all four use that commit and their member guide (private team workpack).
-4. Get the base running, then implement a thin login flow collaboratively. Use the [dependency plan](docs/dependencies.md), not numeric story order.
+3. The shared base already exists. All four merge the latest reviewed main into their clean own branch and use their member guide (private team workpack).
+4. Verify the implemented login reference, then build remaining domain features. Use the [BB-11 dependency handoff](docs/bb11-start-here.md), not numeric story order.
 5. From the separate private workpack, read your story prompt in `docs/ai-prompts/BB-XX.md` before giving instructions to your AI. Make small PRs; Arya reviews/merges, and another teammate reviews Arya's own code.
 
 ## Docker local setup (recommended shared environment)
@@ -25,7 +36,7 @@ Open http://localhost:8000 and http://localhost:8000/login. Check `/api/v1/healt
 
 In another terminal:
 ```sh
-docker compose run --rm web python backend/manage.py test core.tests accounts.tests
+docker compose run --rm web python backend/manage.py test core.tests accounts.tests audit.tests
 docker compose run --rm web python backend/manage.py makemigrations --check --dry-run
 docker compose run --rm web python scripts/validate_repository.py
 docker compose run --rm notifications node --test tests/server.test.mjs
@@ -33,10 +44,10 @@ docker compose run --rm notifications node --test tests/server.test.mjs
 
 The web container is Python-only. Frontend Node tests need Node 24 on the host:
 ```sh
-node --test tests/frontend-api.test.mjs
+node --test tests/frontend-api.test.mjs tests/frontend-input-safety.test.mjs
 ```
 
-To create local synthetic role accounts (not working login functionality):
+To create local synthetic role accounts for the implemented login flow:
 ```sh
 docker compose run --rm web python backend/manage.py seed_demo_users
 ```
@@ -73,7 +84,7 @@ Windows without a POSIX shell: run the individual commands in `scripts/check.sh`
 If PostgreSQL/Docker is unavailable, on Linux/macOS in the activated environment:
 ```sh
 DB_ENGINE=sqlite ALLOW_SQLITE_SMOKE=1 python backend/manage.py migrate
-DB_ENGINE=sqlite ALLOW_SQLITE_SMOKE=1 python backend/manage.py test core.tests accounts.tests
+DB_ENGINE=sqlite ALLOW_SQLITE_SMOKE=1 python backend/manage.py test core.tests accounts.tests audit.tests
 ```
 
 Generate `.env` first or provide a generated signing key via environment. SQLite cannot establish chosen-engine constraints, real concurrency or release readiness. This is a local smoke escape hatch, not a database decision.

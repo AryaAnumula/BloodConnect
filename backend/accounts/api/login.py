@@ -7,6 +7,8 @@ from accounts.services.login import LoginRejected, authenticate_user
 from accounts.services.sessions import establish_session  # BB-02 (Arnav)
 from audit.events import record_security_event  # BB-05 (Arya)
 from core.stubs import PublicPostStub
+from core.input_schemas import LoginInputSerializer
+from core.parsers import StrictJSONParser
 
 
 def _request_id(request):
@@ -23,20 +25,15 @@ def _error(request_id, status, code, message, fields=None):
 
 
 class LoginView(PublicPostStub):
+    # BB-11 reference integration. Preserve BB-01 CSRF/auth, BB-02 session and BB-05 audit.
+    parser_classes = [StrictJSONParser]
     # PublicPostStub already applies csrf_protect, so a bad CSRF token returns 403.
     def post(self, request, *args, **kwargs):
         request_id = _request_id(request)
-        data = request.data if hasattr(request.data, 'get') else {}
-        email, password = data.get('email'), data.get('password')
-
-        fields = {}
-        if not isinstance(email, str) or not email.strip():
-            fields['email'] = 'This field is required.'
-        if not isinstance(password, str) or not password:
-            fields['password'] = 'This field is required.'
-        if fields:
-            return _error(request_id, 400, 'validation_error',
-                          'Email and password are required.', fields)
+        serializer = LoginInputSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data['email']
+        password = serializer.validated_data['password']
 
         try:
             user = authenticate_user(email=email, password=password)

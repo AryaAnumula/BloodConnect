@@ -41,7 +41,7 @@ Request IDs come from the existing middleware, which normalizes valid UUID heade
 
 No new endpoint. Existing documented authentication/protected endpoints gain a proposed 503 Error response for audit-storage failures (`docs/api/openapi.yaml`). Existing 401/403 behavior stays unchanged when recording succeeds. GET/POST methods, input schemas, roles, pagination and feature bodies are unchanged. This does NOT make feature stubs implemented.
 
-Denied access stays denied even if the audit DB is unavailable. The failure response is 503 with the standard error envelope rather than falsely saying the event was persisted. D-10 must approve this failure policy before merge. Health/CSRF bootstrap/registration are not new audited endpoints in this candidate. Successful login compatibility can fail with 503 too; session compensation is an unresolved integration blocker below.
+Denied access stays denied even if the audit DB is unavailable. The failure response is 503 with the standard error envelope rather than falsely saying the event was persisted. D-10 must approve this failure policy before merge. Health/CSRF bootstrap/registration are not new audited endpoints in this candidate. Successful-login audit failure also returns503. The bounded session-persistence regression below now covers that path; broader failure/operational policy remains open.
 
 The hook handles raised DRF authentication/permission exceptions only. Controllers that directly return a 401/403 bypass it and must coordinate exactly one writer call. Middleware CSRF failures, 404s, ordinary validation errors, feature-501 responses and successful reads do not create events in this candidate. Approve whether CSRF or other attempt classes belong in D-10 before extending the allowlist. Do not claim coverage for all future routes merely because a shared hook exists.
 
@@ -51,11 +51,11 @@ The writer owns an atomic block/savepoint. It does not own an independent databa
 
 Django TestCase itself wraps tests; these are test mechanics, not a separate production commit strategy. Persistence/migration tests use actual ORM writes, not a mocked writer.
 
-### Important BB-01/BB-02 integration blocker
+### BB-01/BB-02 integration evidence (BB-11 refresh)
 
-PR #30 currently calls establish_session BEFORE its login/success audit write. When the real BB-02 provider lands, an audit failure after session creation could return 503 while leaving an authenticated session. This ZIP does NOT edit Ankitha's or Arnav's files to guess session compensation.
+Current LoginView calls establish_session before its login/success audit write. Earlier prose suspected that an audit failure could leave a usable authenticated cookie. Real middleware tests now show a redacted503 with **no persisted authenticated session** for fresh and existing anonymous clients: see core.tests.test_bb11_reference_flow.ReferenceFlowTests. Django SessionMiddleware does not persist the modified authenticated session on the current503 path. This is bounded evidence for the present providers, not a universal transaction guarantee.
 
-Before complete-login acceptance, Ankitha + Arnav must agree and implement the failure semantics: if success-audit fails, ensure the newly established session is invalidated/not usable (including any session saved by the helper). Add an integration test with real session creation and injected audit DB failure; assert no usable authenticated cookie/session survives. Also prove session creation failures cannot leave a falsely recorded successful login. Do not solve this with a second auth system or by swallowing errors. The proposed ordering/compensation requires joint review. No successful browser-login claim is made here.
+Keep that regression when session helpers/middleware change. Explicit early session.save(), another persistence backend, altered response handling or outer transactions require fresh review. General session-creation failure policy and D-10 remain separate decisions; do not invent a second auth system or swallow errors. Real-browser and PostgreSQL deployment evidence is not supplied by SQLite client tests.
 
 ## Access / retention / operational limits
 
@@ -71,6 +71,6 @@ Existing deployments must apply migrations before serving audited endpoints; oth
 
 ## Coverage and still pending
 
-Implemented/tested candidate: strict writer, model constraints, actual baseline anonymous denial, redacted storage failures, actor/correlation metadata, no sensitive columns/arguments, no public audit reader. PR #30 failed-credential integration can be exercised separately without writer/authenticate mocks. Success-session integration, all real BB-04/12 role/object denials, chosen-engine deployment, independent review and D-10 approvals remain pending. BB-05 is NOT Done.
+Implemented/tested candidate: strict writer, model constraints, actual baseline anonymous denial, redacted storage failures, actor/correlation metadata, no sensitive columns/arguments, no public audit reader. PR #30 failed-credential integration can be exercised separately without writer/authenticate mocks. BB-11 refresh adds actual success-session/audit tests; full BB-12 object-denial coverage, chosen-engine deployment, actual review and D-10 operational approvals remain pending. BB-05 is NOT Done.
 
 See `docs/handoffs/BB-05.md` and `docs/audit-sanitized-examples.json` (illustrative synthetic values, not runtime evidence).

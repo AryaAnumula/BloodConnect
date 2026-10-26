@@ -1,6 +1,6 @@
 # Cross-module public interfaces (PROPOSED)
 
-These signatures are deliberately unfinished and raise NotImplementedError/DecisionRequired until their owning story is implemented. Import a service/selector directly inside Django; do not call your own HTTP API from backend services. Browser callers use API HTTP; Python-to-Node uses private authenticated HTTP. Never import JavaScript as a Python function.
+Implementation status varies: authentication, sessions, staff gate, audit and BB-11 validation are present; donor domain services/selectors and the BB-12 ownership helper remain unfinished. Check the current endpoint guide and function body rather than treating every signature as implemented. Import a service/selector directly inside Django; do not call your own HTTP API from backend services. Browser callers use API HTTP; Python-to-Node uses private authenticated HTTP. Never import JavaScript as a Python function.
 
 ## Ownership, returns, errors and transactions
 
@@ -75,7 +75,7 @@ def validate_shared_input(*, value, rule_name: str):
 
 PROPOSED public interface. Owner: Arya / BB-11; endpoint serializers remain feature-owned. Coordinate signature changes.
 
-BB-11 implements this provider as a review candidate. Returns a validated value for email/mobile/full_name/location, raises DRF ValidationError otherwise; no DB writes, transactions or network side effects. StrictInputSerializer/input_schemas and opt-in core.parsers.StrictJSONParser are documented in docs/input-validation-matrix.md. Providers do not wire themselves into feature endpoints or approve D-05 policy.
+BB-11 implements this provider as a review candidate. Returns a validated value for email/mobile/full_name/location, raises DRF ValidationError otherwise; no DB writes, transactions or network side effects. StrictInputSerializer/input_schemas and opt-in core.parsers.StrictJSONParser are documented in docs/input-validation-matrix.md. The refresh wires the existing LoginView as a real reference; registration/screening/search still require owner adoption and do not gain D-05 approval automatically.
 
 ### `backend/donors/configuration.py`
 

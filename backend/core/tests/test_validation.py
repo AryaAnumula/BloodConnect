@@ -160,6 +160,15 @@ class StrictParserTests(SimpleTestCase):
                 self.parse(raw)
             self.assertNotIn('SYNTHETIC_SECRET', str(raised.exception))
 
+    def test_exponent_overflow_rejected_at_any_depth(self):
+        for raw in [b'1e999', b'{"x":-1e999}', b'{"a":[{"x":1e999}]}']:
+            with self.subTest(raw=raw), self.assertRaises(ParseError):
+                self.parse(raw)
+
+    def test_finite_decimal_and_exponent_numbers_remain_supported(self):
+        self.assertEqual(self.parse(b'{"x":1.25,"y":-2.5e3,"z":1e-300}'),
+                         {'x': 1.25, 'y': -2500.0, 'z': 1e-300})
+
     def test_decoder_recursion_error_is_redacted_failure_injection(self):
         from unittest.mock import patch
         # Runtime JSON decoders differ in recursion handling; inject that failure

@@ -1,7 +1,8 @@
-"""Conditional actual-BB01 endpoint tests; no runtime auth/audit mocks.
+"""Actual merged BB-01/02/05 reference integration; no runtime auth/audit mocks.
 
-Base ZIP intentionally does not overwrite owner-controlled accounts/api/login.py.
-Apply the separate owner-reviewed integration patch after BB01 is present.
+BB-11 refresh wires the strict parser/serializer into the existing login endpoint.
+These tests remain conditional for isolated provider consumers; the integrated
+refresh must run them without skips.
 """
 from unittest import skipUnless
 from django.contrib.auth import SESSION_KEY, get_user_model
@@ -56,7 +57,7 @@ class ActualLoginInputTests(TestCase):
             self.assert_no_auth_or_account_change()
 
     def test_real_endpoint_rejects_malformed_and_duplicate_json(self):
-        for raw in ['{"email":"SYNTHETIC_SECRET",', '{"email":"one@example.test","email":"two@example.test","password":"x"}', '{"email":NaN,"password":"x"}']:
+        for raw in ['{"email":"SYNTHETIC_SECRET",', '{"email":"one@example.test","email":"two@example.test","password":"x"}', '{"email":NaN,"password":"x"}', '{"email":1e999,"password":"x"}']:
             response = self.post(raw, raw=True)
             self.assertEqual(response.status_code, 400)
             self.assertEqual(response.json()['error']['code'], 'invalid_json')

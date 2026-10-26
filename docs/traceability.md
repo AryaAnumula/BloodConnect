@@ -4,17 +4,17 @@ Source requirement references are preserved. Infrastructure test names below are
 
 | Story | Source requirements | Implementation prompt | Business acceptance status |
 | --- | --- | --- | --- |
-| BB-01 | FR-002; SEC-001; SEC-004. | `BB-01.md` (private team workpack) | Unimplemented / approval and integration needed |
-| BB-02 | SEC-001; SEC-004. | `BB-02.md` (private team workpack) | Unimplemented / approval and integration needed |
-| BB-03 | NFR-002. | `BB-03.md` (private team workpack) | Unimplemented / approval and integration needed |
-| BB-04 | SEC-002; SEC-005. | `BB-04.md` (private team workpack) | Unimplemented / approval and integration needed |
-| BB-05 | SEC-006. | `BB-05.md` (private team workpack) | Audit candidate implemented; D-10, real authentication/permission integration and acceptance pending; see docs/handoffs/BB-05.md |
+| BB-01 | FR-002; SEC-001; SEC-004. | `BB-01.md` (private team workpack) | Merged login component; BB-11 adds strict real-provider reference; full UI/criterion acceptance separate |
+| BB-02 | SEC-001; SEC-004. | `BB-02.md` (private team workpack) | Merged session/logout component; absolute expiry and current login reference regression tested; deployment acceptance separate |
+| BB-03 | NFR-002. | `BB-03.md` (private team workpack) | Monitoring/tooling merged; approved observation window and availability evidence pending |
+| BB-04 | SEC-002; SEC-005. | `BB-04.md` (private team workpack) | Staff gate and /auth/me merged; full object/privacy feature integration pending BB-12 |
+| BB-05 | SEC-006. | `BB-05.md` (private team workpack) | Audit component merged; real login/denial tests present; D-10 operational and remaining object-route coverage pending |
 | BB-06 | FR-001; SEC-001; SEC-003. | `BB-06.md` (private team workpack) | Unimplemented / approval and integration needed |
 | BB-07 | FR-003; SEC-005. | `BB-07.md` (private team workpack) | Unimplemented / approval and integration needed |
 | BB-08 | FR-004; SEC-005. | `BB-08.md` (private team workpack) | Unimplemented / approval and integration needed |
 | BB-09 | FR-005; SEC-002; SEC-005; NFR-001. | `BB-09.md` (private team workpack) | Unimplemented / approval and integration needed |
 | BB-10 | NFR-003; FR-001. | `BB-10.md` (private team workpack) | Unimplemented / approval and integration needed |
-| BB-11 | SEC-003. | `BB-11.md` (private team workpack) | Shared validation/parser candidate implemented; feature-owner wiring, approvals and complete acceptance pending; see docs/handoffs/BB-11.md |
+| BB-11 | SEC-003. | `BB-11.md` (private team workpack) | Shared validation and actual login reference implemented in refresh; remaining feature adoption/decisions/complete SEC-003 acceptance pending |
 | BB-12 | SEC-005; SEC-002. | `BB-12.md` (private team workpack) | Unimplemented / approval and integration needed |
 
 ## Starter infrastructure evidence only

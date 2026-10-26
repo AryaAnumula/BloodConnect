@@ -1,6 +1,15 @@
-# Validation report — main-base
+# Validation report — historical main-base and current BB-11 refresh
 
 This report records executed checks, not completion of BB-01–BB-12.
+
+## Current BB-11 refresh (supersedes earlier runtime-status descriptions)
+
+Main fcf58cf + existing PR33 e288514 + incremental refresh: 141 Django tests passed (0 skips), 7 Node tests passed, 29 availability-tool tests passed. System check, clean SQLite migration setup, migration consistency, repository/two OpenAPI/source checksum/link checks passed. Actual login/session/me/logout/audit reference is integrated; donor registration/screening/result/search/profile remain honest stubs. No donor model/migration added. See [BB-11 handoff](docs/handoffs/BB-11.md) and package logs for exact scope.
+
+Linux Python3.13.14, Node24.14.1, Django5.2.18/DRF3.16.1. Docker/PostgreSQL, remote CI and real-browser end-to-end checks were NOT RUN for this refresh. Earlier Chromium observations below describe the old starter only, not this refresh. AI-assisted test review is not human approval, a GitHub push/merge, complete feature acceptance, performance or availability certification.
+
+## Historical starter evidence (unchanged below)
+
 
 ## Passed
 
