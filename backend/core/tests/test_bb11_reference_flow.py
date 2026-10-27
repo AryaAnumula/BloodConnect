@@ -112,7 +112,12 @@ class ReferenceFlowTests(TestCase):
             response = self.client.get(path)
             self.assertEqual(response.status_code, 501)
             self.assertEqual(response.json()['error']['code'], 'not_implemented')
-        for path in ['/api/v1/auth/register', f'/api/v1/donors/{donor}/eligibility']:
-            response = self.client.post(path, {}, content_type='application/json', HTTP_X_CSRFTOKEN=token)
-            self.assertEqual(response.status_code, 501)
+        # BB-06: registration is implemented, so it is no longer in the stub list.
+        # An empty body is rejected by validation and creates no account.
+        response = self.client.post('/api/v1/auth/register', {}, content_type='application/json', HTTP_X_CSRFTOKEN=token)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()['error']['code'], 'validation_error')
+        # BB-07 screening is still a stub.
+        response = self.client.post(f'/api/v1/donors/{donor}/eligibility', {}, content_type='application/json', HTTP_X_CSRFTOKEN=token)
+        self.assertEqual(response.status_code, 501)
         self.assertEqual(get_user_model().objects.count(), 1)
