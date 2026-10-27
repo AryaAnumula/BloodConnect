@@ -1,4 +1,6 @@
 """PROPOSED public interface. Owner: Arnav / BB-04, BB-12. Coordinate signature changes."""
+import uuid
+
 from rest_framework.permissions import BasePermission
 
 VIEW_DONOR_HEALTH = 'accounts.view_donor_health'
@@ -35,6 +37,45 @@ class IsAuthorizedStaff(BasePermission):
         return is_authorized_staff(user=request.user)
 
 
+class IsDonorOrAuthorizedStaff(BasePermission):
+    """Role-level gate for own-donor-or-authorized-staff routes.
+
+    Rejects ADMIN, REQUESTER, plain STAFF and superusers BEFORE any record lookup
+    (403 forbidden). It does NOT prove ownership; that is the object check
+    may_view_donor_health, done after the lookup.
+    """
+
+    def has_permission(self, request, view):
+        user = request.user
+        if user is None or not getattr(user, 'is_authenticated', False):
+            return False
+        if not getattr(user, 'is_active', False):
+            return False
+        return getattr(user, 'role', None) == 'DONOR' or is_authorized_staff(user=user)
+
+
+def _same_user_id(a, b) -> bool:
+    """Compare ids as UUIDs so str/UUID forms match; anything unparseable is a mismatch."""
+    try:
+        return uuid.UUID(str(a)) == uuid.UUID(str(b))
+    except (ValueError, AttributeError, TypeError):
+        return False
+
+
 def may_view_donor_health(*, user, donor_user_id) -> bool:
-    """Allow own donor or explicitly authorized staff; ADMIN is not automatic access."""
-    raise NotImplementedError('BB-12: object policy is unfinished.')
+    """Allow the owning DONOR or explicitly authorized staff (D-09).
+
+    Pure and read-only: no database writes, no audit calls. Endpoint owners record
+    denials themselves. ADMIN, REQUESTER and Django superusers get no automatic
+    access, and a signed-in check alone is never enough.
+    """
+    if user is None or not getattr(user, 'is_authenticated', False):
+        return False
+    if not getattr(user, 'is_active', False):
+        return False
+    if is_authorized_staff(user=user):
+        return True
+    return (
+        getattr(user, 'role', None) == 'DONOR'
+        and _same_user_id(getattr(user, 'pk', None), donor_user_id)
+    )
