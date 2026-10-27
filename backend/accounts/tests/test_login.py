@@ -1,9 +1,11 @@
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
+from django.db import OperationalError
 from django.test import Client, TestCase
 
 from accounts.services.login import LoginRejected, authenticate_user
+from audit.models import SecurityEvent
 
 
 class AuthenticateUserTests(TestCase):
@@ -41,37 +43,37 @@ class AuthenticateUserTests(TestCase):
 
 
 class LoginApiTests(TestCase):
-    """MOCKED: establish_session (BB-02) and record_security_event (BB-05)
-    are patched until those stories are merged. Replace with real integration later."""
+    """Real BB-02 sessions and real BB-05 audit writer: nothing is mocked except
+    deliberate failure injection in the tests that say so."""
     URL = '/api/v1/auth/login'
     PASSWORD = 'local-test-only-password'
 
     def setUp(self):
         self.user = get_user_model().objects.create_user(
             email='donor@example.test', password=self.PASSWORD)
-        self.client = Client(enforce_csrf_checks=True)
+        self.client = Client(enforce_csrf_checks=True, raise_request_exception=False)
         self.token = self.client.get('/api/v1/auth/csrf').json()['csrf_token']
-        p1 = patch('accounts.api.login.establish_session')
-        p2 = patch('accounts.api.login.record_security_event')
-        self.mock_session, self.mock_audit = p1.start(), p2.start()
-        self.addCleanup(p1.stop)
-        self.addCleanup(p2.stop)
 
     def post(self, payload, token=True):
         extra = {'HTTP_X_CSRFTOKEN': self.token} if token else {}
         return self.client.post(self.URL, payload, content_type='application/json', **extra)
 
-    def test_valid_login_200_matches_contract(self):
-        r = self.post({'email': 'donor@example.test', 'password': self.PASSWORD})
+    def login(self):
+        return self.post({'email': 'donor@example.test', 'password': self.PASSWORD})
+
+    def test_valid_login_200_session_and_success_event(self):
+        r = self.login()
         self.assertEqual(r.status_code, 200)
         body = r.json()
         self.assertEqual(body['user']['email'], 'donor@example.test')
         self.assertEqual(body['user']['role'], 'DONOR')
         self.assertIn('session_expires_at', body)
         self.assertNotIn('password', r.content.decode())
-        self.mock_session.assert_called_once()
+        self.assertEqual(self.client.session['_auth_user_id'], str(self.user.pk))
+        event = SecurityEvent.objects.get(event_type='login', outcome='success')
+        self.assertEqual(event.actor_id, self.user.pk)
 
-    def test_wrong_password_and_unknown_email_give_same_401(self):
+    def test_wrong_password_and_unknown_email_give_same_401_and_failure_events(self):
         a = self.post({'email': 'donor@example.test', 'password': 'wrong'})
         b = self.post({'email': 'nobody@example.test', 'password': 'wrong'})
         self.assertEqual((a.status_code, b.status_code), (401, 401))
@@ -79,24 +81,51 @@ class LoginApiTests(TestCase):
         self.assertEqual(ea['code'], 'invalid_credentials')
         self.assertEqual((ea['code'], ea['message']), (eb['code'], eb['message']))
         self.assertEqual(set(ea), {'code', 'message', 'fields', 'request_id'})
-        self.mock_session.assert_not_called()
+        self.assertNotIn('_auth_user_id', self.client.session)
+        self.assertEqual(SecurityEvent.objects.filter(
+            event_type='login', outcome='failure', actor_id=None).count(), 2)
 
     def test_inactive_user_401(self):
         self.user.is_active = False
         self.user.save()
-        r = self.post({'email': 'donor@example.test', 'password': self.PASSWORD})
-        self.assertEqual(r.status_code, 401)
+        self.assertEqual(self.login().status_code, 401)
+        self.assertNotIn('_auth_user_id', self.client.session)
 
-    def test_missing_fields_400(self):
+    def test_missing_fields_400_and_no_event(self):
         r = self.post({'email': 'donor@example.test'})
         self.assertEqual(r.status_code, 400)
         self.assertEqual(r.json()['error']['code'], 'validation_error')
         self.assertEqual(self.post({}).status_code, 400)
+        self.assertFalse(SecurityEvent.objects.exists())
 
     def test_missing_csrf_token_403(self):
         r = self.post({'email': 'donor@example.test', 'password': self.PASSWORD}, token=False)
         self.assertEqual(r.status_code, 403)
+        self.assertNotIn('_auth_user_id', self.client.session)
 
-    def test_protected_endpoint_blocks_anonymous(self):
-        r = Client().get('/api/v1/auth/me')
-        self.assertIn(r.status_code, (401, 403))
+    def test_audit_failure_after_sign_in_leaves_no_usable_session(self):
+        with patch('audit.events.SecurityEvent.objects.create',
+                   side_effect=OperationalError('PRIVATE_DB_DETAIL')):
+            r = self.login()
+        self.assertEqual(r.status_code, 503)
+        self.assertEqual(r.json()['error']['code'], 'audit_unavailable')
+        self.assertNotIn('PRIVATE_DB_DETAIL', r.content.decode())
+        self.assertNotIn('_auth_user_id', self.client.session)
+        self.assertEqual(self.client.get('/api/v1/auth/me').status_code, 403)
+
+    def test_session_failure_records_no_success_event(self):
+        with patch('accounts.api.login.establish_session',
+                   side_effect=RuntimeError('simulated session failure')):
+            r = self.login()
+        self.assertEqual(r.status_code, 500)
+        self.assertFalse(SecurityEvent.objects.filter(outcome='success').exists())
+        self.assertNotIn('_auth_user_id', self.client.session)
+
+    def test_login_unlocks_authenticated_endpoint(self):
+        # BB-04 (/me) is merged: anonymous is blocked, a signed-in donor gets their account.
+        self.assertEqual(Client().get('/api/v1/auth/me').status_code, 403)
+        self.assertEqual(self.login().status_code, 200)
+        r = self.client.get('/api/v1/auth/me')
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json()['email'], 'donor@example.test')
+        self.assertEqual(r.json()['role'], 'DONOR')

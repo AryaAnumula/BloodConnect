@@ -29,9 +29,11 @@ class StarterSmokeTests(APITestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json()['error']['code'], 'validation_error')
 
-    def test_registration_is_not_fabricated_success(self):
+    def test_registration_validates_input(self):
+        # BB-06: registration is implemented, so the old 501 stub assertion was replaced.
         response = self.client.post('/api/v1/auth/register', {}, format='json')
-        self.assertEqual(response.status_code, 501)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()['error']['code'], 'validation_error')
 
     def test_protected_stubs_expose_no_anonymous_data(self):
         for path in ['/api/v1/auth/me', '/api/v1/donors']:
