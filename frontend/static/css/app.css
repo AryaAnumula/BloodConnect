@@ -1,1 +1,44 @@
 :root{font-family:Arial,sans-serif;color:#1f2937;background:#f8fafc}body{margin:0}header,main{max-width:960px;margin:auto;padding:1.3rem}header{display:flex;gap:1rem;justify-content:space-between;flex-wrap:wrap}nav{display:flex;gap:1rem;flex-wrap:wrap}a{color:#9f1239}label{display:block;margin:.8rem 0}input,select,button{font:inherit;padding:.65rem;max-width:100%;box-sizing:border-box}input,select{display:block;width:100%}form{max-width:440px}button{background:#9f1239;color:white;border:0;border-radius:.3rem;cursor:pointer}.notice{padding:1rem;background:#fff3cd;border-left:4px solid #b45309}#status{white-space:pre-wrap}code{overflow-wrap:anywhere}
+
+/* BB-10: keyboard accessibility */
+:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 3px;
+}
+
+/* BB-10: responsive registration layout */
+@media (max-width: 600px) {
+  header,
+  main {
+    padding: 1rem;
+  }
+
+  header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  nav {
+    width: 100%;
+    gap: 0.75rem;
+  }
+
+  nav a {
+    padding: 0.35rem 0;
+  }
+
+  form {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  input,
+  select,
+  button {
+    min-height: 44px;
+  }
+
+  button {
+    width: 100%;
+  }
+}
