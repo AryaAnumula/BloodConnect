@@ -35,6 +35,15 @@ class RegistrationApiTests(TestCase):
         extra = {'HTTP_X_CSRFTOKEN': self.token} if token else {}
         return self.client.post(self.URL, payload, content_type='application/json', **extra)
 
+    def post_raw(self, raw_body):
+        # Sends a raw JSON string so repeated keys are preserved exactly as written.
+        return self.client.post(self.URL, raw_body, content_type='application/json',
+                                HTTP_X_CSRFTOKEN=self.token)
+
+    def assert_nothing_written(self):
+        self.assertEqual(get_user_model().objects.count(), 0)
+        self.assertEqual(DonorProfile.objects.count(), 0)
+
     def test_valid_registration_returns_201_matching_contract(self):
         r = self.post(valid_payload())
         self.assertEqual(r.status_code, 201)
@@ -65,8 +74,30 @@ class RegistrationApiTests(TestCase):
                          {'blood_group': 'Z+'}, {'full_name': ''}, {'location': ''}):
             with self.subTest(override=override):
                 self.assertEqual(self.post(valid_payload(**override)).status_code, 400)
-        self.assertEqual(get_user_model().objects.count(), 0)
-        self.assertEqual(DonorProfile.objects.count(), 0)
+        self.assert_nothing_written()
+
+    def test_numeric_and_non_string_inputs_rejected_and_nothing_written(self):
+        # Arya's finding: numbers were silently accepted as text.
+        for override in ({'full_name': 12345}, {'location': 12345},
+                         {'password': 123456789012}, {'email': 12345},
+                         {'mobile': 919876543210}, {'full_name': True},
+                         {'location': ['Chennai']}, {'password': None}):
+            with self.subTest(override=override):
+                r = self.post(valid_payload(**override))
+                self.assertEqual(r.status_code, 400)
+                self.assertEqual(r.json()['error']['code'], 'validation_error')
+        self.assert_nothing_written()
+
+    def test_duplicate_json_keys_rejected_and_nothing_written(self):
+        # Arya's finding: a repeated "email" key was accepted (last value won).
+        raw = ('{"email": "first@example.test", "email": "second@example.test", '
+               '"mobile": "+919876543210", "password": "local-test-only-password", '
+               '"full_name": "Synthetic Donor", "blood_group": "O+", "location": "Chennai"}')
+        r = self.post_raw(raw)
+        self.assertEqual(r.status_code, 400)
+        self.assertNotIn('first@example.test', r.content.decode())
+        self.assertNotIn('second@example.test', r.content.decode())
+        self.assert_nothing_written()
 
     def test_duplicate_email_rejected_with_different_case(self):
         self.assertEqual(self.post(valid_payload()).status_code, 201)
@@ -89,11 +120,11 @@ class RegistrationApiTests(TestCase):
                 r = self.post(valid_payload(**extra))
                 self.assertEqual(r.status_code, 400)
                 self.assertEqual(r.json()['error']['code'], 'validation_error')
-        self.assertEqual(get_user_model().objects.count(), 0)
+        self.assert_nothing_written()
 
     def test_missing_csrf_token_403(self):
         self.assertEqual(self.post(valid_payload(), token=False).status_code, 403)
-        self.assertEqual(get_user_model().objects.count(), 0)
+        self.assert_nothing_written()
 
     def test_registered_donor_can_sign_in_through_login_api(self):
         self.assertEqual(self.post(valid_payload()).status_code, 201)
@@ -112,6 +143,16 @@ class RegisterDonorServiceTests(TestCase):
         with patch('accounts.services.registration.DonorProfile.objects.create',
                    side_effect=RuntimeError('simulated failure')):
             with self.assertRaises(RuntimeError):
+                register_donor(validated_data=valid_payload())
+        self.assertEqual(get_user_model().objects.count(), 0)
+        self.assertEqual(DonorProfile.objects.count(), 0)
+
+    def test_unrelated_integrity_error_is_not_reported_as_duplicate(self):
+        # Arya's finding: every IntegrityError was turned into duplicate_contact (409).
+        # A failure with no conflicting email or mobile must surface as the real error.
+        with patch('accounts.services.registration.DonorProfile.objects.create',
+                   side_effect=IntegrityError('simulated non-contact constraint failure')):
+            with self.assertRaises(IntegrityError):
                 register_donor(validated_data=valid_payload())
         self.assertEqual(get_user_model().objects.count(), 0)
         self.assertEqual(DonorProfile.objects.count(), 0)
