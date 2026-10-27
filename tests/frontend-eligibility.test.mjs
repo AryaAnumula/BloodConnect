@@ -46,6 +46,23 @@ test('eligibility page validates UUIDs and safely renders API values', async () 
   assert.match(script, /404/);
   assert.match(script, /503/);
   assert.match(script, /is_stale/);
+
   assert.doesNotMatch(script, /\.innerHTML\s*=/);
   assert.doesNotMatch(script, /insertAdjacentHTML\s*\(/);
+});
+
+test('eligibility page ignores stale requests in success and error handlers', async () => {
+  const script = await readFile(scriptPath, 'utf8');
+
+  assert.match(script, /let latestRequestId = 0;/);
+  assert.match(script, /const requestId = \+\+latestRequestId;/);
+
+  const staleRequestChecks =
+    script.match(/requestId !== latestRequestId/g) ?? [];
+
+  assert.equal(
+    staleRequestChecks.length,
+    2,
+    'Both success and error handlers must ignore stale requests'
+  );
 });

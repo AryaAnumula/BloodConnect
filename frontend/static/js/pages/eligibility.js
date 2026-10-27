@@ -3,6 +3,8 @@ import { apiFetch, showStatus } from '../api/client.js';
 const form = document.querySelector('#eligibility-form');
 const resultSection = document.querySelector('#eligibility-result');
 
+let latestRequestId = 0;
+
 const fields = {
   id: document.querySelector('#result-id'),
   donor_id: document.querySelector('#result-donor-id'),
@@ -59,6 +61,11 @@ function renderResult(result) {
 
 form.addEventListener('submit', async event => {
   event.preventDefault();
+
+  // Mark this as the newest request before validating the input.
+  // This also invalidates any older request when the new input is invalid.
+  const requestId = ++latestRequestId;
+
   clearResult();
 
   const donorId = new FormData(form).get('donor_id').trim();
@@ -77,21 +84,43 @@ form.addEventListener('submit', async event => {
       `/api/v1/donors/${encodeURIComponent(donorId)}/eligibility/result`
     );
 
+    // Ignore responses belonging to an older submission.
+    if (requestId !== latestRequestId) {
+      return;
+    }
+
     renderResult(result);
     showStatus('Saved eligibility result loaded.');
   } catch (error) {
+    // Older requests must not overwrite the latest request's status.
+    if (requestId !== latestRequestId) {
+      return;
+    }
+
     if (error.status === 403) {
-      showStatus('Access denied. Sign in with an account authorized to view this result.');
+      showStatus(
+        'Access denied. Sign in with an account authorized to view this result.'
+      );
     } else if (error.status === 404) {
-      showStatus('No saved eligibility result was found, or the donor is unavailable.');
+      showStatus(
+        'No saved eligibility result was found, or the donor is unavailable.'
+      );
     } else if (error.status === 409) {
-      showStatus('Eligibility policy is not finalized. The result cannot be provided.');
+      showStatus(
+        'Eligibility policy is not finalized. The result cannot be provided.'
+      );
     } else if (error.status === 501) {
-      showStatus('This feature is not implemented by the backend yet. No result was loaded.');
+      showStatus(
+        'This feature is not implemented by the backend yet. No result was loaded.'
+      );
     } else if (error.status === 503) {
-      showStatus('The service is temporarily unavailable. Try again later.');
+      showStatus(
+        'The service is temporarily unavailable. Try again later.'
+      );
     } else {
-      showStatus(error.message || 'Could not load the eligibility result.');
+      showStatus(
+        error.message || 'Could not load the eligibility result.'
+      );
     }
   }
 });
