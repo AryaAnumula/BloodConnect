@@ -11,6 +11,10 @@ const nextButton = document.querySelector('#next-page');
 
 let currentPage = 1;
 let totalPages = 1;
+let latestRequestId = 0;
+let appliedFilters = null;
+const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+const eligibilityStates = ['ELIGIBLE', 'INELIGIBLE', 'NOT_SCREENED', 'STALE'];
 
 function clearResults() {
   resultsSection.hidden = true;
@@ -70,48 +74,61 @@ function renderResults(data) {
   currentPage = data.page;
   totalPages = Math.max(1, Math.ceil(data.count / data.page_size));
 
-  resultCount.textContent = `Matching donors: ${data.count}`;
+  resultCount.textContent = data.count === 0 ? 'No matching donors.' : `Matching donors: ${data.count}`;
   pageIndicator.textContent = `Page ${currentPage} of ${totalPages}`;
   previousButton.disabled = currentPage <= 1;
   nextButton.disabled = currentPage >= totalPages;
   resultsSection.hidden = false;
 }
 
-async function searchDonors(page) {
-  clearResults();
-
+function readFilters() {
   const formData = new FormData(form);
+  const bloodGroup = String(formData.get('blood_group') ?? '');
+  const location = String(formData.get('location') ?? '').trim();
+  const eligibilityStatus = String(formData.get('eligibility_status') ?? '');
+  const rawPageSize = String(formData.get('page_size') ?? '');
+  const pageSize = Number(rawPageSize);
+  if (location.length > 120) throw new Error('Location must be 120 characters or fewer.');
+  if (bloodGroup && !bloodGroups.includes(bloodGroup)) throw new Error('Choose a valid blood group.');
+  if (eligibilityStatus && !eligibilityStates.includes(eligibilityStatus)) throw new Error('Choose a valid eligibility status.');
+  if (!/^\d+$/.test(rawPageSize) || !Number.isInteger(pageSize) || pageSize < 1 || pageSize > 100) {
+    throw new Error('Choose a page size between 1 and 100.');
+  }
+  return Object.freeze({ bloodGroup, location, eligibilityStatus, pageSize });
+}
+
+async function searchDonors(page, filters) {
+  // Increment before validation: an invalid new submission also supersedes old work.
+  const requestId = ++latestRequestId;
+  clearResults();
+  try {
+    if (!filters) {
+      appliedFilters = null;
+      filters = readFilters();
+      appliedFilters = filters;
+    }
+    if (!Number.isSafeInteger(page) || page < 1) throw new Error('Choose a valid page.');
+  } catch (error) {
+    showStatus(error.message);
+    return;
+  }
   const params = new URLSearchParams();
-
-  const bloodGroup = formData.get('blood_group');
-  const location = formData.get('location').trim();
-  const eligibilityStatus = formData.get('eligibility_status');
-  const pageSize = Number(formData.get('page_size'));
-
-  if (location.length > 120) {
-    showStatus('Location must be 120 characters or fewer.');
-    return;
-  }
-
-  if (!Number.isInteger(pageSize) || pageSize < 1 || pageSize > 100) {
-    showStatus('Choose a page size between 1 and 100.');
-    return;
-  }
-
-  if (bloodGroup) params.set('blood_group', bloodGroup);
-  if (location) params.set('location', location);
-  if (eligibilityStatus) params.set('eligibility_status', eligibilityStatus);
-
+  if (filters.bloodGroup) params.set('blood_group', filters.bloodGroup);
+  if (filters.location) params.set('location', filters.location);
+  if (filters.eligibilityStatus) params.set('eligibility_status', filters.eligibilityStatus);
   params.set('page', String(page));
-  params.set('page_size', String(pageSize));
+  params.set('page_size', String(filters.pageSize));
 
   showStatus('Searching donors…');
 
   try {
     const data = await apiFetch(`/api/v1/donors?${params.toString()}`);
+    if (requestId !== latestRequestId) return;
     renderResults(data);
     showStatus('Search completed.');
   } catch (error) {
+    if (requestId !== latestRequestId) return;
+    clearResults();
     if (error.status === 400) {
       showStatus('Some search filters are invalid. Check your selections.');
     } else if (error.status === 403) {
@@ -132,9 +149,9 @@ form.addEventListener('submit', event => {
 });
 
 previousButton.addEventListener('click', () => {
-  if (currentPage > 1) searchDonors(currentPage - 1);
+  if (!previousButton.disabled && appliedFilters && currentPage > 1) searchDonors(currentPage - 1, appliedFilters);
 });
 
 nextButton.addEventListener('click', () => {
-  if (currentPage < totalPages) searchDonors(currentPage + 1);
+  if (!nextButton.disabled && appliedFilters && currentPage < totalPages) searchDonors(currentPage + 1, appliedFilters);
 });
