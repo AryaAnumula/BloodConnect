@@ -1,4 +1,4 @@
-"""Real session/audit/me/logout reference; SQLite does not prove PostgreSQL concurrency."""
+""""Real session/audit/me/logout reference; SQLite does not prove PostgreSQL concurrency."""
 from unittest.mock import patch
 from django.conf import settings
 from django.contrib.auth import SESSION_KEY, get_user_model
@@ -107,7 +107,8 @@ class ReferenceFlowTests(TestCase):
         self.assertEqual(self.login().status_code, 200)
         token = self.client.get('/api/v1/auth/csrf').json()['csrf_token']
         donor = '00000000-0000-4000-8000-000000000001'
-        for path in ['/api/v1/donors', f'/api/v1/donors/{donor}',
+        # BB-12: the profile route is implemented; see donors/tests/test_profile_api.py.
+        for path in ['/api/v1/donors',
                      f'/api/v1/donors/{donor}/eligibility/result']:
             response = self.client.get(path)
             self.assertEqual(response.status_code, 501)

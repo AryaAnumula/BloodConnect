@@ -58,3 +58,10 @@ These approve the college-project implementation only. The screening values are 
 | D-07 (configuration) | Rules live in a version-controlled JSON file loaded through approved_screening_rules(). Missing or invalid configuration returns 409 policy_unresolved; no silent defaults. No new admin screen or database configuration. | Arya | 25-10-26 | donors/configuration.py | BB-07 PR |
 | D-08 | Each result stores assessed_at and rules_version. Re-screening keeps earlier assessments; the latest one is returned. A result assessed under an older rules_version is stale and needs re-screening. No time-based expiry. | Arya | 25-10-26 | donors/models/eligibility.py; donors/services/screening.py | BB-07 PR |
 | Retention | For this synthetic-data project, deleting a donor account also deletes its donor profile and screening results (CASCADE). Security audit records remain governed separately by D-10. | Arya | 25-10-26 | donors/models/eligibility.py | BB-07 PR |
+
+D-10 (limited approval: denied profile access recording)
+Decision: Denied access to an existing donor profile, returned as 404, records exactly one access_denied event through the existing audit provider, using only timestamp, event type, known actor UUID, correlation ID and outcome (denied). No request payloads, donor health data, credentials or tokens are logged.
+NOT approved: audit retention, audit-viewing permissions, and the rest of D-10, which remain proposed.
+Approver: Arya
+Date: <date Arya sent the approval>
+Evidence: accounts/health_access.py; donors/tests/test_profile_api.py; BB-12 PR
