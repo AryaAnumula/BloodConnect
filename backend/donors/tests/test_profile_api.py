@@ -80,6 +80,22 @@ class DonorProfileAccessTests(TestCase):
         response = fetch(self.owner, self.owner.pk)
         self.assertEqual(response.status_code, 404)
 
+    def test_unknown_profile_id_returns_standard_404_without_profile_data(self):
+        unknown = '00000000-0000-4000-8000-000000000000'
+        for viewer in (self.owner, grant(make_user('STAFF'))):
+            response = fetch(viewer, unknown)
+            self.assertEqual(response.status_code, 404)
+            error = response.json()['error']
+            self.assertEqual(set(error), {'code', 'message', 'fields', 'request_id'})
+            self.assertEqual(error['code'], 'not_found')
+            self.assertEqual(error['fields'], {})
+            assert_matches_openapi(self, response, '404')
+            body = response.content.decode()
+            for private in (self.profile.full_name, self.profile.mobile,
+                            self.owner.email, str(self.profile.pk)):
+                self.assertNotIn(private, body)
+        self.assertFalse(SecurityEvent.objects.exists())
+
     def test_other_donor_gets_404_identical_to_unknown_id(self):
         other = make_donor().user
         denied = fetch(other, self.profile.pk)
