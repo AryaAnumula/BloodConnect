@@ -436,10 +436,10 @@ paths:
       x-allowed-roles:
       - OWN_DONOR
       - AUTHORIZED_STAFF
-      x-implementation-status: stub
-      description: Proposed contract; approve docs/decisions.md before feature implementation.
-        Current scaffold returns explicit 501 after applicable CSRF/authentication
-        gates; no business success is implemented.
+      x-implementation-status: implemented-profile-route
+      description: Profile route implemented. Own active donor or explicitly authorized
+        staff may read the allowlisted profile. Every superuser role is denied.
+        Other donor records and missing records have the same not_found response.
       security:
       - sessionCookie: []
       responses:
@@ -462,13 +462,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '404':
-          description: not_found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '501':
-          description: Explicit scaffold response. No business action has occurred.
+          description: not_found for an unknown profile or a profile the donor may not access
           content:
             application/json:
               schema:

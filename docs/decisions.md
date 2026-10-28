@@ -46,5 +46,12 @@ D-10 (limited approval: denied profile access recording)
 Decision: Denied access to an existing donor profile, returned as 404, records exactly one access_denied event through the existing audit provider, using only timestamp, event type, known actor UUID, correlation ID and outcome (denied). No request payloads, donor health data, credentials or tokens are logged.
 NOT approved: audit retention, audit-viewing permissions, and the rest of D-10, which remain proposed.
 Approver: Arya
-Date: <date Arya sent the approval>
+Date: <28-10-26>
 Evidence: accounts/health_access.py; donors/tests/test_profile_api.py; BB-12 PR
+D-05 (limited approval: duplicate-contact response)
+Decision: Keep the existing generic 409 duplicate_contact response for the college demo. It exposes no account details and does not say which contact matched. No registration redesign.
+Known limitation: someone can still test whether an email or mobile number is registered (contact enumeration).
+NOT approved: any other D-05 field or format decision that is still open.
+Approver: Arya
+Date: <28-10-26>
+Evidence: Arya's message to Arnav; docs/handoffs/BB-12.md
