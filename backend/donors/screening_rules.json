@@ -1,0 +1,7 @@
+{
+  "rules_version": "demo-2026-10-v1",
+  "min_age_years": 18,
+  "max_age_years": 65,
+  "min_weight_kg": 50,
+  "min_days_between_donations": 90
+}
