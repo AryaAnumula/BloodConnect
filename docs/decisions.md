@@ -1,4 +1,5 @@
-# Decision register — read before member branches diverge
+# 
+Decision register — read before member branches diverge
 
 ## Bootstrap defaults: PROPOSED, NOT APPROVED
 
@@ -42,3 +43,18 @@ Reference: Arya's design-review reply to Arnav on the BB-02/BB-04 handoff. These
 | Role matrix | Public: health, CSRF, login, registration. Any active authenticated user: logout, /auth/me. Own donor or authorized clinical staff: donor profile, screening, eligibility result (with object-level checks). Authorized staff only: donor search (summary fields, no health answers). ADMIN/REQUESTER gain no donor access through a generic signed-in check | Arya | <25-10-26> | accounts/permissions.py, accounts/api/me.py; tests/test_me_api.py, test_permissions.py | BB-04 PR |
 
 Integration evidence (BB-11 refresh): `core.tests.test_bb11_reference_flow` injects successful-login audit-storage failure for fresh and existing anonymous sessions. The response is redacted 503 and no authenticated session persists with the current Django middleware. This is a bounded regression result, not approval of all D-10 failure/retention policies. Re-run it whenever session persistence or middleware changes; do not describe this previously suspected path as a confirmed defect.
+
+
+
+## Approval record — BB-06 / BB-07 implementation decisions (college-project scope)
+
+These approve the college-project implementation only. The screening values are simplified demonstration rules, not a statement that anyone is medically fit to donate.
+
+| Decision ID | Approved wording | Approver(s) | Date | Affected contracts/models/tests | PR |
+| --- | --- | --- | --- | --- | --- |
+| D-04 (password part) | Keep the 12-character minimum and Django password hashing. No additional password rules. Session policy unchanged. | Arya | 25-10-26 | core/input_schemas.py; accounts/tests/test_registration.py | #35 |
+| D-05 | Approve the current registration fields (email, mobile, password, full_name, blood_group, location), normalization (lowercase trimmed email, E.164 mobile) and email/mobile uniqueness already implemented in the shared contract. Public registration must not accept elevated roles or permissions. | Arya | 25-10-26 | accounts/services/registration.py; accounts/api/registration.py; donors/models/profile.py; accounts/tests/test_registration.py | #35 |
+| D-07 | Age 18 to 65 years inclusive. Weight at least 50 kg (exactly 50 passes). Donation gap at least 90 elapsed days (exactly 90 passes). A null last-donation date skips only the donation-gap check; age and weight must still pass. Malformed or future last-donation dates and invalid values are rejected and nothing is saved. ELIGIBLE only if all applicable checks pass, otherwise INELIGIBLE with reason codes and messages. | Arya | 25-10-26 | donors/configuration.py; donors/services/screening.py; donors/tests/test_screening.py | BB-07 PR |
+| D-07 (configuration) | Rules live in a version-controlled JSON file loaded through approved_screening_rules(). Missing or invalid configuration returns 409 policy_unresolved; no silent defaults. No new admin screen or database configuration. | Arya | 25-10-26 | donors/configuration.py | BB-07 PR |
+| D-08 | Each result stores assessed_at and rules_version. Re-screening keeps earlier assessments; the latest one is returned. A result assessed under an older rules_version is stale and needs re-screening. No time-based expiry. | Arya | 25-10-26 | donors/models/eligibility.py; donors/services/screening.py | BB-07 PR |
+| Retention | For this synthetic-data project, deleting a donor account also deletes its donor profile and screening results (CASCADE). Security audit records remain governed separately by D-10. | Arya | 25-10-26 | donors/models/eligibility.py | BB-07 PR |
