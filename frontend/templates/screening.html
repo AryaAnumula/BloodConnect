@@ -1,1 +1,56 @@
-{% extends 'base.html' %}{% block content %}<h1>Screening — shell</h1><p>BB-07: implement approved screening fields, submission and persisted result.</p>{% endblock %}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Eligibility screening — BloodConnect{% endblock %}
+
+{% block content %}
+<h1>Eligibility screening</h1>
+<p class="notice">
+  <strong>Demonstration rules only.</strong> This screening applies simplified rules for a
+  college project. It is not a statement that anyone is medically fit to donate blood and
+  it is not medical advice.
+</p>
+
+<form id="screening-form">
+  <label for="donor-id">Donor profile UUID</label>
+  <input
+    id="donor-id"
+    name="donor_id"
+    type="text"
+    required
+    maxlength="36"
+    pattern="[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
+    placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+    aria-describedby="donor-id-help"
+  >
+  <p id="donor-id-help">Enter the donor profile ID, not the account ID.</p>
+
+  <label for="age-years">Age in years</label>
+  <input id="age-years" name="age_years" type="number" required min="0" max="150" step="1" inputmode="numeric">
+
+  <label for="weight-kg">Weight in kg (up to two decimal places)</label>
+  <input id="weight-kg" name="weight_kg" type="text" required inputmode="decimal"
+         pattern="[0-9]+(\.[0-9]{1,2})?" placeholder="e.g. 62.5">
+
+  <label for="last-donation-date">Last donation date (leave blank if you have never donated)</label>
+  <input id="last-donation-date" name="last_donation_date" type="date">
+
+  <button type="submit">Check eligibility</button>
+</form>
+
+<section id="screening-result" aria-labelledby="screening-result-heading" hidden>
+  <h2 id="screening-result-heading">Screening result</h2>
+  <dl>
+    <dt>Status</dt><dd id="out-status"></dd>
+    <dt>Reasons</dt><dd id="out-reasons"></dd>
+    <dt>Assessed at</dt><dd id="out-assessed-at"></dd>
+    <dt>Rules version</dt><dd id="out-rules-version"></dd>
+    <dt>Stale assessment</dt><dd id="out-stale"></dd>
+  </dl>
+  <p class="notice">Demonstration rules only. Not medical advice.</p>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script type="module" src="{% static 'js/pages/screening.js' %}"></script>
+{% endblock %}

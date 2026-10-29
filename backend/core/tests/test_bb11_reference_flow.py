@@ -1,4 +1,4 @@
-"""Real session/audit/me/logout reference; SQLite does not prove PostgreSQL concurrency."""
+""""Real session/audit/me/logout reference; SQLite does not prove PostgreSQL concurrency."""
 from unittest.mock import patch
 from django.conf import settings
 from django.contrib.auth import SESSION_KEY, get_user_model
@@ -118,7 +118,9 @@ class ReferenceFlowTests(TestCase):
         response = self.client.post('/api/v1/auth/register', {}, content_type='application/json', HTTP_X_CSRFTOKEN=token)
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json()['error']['code'], 'validation_error')
-        # BB-07 screening is still a stub.
+        # BB-07: screening is implemented, so it is no longer in the stub list.
+        # An empty body is rejected by validation and saves no result.
         response = self.client.post(f'/api/v1/donors/{donor}/eligibility', {}, content_type='application/json', HTTP_X_CSRFTOKEN=token)
-        self.assertEqual(response.status_code, 501)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()['error']['code'], 'validation_error')
         self.assertEqual(get_user_model().objects.count(), 1)
