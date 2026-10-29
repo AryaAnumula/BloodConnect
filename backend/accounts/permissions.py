@@ -51,6 +51,8 @@ class IsDonorOrAuthorizedStaff(BasePermission):
             return False
         if not getattr(user, 'is_active', False):
             return False
+        if getattr(user, 'is_superuser', False):
+            return False
         return getattr(user, 'role', None) == 'DONOR' or is_authorized_staff(user=user)
 
 
@@ -72,6 +74,8 @@ def may_view_donor_health(*, user, donor_user_id) -> bool:
     if user is None or not getattr(user, 'is_authenticated', False):
         return False
     if not getattr(user, 'is_active', False):
+        return False
+    if getattr(user, 'is_superuser', False):
         return False
     if is_authorized_staff(user=user):
         return True

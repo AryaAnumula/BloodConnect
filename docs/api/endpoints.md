@@ -12,7 +12,7 @@ Base: main `fcf58cf` plus BB-11 PR #33 and this refresh. Field/schema authority:
 | GET /api/v1/auth/me | Arnav / BB-04 | active authenticated | none → AuthUser 200 | implemented, metadata only |
 | POST /api/v1/auth/register | Ankitha / BB-06, UI Yashwitha BB-10 | public + CSRF; never public elevated-role provisioning | RegistrationInput → RegistrationOutput | 501 stub; proposed fields/policy |
 | GET /api/v1/donors | Yashwitha / BB-09; Arnav access review | target: IsAuthorizedStaff | query → DonorPage | stub: anonymous 403, authenticated 501; staff gate must be wired |
-| GET /api/v1/donors/{donor_id} | Arnav / BB-12 | target: own donor OR authorized clinical staff | UUID → DonorProfile | stub; object authorization/projection unfinished |
+| GET /api/v1/donors/{donor_id} | Arnav / BB-12 | own active donor OR authorized clinical staff; all superusers denied | profile UUID → safe DonorProfile | implemented: 200 allowed; 403 role/auth denial; identical404 missing/other-donor; audit failure503 |
 | POST /api/v1/donors/{donor_id}/eligibility | Ankitha / BB-07; Arnav privacy review | target: own donor OR authorized clinical staff + CSRF | UUID + ScreeningInput → EligibilityResult | stub; no clinical evaluation/write |
 | GET /api/v1/donors/{donor_id}/eligibility/result | Yashwitha / BB-08; Arnav privacy review | target: own donor OR authorized clinical staff | UUID → EligibilityResult | stub; no real results |
 
@@ -36,7 +36,7 @@ blood_group: `A+ A- B+ B- AB+ AB- O+ O-`. Proposed search eligibility_status: `E
 - LoginOutput: `{user: {id, email, role}, session_expires_at}`. No password, health data or bearer token.
 - AuthUser: `{id, email, role}` only.
 - RegistrationOutput: `{donor_id, user: {id, email, role}}` (target; not returned by the stub).
-- DonorProfile: `{id, user_id, full_name, email, mobile, blood_group, location}` target allowlist; field-visibility policy still requires BB-12 approval.
+- DonorProfile: `{id, user_id, full_name, email, mobile, blood_group, location}` explicit profile projection; no screening answers, passwords or tokens. Other feature projections remain separately controlled.
 - DonorPage: `{count, page, page_size, results: [{id, blood_group, location, eligibility_status}]}`. Empty real results use `count: 0, results: []`, not 404 or a fabricated success while stubbed.
 - EligibilityResult: `{id, donor_id, status, reason_codes, reasons, assessed_at, rules_version, is_stale}`. No raw screening answers in general summaries.
 
