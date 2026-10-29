@@ -8,7 +8,7 @@ Source requirement references are preserved. Infrastructure test names below are
 | BB-02 | SEC-001; SEC-004. | `BB-02.md` (private team workpack) | Merged session/logout component; absolute expiry and current login reference regression tested; deployment acceptance separate |
 | BB-03 | NFR-002. | `BB-03.md` (private team workpack) | Monitoring/tooling merged; approved observation window and availability evidence pending |
 | BB-04 | SEC-002; SEC-005. | `BB-04.md` (private team workpack) | Staff gate and /auth/me merged; full object/privacy feature integration pending BB-12 |
-| BB-05 | SEC-006. | `BB-05.md` (private team workpack) | Audit component merged; real login/denial tests present; D-10 operational and remaining object-route coverage pending |
+| BB-05 | SEC-006. | `BB-05.md` (private team workpack) | Merged writer and real login/profile/screening audit coverage; result/search follow-up in BB11 integration; formal log-access/retention policy is not invented |
 | BB-06 | FR-001; SEC-001; SEC-003. | `BB-06.md` (private team workpack) | Unimplemented / approval and integration needed |
 | BB-07 | FR-003; SEC-005. | `BB-07.md` (private team workpack) | Unimplemented / approval and integration needed |
 | BB-08 | FR-004; SEC-005. | `BB-08.md` (private team workpack) | Unimplemented / approval and integration needed |
