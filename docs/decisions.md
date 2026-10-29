@@ -42,3 +42,16 @@ Reference: Arya's design-review reply to Arnav on the BB-02/BB-04 handoff. These
 | Role matrix | Public: health, CSRF, login, registration. Any active authenticated user: logout, /auth/me. Own donor or authorized clinical staff: donor profile, screening, eligibility result (with object-level checks). Authorized staff only: donor search (summary fields, no health answers). ADMIN/REQUESTER gain no donor access through a generic signed-in check | Arya | <25-10-26> | accounts/permissions.py, accounts/api/me.py; tests/test_me_api.py, test_permissions.py | BB-04 PR |
 
 Integration evidence (BB-11 refresh): `core.tests.test_bb11_reference_flow` injects successful-login audit-storage failure for fresh and existing anonymous sessions. The response is redacted 503 and no authenticated session persists with the current Django middleware. This is a bounded regression result, not approval of all D-10 failure/retention policies. Re-run it whenever session persistence or middleware changes; do not describe this previously suspected path as a confirmed defect.
+D-10 (limited approval: denied profile access recording)
+Decision: Denied access to an existing donor profile, returned as 404, records exactly one access_denied event through the existing audit provider, using only timestamp, event type, known actor UUID, correlation ID and outcome (denied). No request payloads, donor health data, credentials or tokens are logged.
+NOT approved: audit retention, audit-viewing permissions, and the rest of D-10, which remain proposed.
+Approver: Arya
+Date: <28-10-26>
+Evidence: accounts/health_access.py; donors/tests/test_profile_api.py; BB-12 PR
+D-05 (limited approval: duplicate-contact response)
+Decision: Keep the existing generic 409 duplicate_contact response for the college demo. It exposes no account details and does not say which contact matched. No registration redesign.
+Known limitation: someone can still test whether an email or mobile number is registered (contact enumeration).
+NOT approved: any other D-05 field or format decision that is still open.
+Approver: Arya
+Date: <28-10-26>
+Evidence: Arya's message to Arnav; docs/handoffs/BB-12.md
