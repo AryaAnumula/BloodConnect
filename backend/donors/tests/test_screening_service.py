@@ -1,23 +1,22 @@
 """BB-07 service tests.
 
-MOCKED: accounts.permissions.may_view_donor_health is still a NotImplementedError placeholder on
-main (BB-12 is Arnav's, not merged). The stand-in below mimics the approved policy only so the
-rest of screen_donor can run for real. Replace it with the real helper once BB-12 is merged.
+Uses the REAL accounts.permissions.may_view_donor_health from BB-12 (PR #39). Only the rules
+file is replaced, with fixed test rules, so the thresholds do not depend on screening_rules.json.
 """
-from datetime import date, timedelta
+from datetime import timedelta
 from decimal import Decimal
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Permission
 from django.test import TestCase
 from django.utils import timezone
-from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
+from rest_framework.exceptions import NotFound, ValidationError
 
 from core.errors import DecisionRequired
 from donors import configuration
 from donors.models import DonorProfile, EligibilityResult
-from donors.services import screening
-from donors.services.screening import is_stale, screen_donor
+from donors.services.screening import ScreeningAccessDenied, is_stale, screen_donor
 
 PASSWORD = 'local-test-only-password'
 RULES = {
@@ -29,17 +28,22 @@ RULES = {
 }
 
 
-def standin_may_view(*, user, donor_user_id):
-    # MOCK of the BB-12 helper: own donor only (staff access is not exercised here).
-    return getattr(user, 'pk', None) == donor_user_id
-
-
 def make_donor(email='donor@example.test', mobile='+919876543210'):
     user = get_user_model().objects.create_user(email=email, password=PASSWORD)
     profile = DonorProfile.objects.create(
         user=user, full_name='Synthetic Donor', mobile=mobile,
         blood_group='O+', location='Chennai')
     return user, profile
+
+
+def make_user(email, role, grant=False):
+    user = get_user_model().objects.create_user(email=email, password=PASSWORD, role=role)
+    if grant:
+        permission = Permission.objects.get(
+            content_type__app_label='accounts', codename='view_donor_health')
+        user.user_permissions.add(permission)
+        user = get_user_model().objects.get(pk=user.pk)  # drop the cached permission set
+    return user
 
 
 def answers(age=30, weight='60', last=None):
@@ -49,14 +53,10 @@ def answers(age=30, weight='60', last=None):
 class ScreenDonorTests(TestCase):
     def setUp(self):
         self.user, self.profile = make_donor()
-        patches = [
-            patch('donors.services.screening.may_view_donor_health', standin_may_view),
-            patch('donors.services.screening.approved_screening_rules',
-                  lambda: dict(RULES)),
-        ]
-        for p in patches:
-            p.start()
-            self.addCleanup(p.stop)
+        patcher = patch('donors.services.screening.approved_screening_rules',
+                        lambda: dict(RULES))
+        patcher.start()
+        self.addCleanup(patcher.stop)
 
     def screen(self, **kwargs):
         return screen_donor(actor=self.user, donor_id=self.profile.pk, answers=answers(**kwargs))
@@ -79,8 +79,7 @@ class ScreenDonorTests(TestCase):
 
     def test_boundary_values_through_the_service(self):
         today = timezone.localdate()
-        self.assertEqual(self.screen(age=18)[0 if False else 'status'] if False else
-                         self.screen(age=18).status, 'ELIGIBLE')
+        self.assertEqual(self.screen(age=18).status, 'ELIGIBLE')
         self.assertEqual(self.screen(age=65).status, 'ELIGIBLE')
         self.assertEqual(self.screen(weight='50').status, 'ELIGIBLE')
         self.assertEqual(self.screen(last=today - timedelta(days=90)).status, 'ELIGIBLE')
@@ -127,8 +126,33 @@ class ScreenDonorTests(TestCase):
 
     def test_another_donor_cannot_screen_this_profile(self):
         other, _ = make_donor(email='other@example.test', mobile='+919876500000')
-        with self.assertRaises(PermissionDenied):
+        with self.assertRaises(ScreeningAccessDenied):
             screen_donor(actor=other, donor_id=self.profile.pk, answers=answers())
+        self.assertEqual(EligibilityResult.objects.count(), 0)
+
+    def test_authorized_staff_can_screen_a_donor(self):
+        staff = make_user('staff@example.test', 'STAFF', grant=True)
+        result = screen_donor(actor=staff, donor_id=self.profile.pk, answers=answers())
+        self.assertEqual(result.status, 'ELIGIBLE')
+        self.assertEqual(result.donor_id, self.profile.pk)
+
+    def test_staff_without_clinical_permission_is_denied(self):
+        staff = make_user('staff2@example.test', 'STAFF', grant=False)
+        with self.assertRaises(ScreeningAccessDenied):
+            screen_donor(actor=staff, donor_id=self.profile.pk, answers=answers())
+        self.assertEqual(EligibilityResult.objects.count(), 0)
+
+    def test_admin_requester_and_superuser_are_denied(self):
+        people = [
+            make_user('admin@example.test', 'ADMIN', grant=True),
+            make_user('requester@example.test', 'REQUESTER', grant=True),
+            get_user_model().objects.create_superuser(
+                email='root@example.test', password=PASSWORD),
+        ]
+        for person in people:
+            with self.subTest(role=person.role, superuser=person.is_superuser):
+                with self.assertRaises(ScreeningAccessDenied):
+                    screen_donor(actor=person, donor_id=self.profile.pk, answers=answers())
         self.assertEqual(EligibilityResult.objects.count(), 0)
 
     def test_result_from_older_rules_version_is_stale(self):
@@ -141,15 +165,13 @@ class ScreenDonorPolicyTests(TestCase):
     def test_missing_rules_file_requires_decision_and_saves_nothing(self):
         user, profile = make_donor()
         with patch.object(configuration, 'RULES_PATH', configuration.Path('missing-rules.json')):
-            with patch('donors.services.screening.may_view_donor_health', standin_may_view):
-                with self.assertRaises(DecisionRequired):
-                    screen_donor(actor=user, donor_id=profile.pk, answers=answers())
+            with self.assertRaises(DecisionRequired):
+                screen_donor(actor=user, donor_id=profile.pk, answers=answers())
         self.assertEqual(EligibilityResult.objects.count(), 0)
 
     def test_deleting_the_account_deletes_profile_and_results(self):
         user, profile = make_donor()
-        with patch('donors.services.screening.may_view_donor_health', standin_may_view), \
-                patch('donors.services.screening.approved_screening_rules', lambda: dict(RULES)):
+        with patch('donors.services.screening.approved_screening_rules', lambda: dict(RULES)):
             screen_donor(actor=user, donor_id=profile.pk, answers=answers())
         user.delete()
         self.assertEqual(DonorProfile.objects.count(), 0)

@@ -9,7 +9,7 @@ from uuid import UUID
 
 from django.db import transaction
 from django.utils import timezone
-from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
+from rest_framework.exceptions import NotFound, ValidationError
 
 from accounts.permissions import may_view_donor_health
 from donors.configuration import approved_screening_rules
@@ -17,6 +17,13 @@ from donors.models import DonorProfile, EligibilityResult
 from donors.services.evaluation import evaluate
 
 MAX_AGE_YEARS = 150  # input sanity bound only, not an eligibility rule
+
+
+class ScreeningAccessDenied(Exception):
+    """The actor is neither the owning donor nor authorized clinical staff.
+
+    The API view records one audit event and answers 404, like the BB-12 profile endpoint.
+    """
 
 
 def is_stale(result, rules) -> bool:
@@ -65,10 +72,9 @@ def _validated_answers(answers, today):
 def screen_donor(*, actor, donor_id: UUID, answers: dict):
     """Return a newly persisted EligibilityResult.
 
-    Raises: NotFound (unknown donor profile), PermissionDenied (not own donor / authorized
-    staff), DecisionRequired (rules file missing or invalid), ValidationError (bad input,
-    nothing saved). `answers` is expected to be already shape-validated by
-    ScreeningInputSerializer; it is re-checked here so the service is safe on its own.
+    Raises: NotFound (unknown donor profile), ScreeningAccessDenied (not own donor or
+    authorized staff), DecisionRequired (rules file missing or invalid), ValidationError
+    (bad input, nothing saved).
     """
     rules = approved_screening_rules()  # DecisionRequired propagates; no defaults.
 
@@ -78,7 +84,7 @@ def screen_donor(*, actor, donor_id: UUID, answers: dict):
         raise NotFound() from None
     # donor_id is the donor PROFILE id; ownership is profile.user_id vs the account id.
     if not may_view_donor_health(user=actor, donor_user_id=profile.user_id):
-        raise PermissionDenied()
+        raise ScreeningAccessDenied()
 
     today = timezone.localdate()
     age, weight, last = _validated_answers(answers, today)
