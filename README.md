@@ -2,16 +2,11 @@
 
 **This is a common foundation, not the completed application.** This clean main base contains proposed API contracts, isolated module files, smoke tests and local development setup. The separate private team workpack supplies 12 AI prompts and four member guides; those paths are ignored by Git. No BB-13–24 implementation or prompts are included.
 
-## Current integration handoff — BB-11 refresh
+## Current integration handoff — independent BB05/BB11 follow-up
 
-**Read [BB-11 start here](docs/bb11-start-here.md)** before continuing feature work.
-Main fcf58cf includes BB-01–BB-05 components; this BB-11 refresh adds shared validation plus a real login/session/me/logout reference. Donor registration, screening, results, search and privacy integration remain feature-owned work, not completed by this package. Full BB-11 acceptance remains pending feature evidence.
+Main b23d518 includes registration,screening,profile,login/session and common validation/audit. This independent Arya follow-up adds actual audit/input safety regression evidence for those implemented endpoints. BB08 result and BB09 search APIs remain stubs;BB10 UI follow-up stays separate. No new Yashwitha master prerequisite.
 
-- [Runtime/API contracts](docs/api/endpoints.md) distinguish implemented endpoints from honest501 stubs.
-- [Feature-owner recipes](docs/api/bb11-feature-recipes.md) give exact imports, calls, payloads, gates, transaction boundaries and tests.
-- [Adoption/ownership](docs/bb11-consumer-handoff.md) and [evidence matrix](docs/input-validation-matrix.md) explain each member's next work.
-- Merge the reviewed provider into main, then merge main into clean member branches. Do not copy a ZIP over an existing repo, reapply the original patch or duplicate shared validators.
-- Authentication/session approvals are recorded in decisions.md; remaining proposed choices still need approval. Read later bootstrap notes as historical setup guidance, not a blanket claim that merged providers are still stubs.
+Read [BB11 start here](docs/bb11-start-here.md),[runtime contracts](docs/api/endpoints.md),[input evidence](docs/input-validation-matrix.md) and [BB05 handoff](docs/handoffs/BB-05.md). Source stories/IDs/criteria unchanged. No new model/migration/dependency or medical rule. Older bootstrap/provider-first notes are historical;don't interpret them as a blanket claim that merged endpoints are still stubs.
 
 ## Start here
 

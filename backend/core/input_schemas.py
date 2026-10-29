@@ -1,7 +1,7 @@
-"""BB-11 candidate input contracts; registration/screening/search are UNWIRED.
-
-Match current proposed OpenAPI 0.1.0; D-04/05/07/08/09 must be approved by owners.
-These providers enforce shapes, not authorization/uniqueness/clinical eligibility.
+"""BB11 shared input contracts.
+Real login/registration/screening use these now. SearchInputSerializer is supplied
+but the BB09 search controller is still a stub on this baseline. Shapes do not
+authorize callers,decide eligibility or enforce database uniqueness.
 """
 from rest_framework import serializers
 from .validation import (StrictInputSerializer, StrictStringField, StrictEmailField,

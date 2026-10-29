@@ -1,3 +1,5 @@
+> Historical provider-first planning reference. Login,registration,screening and profile are now implemented. Current status is in docs/bb11-start-here.md,docs/api/endpoints.md and docs/input-validation-matrix.md. Result/search remain unimplemented on this independent baseline. Do not recreate merged providers from the older instructions below.
+
 # BB-11 provider-first handoff
 
 **Status: implemented shared provider + actual login reference; full feature acceptance pending.** Read [start here](bb11-start-here.md) and [exact owner recipes](api/bb11-feature-recipes.md). Main base is fcf58cf, existing PR #33 is e288514. No reassignment or source-criteria changes.
