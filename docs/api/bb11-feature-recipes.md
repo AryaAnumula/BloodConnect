@@ -1,3 +1,5 @@
+> Historical provider-first planning reference. Login,registration,screening and profile are now implemented. Current status is in docs/bb11-start-here.md,docs/api/endpoints.md and docs/input-validation-matrix.md. Result/search remain unimplemented on this independent baseline. Do not recreate merged providers from the older instructions below.
+
 # BB-11 feature-owner recipes (reference, not auto-installed donor features)
 
 Read [endpoint contracts](endpoints.md), [decisions](../decisions.md), [ownership](../ownership.md), and [permission usage](../permissions-usage.md) first. Keep existing auth/CSRF decorators and role/object gates; a serializer is not authorization. These are integration **patterns**, not replacement files to paste over another member's implementation. Verify current code before applying. No new URL is required.

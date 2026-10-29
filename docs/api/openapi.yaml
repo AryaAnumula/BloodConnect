@@ -2,15 +2,12 @@ openapi: 3.0.3
 info:
   title: BloodConnect Sprint 1 API — implementation and proposed feature contracts
   version: 0.1.0
-  description: >-
-    BB-01–BB-12 only. Same-origin session/CSRF and session policy are recorded
-    in docs/decisions.md. Implemented authentication is not proof of donor-feature
-    acceptance. Donor feature schemas and unresolved policies remain proposals.
-    See x-implementation-status per operation. No trailing slashes.
+  description: BB-01–BB-12 only. Same-origin session/CSRF and session policy are recorded in docs/decisions.md.
+    Implemented authentication is not proof of donor-feature acceptance. Donor feature schemas and unresolved
+    policies remain proposals. See x-implementation-status per operation. No trailing slashes.
 servers:
 - url: http://localhost:8000
-  description: Local development only. Production requires HTTPS and approved deployment
-    settings.
+  description: Local development only. Production requires HTTPS and approved deployment settings.
 paths:
   /api/v1/health/live:
     get:
@@ -26,8 +23,8 @@ paths:
       x-allowed-roles:
       - PUBLIC
       x-implementation-status: implemented-infrastructure
-      description: Proposed contract; approve docs/decisions.md before feature implementation.
-        Implemented infrastructure only.
+      description: Proposed contract; approve docs/decisions.md before feature implementation. Implemented
+        infrastructure only.
       security: []
       responses:
         '200':
@@ -50,8 +47,8 @@ paths:
       x-allowed-roles:
       - PUBLIC
       x-implementation-status: implemented-infrastructure
-      description: Proposed contract; approve docs/decisions.md before feature implementation.
-        Implemented infrastructure only.
+      description: Proposed contract; approve docs/decisions.md before feature implementation. Implemented
+        infrastructure only.
       security: []
       responses:
         '200':
@@ -81,8 +78,8 @@ paths:
       x-allowed-roles:
       - PUBLIC
       x-implementation-status: implemented-infrastructure
-      description: Proposed contract; approve docs/decisions.md before feature implementation.
-        Implemented infrastructure only.
+      description: Proposed contract; approve docs/decisions.md before feature implementation. Implemented
+        infrastructure only.
       security: []
       responses:
         '200':
@@ -112,8 +109,8 @@ paths:
       x-allowed-roles:
       - PUBLIC
       x-implementation-status: implemented-component
-      description: Implemented component; recorded session/role decisions apply.
-        Runtime implementation is present; full story acceptance still requires its evidence.
+      description: Implemented component; recorded session/role decisions apply. Runtime implementation is
+        present; full story acceptance still requires its evidence.
       security: []
       responses:
         '503':
@@ -146,7 +143,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-
         '415':
           description: Unsupported media type; use application/json.
           content:
@@ -165,8 +161,8 @@ paths:
         required: true
         schema: &id001
           type: string
-        description: Obtain from GET /api/v1/auth/csrf and send with same-origin cookies,
-          including for public login/registration.
+        description: Obtain from GET /api/v1/auth/csrf and send with same-origin cookies, including for public
+          login/registration.
   /api/v1/auth/register:
     post:
       operationId: register
@@ -185,10 +181,9 @@ paths:
       - NFR-003
       x-allowed-roles:
       - PUBLIC
-      x-implementation-status: stub
-      description: Proposed contract; approve docs/decisions.md before feature implementation.
-        Current scaffold returns explicit 501 after applicable CSRF/authentication
-        gates; no business success is implemented.
+      x-implementation-status: implemented
+      description: Implemented donor-only atomic registration with strict JSON/field validation;201 success,400
+        invalid input,409 generic duplicate_contact. No public role provisioning.
       security: []
       responses:
         '201':
@@ -215,12 +210,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-        '501':
-          description: Explicit scaffold response. No business action has occurred.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
       requestBody:
         required: true
         content:
@@ -232,8 +221,8 @@ paths:
         in: header
         required: true
         schema: *id001
-        description: Obtain from GET /api/v1/auth/csrf and send with same-origin cookies,
-          including for public login/registration.
+        description: Obtain from GET /api/v1/auth/csrf and send with same-origin cookies, including for public
+          login/registration.
   /api/v1/auth/logout:
     post:
       operationId: logout
@@ -248,8 +237,8 @@ paths:
       x-allowed-roles:
       - AUTHENTICATED
       x-implementation-status: implemented-component
-      description: Implemented component; recorded session/role decisions apply.
-        Runtime implementation is present; full story acceptance still requires its evidence.
+      description: Implemented component; recorded session/role decisions apply. Runtime implementation is
+        present; full story acceptance still requires its evidence.
       security:
       - sessionCookie: []
       responses:
@@ -267,14 +256,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-
       parameters:
       - name: X-CSRFToken
         in: header
         required: true
         schema: *id001
-        description: Obtain from GET /api/v1/auth/csrf and send with same-origin cookies,
-          including for public login/registration.
+        description: Obtain from GET /api/v1/auth/csrf and send with same-origin cookies, including for public
+          login/registration.
   /api/v1/auth/me:
     get:
       operationId: currentUser
@@ -289,8 +277,8 @@ paths:
       x-allowed-roles:
       - AUTHENTICATED
       x-implementation-status: implemented-component
-      description: Implemented component; recorded session/role decisions apply.
-        Runtime implementation is present; full story acceptance still requires its evidence.
+      description: Implemented component; recorded session/role decisions apply. Runtime implementation is
+        present; full story acceptance still requires its evidence.
       security:
       - sessionCookie: []
       responses:
@@ -312,7 +300,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-
   /api/v1/donors:
     get:
       operationId: searchDonors
@@ -333,9 +320,8 @@ paths:
       x-allowed-roles:
       - STAFF_UNDER_APPROVED_SEARCH_POLICY
       x-implementation-status: stub
-      description: Proposed contract; approve docs/decisions.md before feature implementation.
-        Current scaffold returns explicit 501 after applicable CSRF/authentication
-        gates; no business success is implemented.
+      description: Proposed contract; approve docs/decisions.md before feature implementation. Current scaffold
+        returns explicit 501 after applicable CSRF/authentication gates; no business success is implemented.
       security:
       - sessionCookie: []
       responses:
@@ -391,8 +377,7 @@ paths:
         schema:
           type: string
           maxLength: 120
-        description: Proposed case-insensitive substring match; use parameterized
-          ORM queries.
+        description: Proposed case-insensitive substring match; use parameterized ORM queries.
       - name: eligibility_status
         in: query
         required: false
@@ -437,9 +422,9 @@ paths:
       - OWN_DONOR
       - AUTHORIZED_STAFF
       x-implementation-status: implemented-profile-route
-      description: Profile route implemented. Own active donor or explicitly authorized
-        staff may read the allowlisted profile. Every superuser role is denied.
-        Other donor records and missing records have the same not_found response.
+      description: Profile route implemented. Own active donor or explicitly authorized staff may read the
+        allowlisted profile. Every superuser role is denied. Other donor records and missing records have the
+        same not_found response.
       security:
       - sessionCookie: []
       responses:
@@ -475,8 +460,7 @@ paths:
         schema: &id003
           type: string
           format: uuid
-        description: UUID of donor profile, not account UUID. Object authorization
-          is mandatory.
+        description: UUID of donor profile, not account UUID. Object authorization is mandatory.
   /api/v1/donors/{donor_id}/eligibility:
     post:
       operationId: screenDonor
@@ -495,10 +479,10 @@ paths:
       x-allowed-roles:
       - OWN_DONOR
       - AUTHORIZED_STAFF
-      x-implementation-status: stub
-      description: Proposed contract; approve docs/decisions.md before feature implementation.
-        Current scaffold returns explicit 501 after applicable CSRF/authentication
-        gates; no business success is implemented.
+      x-implementation-status: implemented
+      description: Implemented approved educational demo screening/history with strict JSON/shape/domain checks,real
+        BB12 role/object policy and denial auditing. Own/authorized staff200,invalid400,other/missing404,role403,missing
+        rules409. Not medical advice.
       security:
       - sessionCookie: []
       responses:
@@ -538,20 +522,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-        '501':
-          description: Explicit scaffold response. No business action has occurred.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
       parameters:
       - *id002
       - name: X-CSRFToken
         in: header
         required: true
         schema: *id001
-        description: Obtain from GET /api/v1/auth/csrf and send with same-origin cookies,
-          including for public login/registration.
+        description: Obtain from GET /api/v1/auth/csrf and send with same-origin cookies, including for public
+          login/registration.
       requestBody:
         required: true
         content:
@@ -575,9 +553,8 @@ paths:
       - OWN_DONOR
       - AUTHORIZED_STAFF
       x-implementation-status: stub
-      description: Proposed contract; approve docs/decisions.md before feature implementation.
-        Current scaffold returns explicit 501 after applicable CSRF/authentication
-        gates; no business success is implemented.
+      description: Proposed contract; approve docs/decisions.md before feature implementation. Current scaffold
+        returns explicit 501 after applicable CSRF/authentication gates; no business success is implemented.
       security:
       - sessionCookie: []
       responses:
@@ -625,9 +602,8 @@ components:
       type: apiKey
       in: cookie
       name: sessionid
-      description: Django HttpOnly session cookie; unsafe requests ALSO require X-CSRFToken.
-        Session auth uses 403 authentication_required when unauthenticated, distinct
-        from 403 forbidden.
+      description: Django HttpOnly session cookie; unsafe requests ALSO require X-CSRFToken. Session auth uses
+        403 authentication_required when unauthenticated, distinct from 403 forbidden.
   schemas:
     Error:
       type: object
@@ -710,8 +686,7 @@ components:
         mobile:
           type: string
           pattern: ^\+[1-9][0-9]{7,14}$
-          description: PROPOSED E.164 format; no implicit country-code guessing. D-05
-            must approve.
+          description: PROPOSED E.164 format; no implicit country-code guessing. D-05 must approve.
         password:
           type: string
           minLength: 12

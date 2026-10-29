@@ -1,6 +1,6 @@
 # Sprint 1 API guide — runtime versus feature contracts
 
-Base: main `fcf58cf` plus BB-11 PR #33 and this refresh. Field/schema authority: [OpenAPI](openapi.yaml). Stories/requirements stay as adopted. **Route existence does not prove feature completion.**
+Base: current main b23d518 plus independent BB05/BB11 follow-up. BB08/09 endpoints remain stubs. Field/schema authority: [OpenAPI](openapi.yaml). Stories/requirements stay as adopted. **Route existence does not prove feature completion.**
 
 | Method / path | Primary owner | Allowed caller / gate | Request → response | Runtime status |
 | --- | --- | --- | --- | --- |
@@ -10,10 +10,10 @@ Base: main `fcf58cf` plus BB-11 PR #33 and this refresh. Field/schema authority:
 | POST /api/v1/auth/login | Ankitha / BB-01; Arnav BB-02; Arya BB-05/11 | public + CSRF | LoginInput → LoginOutput 200 | implemented reference with strict validation |
 | POST /api/v1/auth/logout | Arnav / BB-02 | active authenticated + CSRF | no body → 204 **empty body** | implemented |
 | GET /api/v1/auth/me | Arnav / BB-04 | active authenticated | none → AuthUser 200 | implemented, metadata only |
-| POST /api/v1/auth/register | Ankitha / BB-06, UI Yashwitha BB-10 | public + CSRF; never public elevated-role provisioning | RegistrationInput → RegistrationOutput | 501 stub; proposed fields/policy |
+| POST /api/v1/auth/register | Ankitha / BB-06, UI Yashwitha BB-10 | public + CSRF; never public elevated-role provisioning | RegistrationInput → RegistrationOutput | implemented201;strict input400;generic duplicate_contact409 |
 | GET /api/v1/donors | Yashwitha / BB-09; Arnav access review | target: IsAuthorizedStaff | query → DonorPage | stub: anonymous 403, authenticated 501; staff gate must be wired |
 | GET /api/v1/donors/{donor_id} | Arnav / BB-12 | own active donor OR authorized clinical staff; all superusers denied | profile UUID → safe DonorProfile | implemented: 200 allowed; 403 role/auth denial; identical404 missing/other-donor; audit failure503 |
-| POST /api/v1/donors/{donor_id}/eligibility | Ankitha / BB-07; Arnav privacy review | target: own donor OR authorized clinical staff + CSRF | UUID + ScreeningInput → EligibilityResult | stub; no clinical evaluation/write |
+| POST /api/v1/donors/{donor_id}/eligibility | Ankitha / BB-07; Arnav privacy review | target: own donor OR authorized clinical staff + CSRF | UUID + ScreeningInput → EligibilityResult | implemented demo assessment/history;400 invalid;403 role;hidden404;409 policy |
 | GET /api/v1/donors/{donor_id}/eligibility/result | Yashwitha / BB-08; Arnav privacy review | target: own donor OR authorized clinical staff | UUID → EligibilityResult | stub; no real results |
 
 Full owner/story/FR/SEC mappings, types, required fields, outputs, response codes and parameters are in each OpenAPI operation. No separate endpoint is invented for SEC-003. Frontend calls Django, never Python imports or the internal Node service.
@@ -25,8 +25,8 @@ All POST feature bodies are JSON **objects**, not lists/null; field names use sn
 | Schema / ingress | Required fields / validation | Gate / effects |
 | --- | --- | --- |
 | LoginInput | email: string, valid email, max254, trim/lowercase; password: nonempty string, exact whitespace retained | implemented before credential evaluation; no guessed max password length |
-| RegistrationInput | email max254; mobile E.164 `+` then 8–15 digits, nonzero first digit; password string min12 **PROPOSED**; full_name and location trimmed nonblank max120; blood_group enum | D-04 password and D-05 approval required; provider does not enforce DB uniqueness or create account/profile |
-| ScreeningInput | age_years JSON integer >=0 (not eligible age); weight_kg nonnegative decimal **string**, at most 2 decimal places; last_donation_date required ISO YYYY-MM-DD or null | D-07/08 approve clinical/null/freshness behavior; no provider clinical thresholds |
+| RegistrationInput | email max254; mobile E.164 `+` then 8–15 digits, nonzero first digit; password string min12 (recorded approval); full_name and location trimmed nonblank max120; blood_group enum | D04/D05 approvals recorded;real registration service enforces atomic account/profile and uniqueness |
+| ScreeningInput | age_years JSON integer >=0 (not eligible age); weight_kg nonnegative decimal **string**, at most 2 decimal places; last_donation_date required ISO YYYY-MM-DD or null | D07/D08 educational rules/freshness recorded;real screening service owns rule evaluation |
 | SearchInput | optional blood_group, location max120 (empty allowed), eligibility_status; page integer digits >=1 default1; page_size1..100 default20; duplicate or unknown query keys rejected | D-08 states/freshness and staff gate required; no medical answers in summary |
 
 blood_group: `A+ A- B+ B- AB+ AB- O+ O-`. Proposed search eligibility_status: `ELIGIBLE INELIGIBLE NOT_SCREENED STALE`. Result status: `ELIGIBLE INELIGIBLE`, with is_stale separately. Encode a plus sign in queries (`O%2B`); use URLSearchParams rather than manual concatenation. Do not derive medical eligibility from a valid payload.
@@ -35,7 +35,7 @@ blood_group: `A+ A- B+ B- AB+ AB- O+ O-`. Proposed search eligibility_status: `E
 
 - LoginOutput: `{user: {id, email, role}, session_expires_at}`. No password, health data or bearer token.
 - AuthUser: `{id, email, role}` only.
-- RegistrationOutput: `{donor_id, user: {id, email, role}}` (target; not returned by the stub).
+- RegistrationOutput: `{donor_id, user: {id, email, role}}` (real201 response).
 - DonorProfile: `{id, user_id, full_name, email, mobile, blood_group, location}` explicit profile projection; no screening answers, passwords or tokens. Other feature projections remain separately controlled.
 - DonorPage: `{count, page, page_size, results: [{id, blood_group, location, eligibility_status}]}`. Empty real results use `count: 0, results: []`, not 404 or a fabricated success while stubbed.
 - EligibilityResult: `{id, donor_id, status, reason_codes, reasons, assessed_at, rules_version, is_stale}`. No raw screening answers in general summaries.
