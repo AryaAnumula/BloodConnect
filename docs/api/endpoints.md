@@ -14,7 +14,7 @@ Base: current main b23d518 plus independent BB05/BB11 follow-up. BB08/09 endpoin
 | GET /api/v1/donors | Yashwitha / BB-09; Arnav access review | target: IsAuthorizedStaff | query → DonorPage | stub: anonymous 403, authenticated 501; staff gate must be wired |
 | GET /api/v1/donors/{donor_id} | Arnav / BB-12 | own active donor OR authorized clinical staff; all superusers denied | profile UUID → safe DonorProfile | implemented: 200 allowed; 403 role/auth denial; identical404 missing/other-donor; audit failure503 |
 | POST /api/v1/donors/{donor_id}/eligibility | Ankitha / BB-07; Arnav privacy review | target: own donor OR authorized clinical staff + CSRF | UUID + ScreeningInput → EligibilityResult | implemented demo assessment/history;400 invalid;403 role;hidden404;409 policy |
-| GET /api/v1/donors/{donor_id}/eligibility/result | Yashwitha / BB-08; Arnav privacy review | target: own donor OR authorized clinical staff | UUID → EligibilityResult | stub; no real results |
+| GET /api/v1/donors/{donor_id}/eligibility/result | Yashwitha / BB-08; Arnav privacy review | target: own donor OR authorized clinical staff | UUID → EligibilityResult | implemented latest saved result;own/staff;hidden404;policy409 |
 
 Full owner/story/FR/SEC mappings, types, required fields, outputs, response codes and parameters are in each OpenAPI operation. No separate endpoint is invented for SEC-003. Frontend calls Django, never Python imports or the internal Node service.
 
