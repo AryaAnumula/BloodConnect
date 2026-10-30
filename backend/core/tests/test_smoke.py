@@ -41,11 +41,11 @@ class StarterSmokeTests(APITestCase):
             self.assertEqual(response.status_code, 403)
             self.assertEqual(response.json()['error']['code'], 'authentication_required')
 
-    def test_authenticated_stub_remains_unimplemented(self):
+    def test_authenticated_donor_cannot_use_staff_search(self):
         User = get_user_model()
         user = User.objects.create_user(email='synthetic@example.test', password='local-test-only-password')
         self.client.force_authenticate(user=user)
-        self.assertEqual(self.client.get('/api/v1/donors').status_code, 501)
+        self.assertEqual(self.client.get('/api/v1/donors').status_code, 403)
 
     def test_static_shells_load_without_claiming_business_completion(self):
         for path in ['/', '/login', '/register', '/screening', '/eligibility', '/staff/donors']:
