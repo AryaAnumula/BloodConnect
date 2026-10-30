@@ -1,0 +1,2617 @@
+openapi: 3.0.3
+info:
+  title: BloodConnect Sprint 2 DESIGN CONTRACT — NOT IMPLEMENTED
+  version: 0.1.0-proposed
+  description: Additive design proposal against main a46f81817d7ee26bff7b3ce6e423785a34f951c7.
+    Does not replace Sprint 1 contract or mount routes. All S2 decision gates require
+    real approval. Exact adopted stories retained separately. Internal notification
+    transport has its own draft spec.
+servers:
+- url: http://localhost:8000
+paths:
+  /api/v1/blood-units:
+    post:
+      operationId: createBloodUnit
+      summary: Create one unit from an eligible donor; server calculates expiry; collection_event_id
+        must resolve to the approved collection-source design.
+      tags:
+      - inventory
+      x-owner: Ch Yashwitha
+      x-stories:
+      - BB-13
+      x-requirements:
+      - FR-006
+      - FR-007
+      - SEC-002
+      - SEC-003
+      x-contract-status: PROPOSED_APPROVAL_REQUIRED
+      x-implementation-status: not_implemented
+      x-allowed-roles:
+      - STAFF
+      x-decision-gates:
+      - S2-01
+      - S2-02
+      - S2-10
+      description: 'Design contract only. No route is added by this pack. All superusers
+        denied under proposed operational matrix. Missing/expired sessions keep existing
+        DRF 403 authentication_required, not a new JWT/401 architecture. For owner-restricted
+        records use identical 404 for other owner and missing record. Dates/times
+        and validation follow conventions.md. Create one unit from an eligible donor;
+        server calculates expiry; collection_event_id must resolve to the approved
+        collection-source design. collection_event_id is optional: omission creates
+        a collection event and first unit atomically; supplied ID must match donor/date
+        and approved collection rules. No orphan foreign key or separate inaccessible
+        creation prerequisite.'
+      security:
+      - sessionCookie: []
+      parameters:
+      - name: X-CSRFToken
+        in: header
+        required: true
+        description: Existing same-origin CSRF token; bootstrap via GET /api/v1/auth/csrf
+        schema:
+          type: string
+          minLength: 1
+      responses:
+        '201':
+          description: Successful real implementation response; not currently implemented
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BloodUnit'
+        '400':
+          description: Invalid fields/query/JSON; no partial write
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: authentication_required or forbidden; no sensitive response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing record or hidden other-owner record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Conflict, capacity/duplicate/concurrent use or policy_unresolved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Ineligible donor, unsafe unit or invalid state transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Redacted storage/service unavailability
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BloodUnitCreate'
+    get:
+      operationId: listBloodUnits
+      summary: listBloodUnits
+      tags:
+      - inventory
+      x-owner: Ch Yashwitha
+      x-stories:
+      - BB-13
+      x-requirements:
+      - FR-006
+      - FR-007
+      - SEC-002
+      - SEC-003
+      x-contract-status: PROPOSED_APPROVAL_REQUIRED
+      x-implementation-status: not_implemented
+      x-allowed-roles:
+      - STAFF
+      x-decision-gates:
+      - S2-01
+      - S2-02
+      description: 'Design contract only. No route is added by this pack. All superusers
+        denied under proposed operational matrix. Missing/expired sessions keep existing
+        DRF 403 authentication_required, not a new JWT/401 architecture. For owner-restricted
+        records use identical 404 for other owner and missing record. Dates/times
+        and validation follow conventions.md. '
+      security:
+      - sessionCookie: []
+      parameters:
+      - &id002
+        name: page
+        in: query
+        required: false
+        description: ''
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+      - &id003
+        name: page_size
+        in: query
+        required: false
+        description: ''
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      - &id004
+        name: blood_group
+        in: query
+        required: false
+        description: ''
+        schema: &id008
+          type: string
+          enum:
+          - A+
+          - A-
+          - B+
+          - B-
+          - AB+
+          - AB-
+          - O+
+          - O-
+      - &id005
+        name: component_type
+        in: query
+        required: false
+        description: ''
+        schema: &id009
+          type: string
+          enum:
+          - RBC
+          - PLASMA
+          - PLATELETS
+      - name: status
+        in: query
+        required: false
+        description: ''
+        schema: &id010
+          type: string
+          enum:
+          - AVAILABLE
+          - ISSUED
+          - DISCARDED
+          - QUARANTINED
+          - EXPIRED
+      responses:
+        '200':
+          description: Successful real implementation response; not currently implemented
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BloodUnitPage'
+        '400':
+          description: Invalid fields/query/JSON; no partial write
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: authentication_required or forbidden; no sensitive response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing record or hidden other-owner record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Conflict, capacity/duplicate/concurrent use or policy_unresolved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Ineligible donor, unsafe unit or invalid state transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Redacted storage/service unavailability
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/blood-units/{unit_id}:
+    get:
+      operationId: getBloodUnit
+      summary: getBloodUnit
+      tags:
+      - inventory
+      x-owner: Ch Yashwitha
+      x-stories:
+      - BB-13
+      x-requirements:
+      - FR-006
+      - FR-007
+      - SEC-002
+      - SEC-003
+      x-contract-status: PROPOSED_APPROVAL_REQUIRED
+      x-implementation-status: not_implemented
+      x-allowed-roles:
+      - STAFF
+      x-decision-gates:
+      - S2-01
+      - S2-02
+      description: 'Design contract only. No route is added by this pack. All superusers
+        denied under proposed operational matrix. Missing/expired sessions keep existing
+        DRF 403 authentication_required, not a new JWT/401 architecture. For owner-restricted
+        records use identical 404 for other owner and missing record. Dates/times
+        and validation follow conventions.md. '
+      security:
+      - sessionCookie: []
+      parameters:
+      - name: unit_id
+        in: path
+        required: true
+        description: Canonical resource UUID
+        schema: &id001
+          type: string
+          format: uuid
+          description: Optional existing authorized collection event with same donor/date.
+            Omit to create event atomically with first unit; response returns its
+            ID for later component units. Requires S2-10 approval.
+      responses:
+        '200':
+          description: Successful real implementation response; not currently implemented
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BloodUnit'
+        '400':
+          description: Invalid fields/query/JSON; no partial write
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: authentication_required or forbidden; no sensitive response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing record or hidden other-owner record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Conflict, capacity/duplicate/concurrent use or policy_unresolved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Ineligible donor, unsafe unit or invalid state transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Redacted storage/service unavailability
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/blood-units/{unit_id}/dispositions:
+    post:
+      operationId: recordUnitDisposition
+      summary: Supporting operation for discard/quarantine and reporting source; terminal
+        discard, no issuing a quarantined/discarded unit; no new top-level story.
+      tags:
+      - inventory
+      x-owner: Ch Yashwitha
+      x-stories:
+      - BB-13
+      x-requirements:
+      - FR-006
+      - FR-007
+      - SEC-002
+      - SEC-003
+      x-contract-status: PROPOSED_APPROVAL_REQUIRED
+      x-implementation-status: not_implemented
+      x-allowed-roles:
+      - STAFF
+      x-decision-gates:
+      - S2-02
+      - S2-08
+      description: Design contract only. No route is added by this pack. All superusers
+        denied under proposed operational matrix. Missing/expired sessions keep existing
+        DRF 403 authentication_required, not a new JWT/401 architecture. For owner-restricted
+        records use identical 404 for other owner and missing record. Dates/times
+        and validation follow conventions.md. Supporting operation for discard/quarantine
+        and reporting source; terminal discard, no issuing a quarantined/discarded
+        unit; no new top-level story.
+      security:
+      - sessionCookie: []
+      parameters:
+      - name: unit_id
+        in: path
+        required: true
+        description: Canonical resource UUID
+        schema: *id001
+      - name: X-CSRFToken
+        in: header
+        required: true
+        description: Existing same-origin CSRF token; bootstrap via GET /api/v1/auth/csrf
+        schema:
+          type: string
+          minLength: 1
+      responses:
+        '200':
+          description: Successful real implementation response; not currently implemented
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BloodUnit'
+        '400':
+          description: Invalid fields/query/JSON; no partial write
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: authentication_required or forbidden; no sensitive response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing record or hidden other-owner record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Conflict, capacity/duplicate/concurrent use or policy_unresolved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Ineligible donor, unsafe unit or invalid state transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Redacted storage/service unavailability
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DispositionCreate'
+  /api/v1/stock:
+    get:
+      operationId: getStock
+      summary: Current committed usable stock, stable blood_group/component_type order;
+        no private donor health fields.
+      tags:
+      - inventory
+      x-owner: Ch Yashwitha
+      x-stories:
+      - BB-14
+      x-requirements:
+      - FR-008
+      - NFR-001
+      - SEC-002
+      x-contract-status: PROPOSED_APPROVAL_REQUIRED
+      x-implementation-status: not_implemented
+      x-allowed-roles:
+      - STAFF
+      - ADMIN
+      x-decision-gates:
+      - S2-02
+      description: Design contract only. No route is added by this pack. All superusers
+        denied under proposed operational matrix. Missing/expired sessions keep existing
+        DRF 403 authentication_required, not a new JWT/401 architecture. For owner-restricted
+        records use identical 404 for other owner and missing record. Dates/times
+        and validation follow conventions.md. Current committed usable stock, stable
+        blood_group/component_type order; no private donor health fields.
+      security:
+      - sessionCookie: []
+      parameters:
+      - *id002
+      - *id003
+      - *id004
+      - *id005
+      responses:
+        '200':
+          description: Successful real implementation response; not currently implemented
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockPage'
+        '400':
+          description: Invalid fields/query/JSON; no partial write
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: authentication_required or forbidden; no sensitive response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing record or hidden other-owner record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Conflict, capacity/duplicate/concurrent use or policy_unresolved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Ineligible donor, unsafe unit or invalid state transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Redacted storage/service unavailability
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/stock/alerts:
+    get:
+      operationId: getStockAlerts
+      summary: Read recorded alert conditions and actual delivery state; listing never
+        fabricates receipt.
+      tags:
+      - inventory
+      x-owner: Ch Yashwitha
+      x-stories:
+      - BB-15
+      x-requirements:
+      - FR-009
+      - FR-010
+      - SEC-002
+      x-contract-status: PROPOSED_APPROVAL_REQUIRED
+      x-implementation-status: not_implemented
+      x-allowed-roles:
+      - STAFF
+      x-decision-gates:
+      - S2-06
+      description: Design contract only. No route is added by this pack. All superusers
+        denied under proposed operational matrix. Missing/expired sessions keep existing
+        DRF 403 authentication_required, not a new JWT/401 architecture. For owner-restricted
+        records use identical 404 for other owner and missing record. Dates/times
+        and validation follow conventions.md. Read recorded alert conditions and actual
+        delivery state; listing never fabricates receipt.
+      security:
+      - sessionCookie: []
+      parameters:
+      - *id002
+      - *id003
+      - *id004
+      - *id005
+      responses:
+        '200':
+          description: Successful real implementation response; not currently implemented
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertPage'
+        '400':
+          description: Invalid fields/query/JSON; no partial write
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: authentication_required or forbidden; no sensitive response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing record or hidden other-owner record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Conflict, capacity/duplicate/concurrent use or policy_unresolved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Ineligible donor, unsafe unit or invalid state transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Redacted storage/service unavailability
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/requests:
+    post:
+      operationId: createBloodRequest
+      summary: createBloodRequest
+      tags:
+      - blood_requests
+      x-owner: Arnav Chaudhary
+      x-stories:
+      - BB-17
+      x-requirements:
+      - FR-012
+      - SEC-002
+      - SEC-003
+      x-contract-status: PROPOSED_APPROVAL_REQUIRED
+      x-implementation-status: not_implemented
+      x-allowed-roles:
+      - REQUESTER
+      x-decision-gates:
+      - S2-01
+      - S2-03
+      description: 'Design contract only. No route is added by this pack. All superusers
+        denied under proposed operational matrix. Missing/expired sessions keep existing
+        DRF 403 authentication_required, not a new JWT/401 architecture. For owner-restricted
+        records use identical 404 for other owner and missing record. Dates/times
+        and validation follow conventions.md. '
+      security:
+      - sessionCookie: []
+      parameters:
+      - name: X-CSRFToken
+        in: header
+        required: true
+        description: Existing same-origin CSRF token; bootstrap via GET /api/v1/auth/csrf
+        schema:
+          type: string
+          minLength: 1
+      responses:
+        '201':
+          description: Successful real implementation response; not currently implemented
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BloodRequest'
+        '400':
+          description: Invalid fields/query/JSON; no partial write
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: authentication_required or forbidden; no sensitive response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing record or hidden other-owner record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Conflict, capacity/duplicate/concurrent use or policy_unresolved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Ineligible donor, unsafe unit or invalid state transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Redacted storage/service unavailability
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestCreate'
+    get:
+      operationId: listBloodRequests
+      summary: STAFF queue by urgency rank then created_at/id; REQUESTER own requests
+        only; same deterministic sorting.
+      tags:
+      - blood_requests
+      x-owner: Arnav Chaudhary
+      x-stories:
+      - BB-18
+      - BB-19
+      x-requirements:
+      - FR-013
+      - FR-014
+      - SEC-002
+      x-contract-status: PROPOSED_APPROVAL_REQUIRED
+      x-implementation-status: not_implemented
+      x-allowed-roles:
+      - STAFF
+      - REQUESTER
+      x-decision-gates:
+      - S2-03
+      description: Design contract only. No route is added by this pack. All superusers
+        denied under proposed operational matrix. Missing/expired sessions keep existing
+        DRF 403 authentication_required, not a new JWT/401 architecture. For owner-restricted
+        records use identical 404 for other owner and missing record. Dates/times
+        and validation follow conventions.md. STAFF queue by urgency rank then created_at/id;
+        REQUESTER own requests only; same deterministic sorting.
+      security:
+      - sessionCookie: []
+      parameters:
+      - *id002
+      - *id003
+      - name: status
+        in: query
+        required: false
+        description: ''
+        schema: &id012
+          type: string
+          enum:
+          - SUBMITTED
+          - APPROVED
+          - REJECTED
+          - ISSUED
+          - CLOSED
+      responses:
+        '200':
+          description: Successful real implementation response; not currently implemented
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestPage'
+        '400':
+          description: Invalid fields/query/JSON; no partial write
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: authentication_required or forbidden; no sensitive response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing record or hidden other-owner record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Conflict, capacity/duplicate/concurrent use or policy_unresolved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Ineligible donor, unsafe unit or invalid state transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Redacted storage/service unavailability
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/requests/{request_id}:
+    get:
+      operationId: getBloodRequest
+      summary: getBloodRequest
+      tags:
+      - blood_requests
+      x-owner: Arnav Chaudhary
+      x-stories:
+      - BB-19
+      x-requirements:
+      - FR-017
+      - SEC-002
+      x-contract-status: PROPOSED_APPROVAL_REQUIRED
+      x-implementation-status: not_implemented
+      x-allowed-roles:
+      - STAFF
+      - REQUESTER_OWNER
+      x-decision-gates:
+      - S2-03
+      description: 'Design contract only. No route is added by this pack. All superusers
+        denied under proposed operational matrix. Missing/expired sessions keep existing
+        DRF 403 authentication_required, not a new JWT/401 architecture. For owner-restricted
+        records use identical 404 for other owner and missing record. Dates/times
+        and validation follow conventions.md. '
+      security:
+      - sessionCookie: []
+      parameters:
+      - name: request_id
+        in: path
+        required: true
+        description: Canonical resource UUID
+        schema: *id001
+      responses:
+        '200':
+          description: Successful real implementation response; not currently implemented
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BloodRequest'
+        '400':
+          description: Invalid fields/query/JSON; no partial write
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: authentication_required or forbidden; no sensitive response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing record or hidden other-owner record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Conflict, capacity/duplicate/concurrent use or policy_unresolved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Ineligible donor, unsafe unit or invalid state transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Redacted storage/service unavailability
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/requests/{request_id}/status:
+    patch:
+      operationId: reviewBloodRequest
+      summary: SUBMITTED only; REJECTED requires nonblank rejection_reason; APPROVED
+        forbids rejection_reason.
+      tags:
+      - blood_requests
+      x-owner: Arnav Chaudhary
+      x-stories:
+      - BB-18
+      x-requirements:
+      - FR-013
+      - FR-014
+      - SEC-002
+      x-contract-status: PROPOSED_APPROVAL_REQUIRED
+      x-implementation-status: not_implemented
+      x-allowed-roles:
+      - STAFF
+      x-decision-gates:
+      - S2-03
+      description: Design contract only. No route is added by this pack. All superusers
+        denied under proposed operational matrix. Missing/expired sessions keep existing
+        DRF 403 authentication_required, not a new JWT/401 architecture. For owner-restricted
+        records use identical 404 for other owner and missing record. Dates/times
+        and validation follow conventions.md. SUBMITTED only; REJECTED requires nonblank
+        rejection_reason; APPROVED forbids rejection_reason.
+      security:
+      - sessionCookie: []
+      parameters:
+      - name: request_id
+        in: path
+        required: true
+        description: Canonical resource UUID
+        schema: *id001
+      - name: X-CSRFToken
+        in: header
+        required: true
+        description: Existing same-origin CSRF token; bootstrap via GET /api/v1/auth/csrf
+        schema:
+          type: string
+          minLength: 1
+      responses:
+        '200':
+          description: Successful real implementation response; not currently implemented
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BloodRequest'
+        '400':
+          description: Invalid fields/query/JSON; no partial write
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: authentication_required or forbidden; no sensitive response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing record or hidden other-owner record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Conflict, capacity/duplicate/concurrent use or policy_unresolved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Ineligible donor, unsafe unit or invalid state transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Redacted storage/service unavailability
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewRequest'
+  /api/v1/requests/{request_id}/issues:
+    post:
+      operationId: issueBloodUnits
+      summary: Lock request then units sorted UUID; exact group/component, usable
+        AVAILABLE; unique unit issue; all-or-nothing; reject oversupply; partial stays
+        APPROVED.
+      tags:
+      - blood_requests
+      x-owner: Arnav Chaudhary
+      x-stories:
+      - BB-16
+      x-requirements:
+      - FR-011
+      - FR-015
+      - FR-016
+      - NFR-004
+      - SEC-002
+      - DATA-01
+      x-contract-status: PROPOSED_APPROVAL_REQUIRED
+      x-implementation-status: not_implemented
+      x-allowed-roles:
+      - STAFF
+      x-decision-gates:
+      - S2-01
+      - S2-02
+      - S2-03
+      description: Design contract only. No route is added by this pack. All superusers
+        denied under proposed operational matrix. Missing/expired sessions keep existing
+        DRF 403 authentication_required, not a new JWT/401 architecture. For owner-restricted
+        records use identical 404 for other owner and missing record. Dates/times
+        and validation follow conventions.md. Lock request then units sorted UUID;
+        exact group/component, usable AVAILABLE; unique unit issue; all-or-nothing;
+        reject oversupply; partial stays APPROVED.
+      security:
+      - sessionCookie: []
+      parameters:
+      - name: request_id
+        in: path
+        required: true
+        description: Canonical resource UUID
+        schema: *id001
+      - name: X-CSRFToken
+        in: header
+        required: true
+        description: Existing same-origin CSRF token; bootstrap via GET /api/v1/auth/csrf
+        schema:
+          type: string
+          minLength: 1
+      responses:
+        '201':
+          description: Successful real implementation response; not currently implemented
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssueResponse'
+        '400':
+          description: Invalid fields/query/JSON; no partial write
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: authentication_required or forbidden; no sensitive response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing record or hidden other-owner record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Conflict, capacity/duplicate/concurrent use or policy_unresolved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Ineligible donor, unsafe unit or invalid state transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Redacted storage/service unavailability
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IssueCreate'
+  /api/v1/requests/{request_id}/close:
+    post:
+      operationId: closeBloodRequest
+      summary: No request body; ISSUED→CLOSED only; retries on CLOSED return same
+        state without mutation.
+      tags:
+      - blood_requests
+      x-owner: Arnav Chaudhary
+      x-stories:
+      - BB-19
+      x-requirements:
+      - FR-017
+      - SEC-002
+      x-contract-status: PROPOSED_APPROVAL_REQUIRED
+      x-implementation-status: not_implemented
+      x-allowed-roles:
+      - REQUESTER_OWNER
+      x-decision-gates:
+      - S2-03
+      description: Design contract only. No route is added by this pack. All superusers
+        denied under proposed operational matrix. Missing/expired sessions keep existing
+        DRF 403 authentication_required, not a new JWT/401 architecture. For owner-restricted
+        records use identical 404 for other owner and missing record. Dates/times
+        and validation follow conventions.md. No request body; ISSUED→CLOSED only;
+        retries on CLOSED return same state without mutation.
+      security:
+      - sessionCookie: []
+      parameters:
+      - name: request_id
+        in: path
+        required: true
+        description: Canonical resource UUID
+        schema: *id001
+      - name: X-CSRFToken
+        in: header
+        required: true
+        description: Existing same-origin CSRF token; bootstrap via GET /api/v1/auth/csrf
+        schema:
+          type: string
+          minLength: 1
+      responses:
+        '200':
+          description: Successful real implementation response; not currently implemented
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BloodRequest'
+        '400':
+          description: Invalid fields/query/JSON; no partial write
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: authentication_required or forbidden; no sensitive response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing record or hidden other-owner record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Conflict, capacity/duplicate/concurrent use or policy_unresolved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Ineligible donor, unsafe unit or invalid state transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Redacted storage/service unavailability
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/camps:
+    post:
+      operationId: createCamp
+      summary: createCamp
+      tags:
+      - scheduling
+      x-owner: Ankitha Lakshmmi Mohan
+      x-stories:
+      - BB-20
+      x-requirements:
+      - FR-021
+      - SEC-002
+      - SEC-003
+      x-contract-status: PROPOSED_APPROVAL_REQUIRED
+      x-implementation-status: not_implemented
+      x-allowed-roles:
+      - ADMIN
+      x-decision-gates:
+      - S2-04
+      - S2-05
+      description: 'Design contract only. No route is added by this pack. All superusers
+        denied under proposed operational matrix. Missing/expired sessions keep existing
+        DRF 403 authentication_required, not a new JWT/401 architecture. For owner-restricted
+        records use identical 404 for other owner and missing record. Dates/times
+        and validation follow conventions.md. '
+      security:
+      - sessionCookie: []
+      parameters:
+      - name: X-CSRFToken
+        in: header
+        required: true
+        description: Existing same-origin CSRF token; bootstrap via GET /api/v1/auth/csrf
+        schema:
+          type: string
+          minLength: 1
+      responses:
+        '201':
+          description: Successful real implementation response; not currently implemented
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Camp'
+        '400':
+          description: Invalid fields/query/JSON; no partial write
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: authentication_required or forbidden; no sensitive response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing record or hidden other-owner record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Conflict, capacity/duplicate/concurrent use or policy_unresolved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Ineligible donor, unsafe unit or invalid state transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Redacted storage/service unavailability
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CampCreate'
+    get:
+      operationId: listCamps
+      summary: listCamps
+      tags:
+      - scheduling
+      x-owner: Ankitha Lakshmmi Mohan
+      x-stories:
+      - BB-20
+      x-requirements:
+      - FR-021
+      - SEC-002
+      - SEC-003
+      x-contract-status: PROPOSED_APPROVAL_REQUIRED
+      x-implementation-status: not_implemented
+      x-allowed-roles:
+      - DONOR
+      - STAFF
+      - ADMIN
+      x-decision-gates:
+      - S2-04
+      - S2-05
+      description: 'Design contract only. No route is added by this pack. All superusers
+        denied under proposed operational matrix. Missing/expired sessions keep existing
+        DRF 403 authentication_required, not a new JWT/401 architecture. For owner-restricted
+        records use identical 404 for other owner and missing record. Dates/times
+        and validation follow conventions.md. '
+      security:
+      - sessionCookie: []
+      parameters:
+      - *id002
+      - *id003
+      - name: status
+        in: query
+        required: false
+        description: ''
+        schema:
+          type: string
+          enum:
+          - ACTIVE
+          - CANCELLED
+      responses:
+        '200':
+          description: Successful real implementation response; not currently implemented
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CampPage'
+        '400':
+          description: Invalid fields/query/JSON; no partial write
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: authentication_required or forbidden; no sensitive response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing record or hidden other-owner record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Conflict, capacity/duplicate/concurrent use or policy_unresolved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Ineligible donor, unsafe unit or invalid state transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Redacted storage/service unavailability
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/camps/{camp_id}:
+    patch:
+      operationId: updateCamp
+      summary: At least one field; starts_at<ends_at; cannot reduce capacity below
+        active bookings or strand existing appointments by moving date/time.
+      tags:
+      - scheduling
+      x-owner: Ankitha Lakshmmi Mohan
+      x-stories:
+      - BB-20
+      x-requirements:
+      - FR-021
+      - SEC-002
+      - SEC-003
+      x-contract-status: PROPOSED_APPROVAL_REQUIRED
+      x-implementation-status: not_implemented
+      x-allowed-roles:
+      - ADMIN
+      - STAFF
+      x-decision-gates:
+      - S2-04
+      - S2-05
+      description: Design contract only. No route is added by this pack. All superusers
+        denied under proposed operational matrix. Missing/expired sessions keep existing
+        DRF 403 authentication_required, not a new JWT/401 architecture. For owner-restricted
+        records use identical 404 for other owner and missing record. Dates/times
+        and validation follow conventions.md. At least one field; starts_at<ends_at;
+        cannot reduce capacity below active bookings or strand existing appointments
+        by moving date/time.
+      security:
+      - sessionCookie: []
+      parameters:
+      - name: camp_id
+        in: path
+        required: true
+        description: Canonical resource UUID
+        schema: *id001
+      - name: X-CSRFToken
+        in: header
+        required: true
+        description: Existing same-origin CSRF token; bootstrap via GET /api/v1/auth/csrf
+        schema:
+          type: string
+          minLength: 1
+      responses:
+        '200':
+          description: Successful real implementation response; not currently implemented
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Camp'
+        '400':
+          description: Invalid fields/query/JSON; no partial write
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: authentication_required or forbidden; no sensitive response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing record or hidden other-owner record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Conflict, capacity/duplicate/concurrent use or policy_unresolved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Ineligible donor, unsafe unit or invalid state transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Redacted storage/service unavailability
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CampUpdate'
+  /api/v1/camps/{camp_id}/cancel:
+    post:
+      operationId: cancelCamp
+      summary: cancelCamp
+      tags:
+      - scheduling
+      x-owner: Ankitha Lakshmmi Mohan
+      x-stories:
+      - BB-20
+      x-requirements:
+      - FR-021
+      - SEC-002
+      - SEC-003
+      x-contract-status: PROPOSED_APPROVAL_REQUIRED
+      x-implementation-status: not_implemented
+      x-allowed-roles:
+      - ADMIN
+      x-decision-gates:
+      - S2-04
+      - S2-05
+      - S2-06
+      description: 'Design contract only. No route is added by this pack. All superusers
+        denied under proposed operational matrix. Missing/expired sessions keep existing
+        DRF 403 authentication_required, not a new JWT/401 architecture. For owner-restricted
+        records use identical 404 for other owner and missing record. Dates/times
+        and validation follow conventions.md. '
+      security:
+      - sessionCookie: []
+      parameters:
+      - name: camp_id
+        in: path
+        required: true
+        description: Canonical resource UUID
+        schema: *id001
+      - name: X-CSRFToken
+        in: header
+        required: true
+        description: Existing same-origin CSRF token; bootstrap via GET /api/v1/auth/csrf
+        schema:
+          type: string
+          minLength: 1
+      responses:
+        '200':
+          description: Successful real implementation response; not currently implemented
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Camp'
+        '400':
+          description: Invalid fields/query/JSON; no partial write
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: authentication_required or forbidden; no sensitive response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing record or hidden other-owner record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Conflict, capacity/duplicate/concurrent use or policy_unresolved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Ineligible donor, unsafe unit or invalid state transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Redacted storage/service unavailability
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CancelAction'
+  /api/v1/appointment-slots:
+    post:
+      operationId: createAppointmentSlot
+      summary: Supporting slot setup; camp_id null means walk-in; non-null camp slot
+        within camp interval.
+      tags:
+      - scheduling
+      x-owner: Ankitha Lakshmmi Mohan
+      x-stories:
+      - BB-21
+      x-requirements:
+      - FR-018
+      - FR-019
+      - SEC-002
+      x-contract-status: PROPOSED_APPROVAL_REQUIRED
+      x-implementation-status: not_implemented
+      x-allowed-roles:
+      - ADMIN
+      - STAFF
+      x-decision-gates:
+      - S2-04
+      - S2-05
+      description: Design contract only. No route is added by this pack. All superusers
+        denied under proposed operational matrix. Missing/expired sessions keep existing
+        DRF 403 authentication_required, not a new JWT/401 architecture. For owner-restricted
+        records use identical 404 for other owner and missing record. Dates/times
+        and validation follow conventions.md. Supporting slot setup; camp_id null
+        means walk-in; non-null camp slot within camp interval.
+      security:
+      - sessionCookie: []
+      parameters:
+      - name: X-CSRFToken
+        in: header
+        required: true
+        description: Existing same-origin CSRF token; bootstrap via GET /api/v1/auth/csrf
+        schema:
+          type: string
+          minLength: 1
+      responses:
+        '201':
+          description: Successful real implementation response; not currently implemented
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Slot'
+        '400':
+          description: Invalid fields/query/JSON; no partial write
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: authentication_required or forbidden; no sensitive response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing record or hidden other-owner record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Conflict, capacity/duplicate/concurrent use or policy_unresolved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Ineligible donor, unsafe unit or invalid state transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Redacted storage/service unavailability
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SlotCreate'
+    get:
+      operationId: listAppointmentSlots
+      summary: listAppointmentSlots
+      tags:
+      - scheduling
+      x-owner: Ankitha Lakshmmi Mohan
+      x-stories:
+      - BB-21
+      x-requirements:
+      - FR-018
+      - FR-019
+      - SEC-002
+      x-contract-status: PROPOSED_APPROVAL_REQUIRED
+      x-implementation-status: not_implemented
+      x-allowed-roles:
+      - DONOR
+      - STAFF
+      - ADMIN
+      x-decision-gates:
+      - S2-05
+      description: 'Design contract only. No route is added by this pack. All superusers
+        denied under proposed operational matrix. Missing/expired sessions keep existing
+        DRF 403 authentication_required, not a new JWT/401 architecture. For owner-restricted
+        records use identical 404 for other owner and missing record. Dates/times
+        and validation follow conventions.md. '
+      security:
+      - sessionCookie: []
+      parameters:
+      - *id002
+      - *id003
+      - name: camp_id
+        in: query
+        required: false
+        description: ''
+        schema: *id001
+      - name: kind
+        in: query
+        required: false
+        description: ''
+        schema:
+          type: string
+          enum:
+          - CAMP
+          - WALK_IN
+      - name: from
+        in: query
+        required: false
+        description: ''
+        schema: &id006
+          type: string
+          format: date-time
+      - name: to
+        in: query
+        required: false
+        description: ''
+        schema: *id006
+      responses:
+        '200':
+          description: Successful real implementation response; not currently implemented
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SlotPage'
+        '400':
+          description: Invalid fields/query/JSON; no partial write
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: authentication_required or forbidden; no sensitive response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing record or hidden other-owner record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Conflict, capacity/duplicate/concurrent use or policy_unresolved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Ineligible donor, unsafe unit or invalid state transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Redacted storage/service unavailability
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/appointments:
+    post:
+      operationId: bookAppointment
+      summary: bookAppointment
+      tags:
+      - scheduling
+      x-owner: Ankitha Lakshmmi Mohan
+      x-stories:
+      - BB-21
+      x-requirements:
+      - FR-018
+      - FR-019
+      - SEC-002
+      x-contract-status: PROPOSED_APPROVAL_REQUIRED
+      x-implementation-status: not_implemented
+      x-allowed-roles:
+      - DONOR
+      x-decision-gates:
+      - S2-05
+      - S2-07
+      description: 'Design contract only. No route is added by this pack. All superusers
+        denied under proposed operational matrix. Missing/expired sessions keep existing
+        DRF 403 authentication_required, not a new JWT/401 architecture. For owner-restricted
+        records use identical 404 for other owner and missing record. Dates/times
+        and validation follow conventions.md. '
+      security:
+      - sessionCookie: []
+      parameters:
+      - name: X-CSRFToken
+        in: header
+        required: true
+        description: Existing same-origin CSRF token; bootstrap via GET /api/v1/auth/csrf
+        schema:
+          type: string
+          minLength: 1
+      responses:
+        '201':
+          description: Successful real implementation response; not currently implemented
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+        '400':
+          description: Invalid fields/query/JSON; no partial write
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: authentication_required or forbidden; no sensitive response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing record or hidden other-owner record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Conflict, capacity/duplicate/concurrent use or policy_unresolved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Ineligible donor, unsafe unit or invalid state transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Redacted storage/service unavailability
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppointmentCreate'
+    get:
+      operationId: listOwnAppointments
+      summary: Only authenticated donor’s appointments; no donor_id query override.
+      tags:
+      - scheduling
+      x-owner: Ankitha Lakshmmi Mohan
+      x-stories:
+      - BB-21
+      x-requirements:
+      - FR-018
+      - FR-019
+      - SEC-002
+      x-contract-status: PROPOSED_APPROVAL_REQUIRED
+      x-implementation-status: not_implemented
+      x-allowed-roles:
+      - DONOR
+      x-decision-gates:
+      - S2-05
+      description: Design contract only. No route is added by this pack. All superusers
+        denied under proposed operational matrix. Missing/expired sessions keep existing
+        DRF 403 authentication_required, not a new JWT/401 architecture. For owner-restricted
+        records use identical 404 for other owner and missing record. Dates/times
+        and validation follow conventions.md. Only authenticated donor’s appointments;
+        no donor_id query override.
+      security:
+      - sessionCookie: []
+      parameters:
+      - *id002
+      - *id003
+      responses:
+        '200':
+          description: Successful real implementation response; not currently implemented
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppointmentPage'
+        '400':
+          description: Invalid fields/query/JSON; no partial write
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: authentication_required or forbidden; no sensitive response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing record or hidden other-owner record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Conflict, capacity/duplicate/concurrent use or policy_unresolved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Ineligible donor, unsafe unit or invalid state transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Redacted storage/service unavailability
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/dashboard:
+    get:
+      operationId: getDashboard
+      summary: getDashboard
+      tags:
+      - reporting
+      x-owner: Anumula Arya
+      x-stories:
+      - BB-23
+      x-requirements:
+      - FR-022
+      - SEC-002
+      x-contract-status: PROPOSED_APPROVAL_REQUIRED
+      x-implementation-status: not_implemented
+      x-allowed-roles:
+      - ADMIN
+      x-decision-gates:
+      - S2-04
+      - S2-08
+      description: 'Design contract only. No route is added by this pack. All superusers
+        denied under proposed operational matrix. Missing/expired sessions keep existing
+        DRF 403 authentication_required, not a new JWT/401 architecture. For owner-restricted
+        records use identical 404 for other owner and missing record. Dates/times
+        and validation follow conventions.md. '
+      security:
+      - sessionCookie: []
+      parameters: []
+      responses:
+        '200':
+          description: Successful real implementation response; not currently implemented
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dashboard'
+        '400':
+          description: Invalid fields/query/JSON; no partial write
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: authentication_required or forbidden; no sensitive response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing record or hidden other-owner record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Conflict, capacity/duplicate/concurrent use or policy_unresolved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Ineligible donor, unsafe unit or invalid state transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Redacted storage/service unavailability
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/reports:
+    get:
+      operationId: getActivityReport
+      summary: getActivityReport
+      tags:
+      - reporting
+      x-owner: Anumula Arya
+      x-stories:
+      - BB-24
+      x-requirements:
+      - FR-023
+      - SEC-002
+      - SEC-003
+      x-contract-status: PROPOSED_APPROVAL_REQUIRED
+      x-implementation-status: not_implemented
+      x-allowed-roles:
+      - ADMIN
+      x-decision-gates:
+      - S2-08
+      description: 'Design contract only. No route is added by this pack. All superusers
+        denied under proposed operational matrix. Missing/expired sessions keep existing
+        DRF 403 authentication_required, not a new JWT/401 architecture. For owner-restricted
+        records use identical 404 for other owner and missing record. Dates/times
+        and validation follow conventions.md. '
+      security:
+      - sessionCookie: []
+      parameters:
+      - name: from
+        in: query
+        required: true
+        description: Inclusive local date
+        schema: &id007
+          type: string
+          format: date
+      - name: to
+        in: query
+        required: true
+        description: Inclusive local date
+        schema: *id007
+      responses:
+        '200':
+          description: Successful real implementation response; not currently implemented
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityReport'
+        '400':
+          description: Invalid fields/query/JSON; no partial write
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: authentication_required or forbidden; no sensitive response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Missing record or hidden other-owner record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Conflict, capacity/duplicate/concurrent use or policy_unresolved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Ineligible donor, unsafe unit or invalid state transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Redacted storage/service unavailability
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: sessionid
+  schemas:
+    Error:
+      type: object
+      additionalProperties: false
+      properties:
+        error:
+          type: object
+          additionalProperties: false
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            fields:
+              type: object
+              additionalProperties:
+                type: array
+                items:
+                  type: string
+            request_id: *id001
+          required:
+          - code
+          - message
+          - fields
+          - request_id
+      required:
+      - error
+    BloodUnitCreate:
+      type: object
+      additionalProperties: false
+      properties:
+        unit_code:
+          type: string
+          minLength: 1
+          maxLength: 64
+        donor_id: *id001
+        collection_event_id: *id001
+        blood_group: *id008
+        component_type: *id009
+        collection_date: *id007
+        quantity:
+          type: integer
+          enum:
+          - 1
+      required:
+      - unit_code
+      - donor_id
+      - blood_group
+      - component_type
+      - collection_date
+      - quantity
+    BloodUnit:
+      type: object
+      additionalProperties: false
+      properties:
+        id: *id001
+        unit_code:
+          type: string
+        donor_id: *id001
+        collection_event_id: *id001
+        blood_group: *id008
+        component_type: *id009
+        collection_date: *id007
+        expiry_date: *id007
+        quantity:
+          type: integer
+          enum:
+          - 1
+        status: *id010
+      required:
+      - id
+      - unit_code
+      - donor_id
+      - collection_event_id
+      - blood_group
+      - component_type
+      - collection_date
+      - expiry_date
+      - quantity
+      - status
+    DispositionCreate:
+      type: object
+      additionalProperties: false
+      properties:
+        status:
+          type: string
+          enum:
+          - DISCARDED
+          - QUARANTINED
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 240
+      required:
+      - status
+      - reason
+    StockRow:
+      type: object
+      additionalProperties: false
+      properties:
+        blood_group: *id008
+        component_type: *id009
+        available_quantity:
+          type: integer
+          minimum: 0
+      required:
+      - blood_group
+      - component_type
+      - available_quantity
+    Alert:
+      type: object
+      additionalProperties: false
+      properties:
+        id: *id001
+        kind:
+          type: string
+          enum:
+          - NEAR_EXPIRY
+          - LOW_STOCK
+        blood_group: *id008
+        component_type: *id009
+        unit_id:
+          type: string
+          format: uuid
+          nullable: true
+        created_at: *id006
+        notification_state:
+          type: string
+          enum:
+          - PENDING
+          - DELIVERED
+          - FAILED
+      required:
+      - id
+      - kind
+      - blood_group
+      - component_type
+      - unit_id
+      - created_at
+      - notification_state
+    RequestCreate:
+      type: object
+      additionalProperties: false
+      properties:
+        blood_group: *id008
+        component_type: *id009
+        quantity: &id011
+          type: integer
+          minimum: 1
+        urgency_level:
+          type: string
+          enum:
+          - CRITICAL
+          - URGENT
+          - ROUTINE
+      required:
+      - blood_group
+      - component_type
+      - quantity
+      - urgency_level
+    BloodRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        id: *id001
+        requester_id: *id001
+        blood_group: *id008
+        component_type: *id009
+        quantity: *id011
+        fulfilled_quantity:
+          type: integer
+          minimum: 0
+        urgency_level:
+          type: string
+          enum:
+          - CRITICAL
+          - URGENT
+          - ROUTINE
+        status: *id012
+        rejection_reason:
+          type: string
+          nullable: true
+        created_at: *id006
+      required:
+      - id
+      - requester_id
+      - blood_group
+      - component_type
+      - quantity
+      - fulfilled_quantity
+      - urgency_level
+      - status
+      - rejection_reason
+      - created_at
+    ReviewRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        status:
+          type: string
+          enum:
+          - APPROVED
+          - REJECTED
+        rejection_reason:
+          type: string
+          maxLength: 240
+      required:
+      - status
+    IssueCreate:
+      type: object
+      additionalProperties: false
+      properties:
+        unit_ids:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items: *id001
+      required:
+      - unit_ids
+    IssueRecord:
+      type: object
+      additionalProperties: false
+      properties:
+        id: *id001
+        request_id: *id001
+        unit_id: *id001
+        issued_by: *id001
+        issued_at: *id006
+        issued_quantity:
+          type: integer
+          enum:
+          - 1
+      required:
+      - id
+      - request_id
+      - unit_id
+      - issued_by
+      - issued_at
+      - issued_quantity
+    IssueResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        issues:
+          type: array
+          items:
+            $ref: '#/components/schemas/IssueRecord'
+        fulfilled_quantity:
+          type: integer
+          minimum: 1
+        request_status: *id012
+      required:
+      - issues
+      - fulfilled_quantity
+      - request_status
+    CampCreate:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        location:
+          type: string
+          minLength: 1
+          maxLength: 120
+        starts_at: *id006
+        ends_at: *id006
+        capacity: *id011
+      required:
+      - name
+      - location
+      - starts_at
+      - ends_at
+      - capacity
+    Camp:
+      type: object
+      additionalProperties: false
+      properties:
+        id: *id001
+        name:
+          type: string
+        location:
+          type: string
+        starts_at: *id006
+        ends_at: *id006
+        capacity: *id011
+        status:
+          type: string
+          enum:
+          - ACTIVE
+          - CANCELLED
+      required:
+      - id
+      - name
+      - location
+      - starts_at
+      - ends_at
+      - capacity
+      - status
+    CampUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        location:
+          type: string
+          minLength: 1
+          maxLength: 120
+        starts_at: *id006
+        ends_at: *id006
+        capacity: *id011
+      minProperties: 1
+    CancelAction:
+      type: object
+      additionalProperties: false
+      properties:
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 240
+      required:
+      - reason
+    SlotCreate:
+      type: object
+      additionalProperties: false
+      properties:
+        camp_id:
+          type: string
+          format: uuid
+          nullable: true
+        location:
+          type: string
+          minLength: 1
+          maxLength: 120
+        starts_at: *id006
+        ends_at: *id006
+        capacity: *id011
+      required:
+      - camp_id
+      - location
+      - starts_at
+      - ends_at
+      - capacity
+    Slot:
+      type: object
+      additionalProperties: false
+      properties:
+        id: *id001
+        camp_id:
+          type: string
+          format: uuid
+          nullable: true
+        location:
+          type: string
+        starts_at: *id006
+        ends_at: *id006
+        capacity: *id011
+        remaining_capacity:
+          type: integer
+          minimum: 0
+        status:
+          type: string
+          enum:
+          - OPEN
+          - CANCELLED
+      required:
+      - id
+      - camp_id
+      - location
+      - starts_at
+      - ends_at
+      - capacity
+      - remaining_capacity
+      - status
+    AppointmentCreate:
+      type: object
+      additionalProperties: false
+      properties:
+        slot_id: *id001
+      required:
+      - slot_id
+    Appointment:
+      type: object
+      additionalProperties: false
+      properties:
+        id: *id001
+        donor_id: *id001
+        slot_id: *id001
+        scheduled_time: *id006
+        status:
+          type: string
+          enum:
+          - CONFIRMED
+          - CANCELLED
+        reminder_state:
+          type: string
+          enum:
+          - PENDING
+          - DELIVERED
+          - FAILED
+          - CANCELLED
+      required:
+      - id
+      - donor_id
+      - slot_id
+      - scheduled_time
+      - status
+      - reminder_state
+    Dashboard:
+      type: object
+      additionalProperties: false
+      properties:
+        as_of: *id006
+        stock:
+          type: array
+          items:
+            $ref: '#/components/schemas/StockRow'
+        pending_requests:
+          type: integer
+          minimum: 0
+        upcoming_camps:
+          type: integer
+          minimum: 0
+      required:
+      - as_of
+      - stock
+      - pending_requests
+      - upcoming_camps
+    ActivityReport:
+      type: object
+      additionalProperties: false
+      properties:
+        from: *id007
+        to: *id007
+        timezone:
+          type: string
+          enum:
+          - Asia/Kolkata
+        donation_event_count:
+          type: integer
+          minimum: 0
+        collected_unit_count:
+          type: integer
+          minimum: 0
+        issued_unit_count:
+          type: integer
+          minimum: 0
+        wasted_unit_count:
+          type: integer
+          minimum: 0
+        definitions_version:
+          type: string
+      required:
+      - from
+      - to
+      - timezone
+      - donation_event_count
+      - collected_unit_count
+      - issued_unit_count
+      - wasted_unit_count
+      - definitions_version
+    NotificationEvent:
+      type: object
+      additionalProperties: false
+      properties:
+        event_id: *id001
+        recipient_id: *id001
+        type:
+          type: string
+          enum:
+          - NEAR_EXPIRY
+          - LOW_STOCK
+          - APPOINTMENT_REMINDER
+          - APPOINTMENT_CANCELLED
+        record_id: *id001
+        due_at: *id006
+        channels:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            type: string
+            enum:
+            - IN_APP
+            - EMAIL_MOCK
+            - SMS_MOCK
+      required:
+      - event_id
+      - recipient_id
+      - type
+      - record_id
+      - due_at
+      - channels
+    MockReceipt:
+      type: object
+      additionalProperties: false
+      properties:
+        event_id: *id001
+        delivery_mode:
+          type: string
+          enum:
+          - mock
+        receipts:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              channel:
+                type: string
+                enum:
+                - IN_APP
+                - EMAIL_MOCK
+                - SMS_MOCK
+              status:
+                type: string
+                enum:
+                - DELIVERED
+            required:
+            - channel
+            - status
+      required:
+      - event_id
+      - delivery_mode
+      - receipts
+    BloodUnitPage:
+      type: object
+      additionalProperties: false
+      properties:
+        count:
+          type: integer
+          minimum: 0
+        page:
+          type: integer
+          minimum: 1
+        page_size:
+          type: integer
+          minimum: 1
+          maximum: 100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/BloodUnit'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+    StockPage:
+      type: object
+      additionalProperties: false
+      properties:
+        count:
+          type: integer
+          minimum: 0
+        page:
+          type: integer
+          minimum: 1
+        page_size:
+          type: integer
+          minimum: 1
+          maximum: 100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/StockRow'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+    AlertPage:
+      type: object
+      additionalProperties: false
+      properties:
+        count:
+          type: integer
+          minimum: 0
+        page:
+          type: integer
+          minimum: 1
+        page_size:
+          type: integer
+          minimum: 1
+          maximum: 100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+    RequestPage:
+      type: object
+      additionalProperties: false
+      properties:
+        count:
+          type: integer
+          minimum: 0
+        page:
+          type: integer
+          minimum: 1
+        page_size:
+          type: integer
+          minimum: 1
+          maximum: 100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/BloodRequest'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+    CampPage:
+      type: object
+      additionalProperties: false
+      properties:
+        count:
+          type: integer
+          minimum: 0
+        page:
+          type: integer
+          minimum: 1
+        page_size:
+          type: integer
+          minimum: 1
+          maximum: 100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Camp'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+    SlotPage:
+      type: object
+      additionalProperties: false
+      properties:
+        count:
+          type: integer
+          minimum: 0
+        page:
+          type: integer
+          minimum: 1
+        page_size:
+          type: integer
+          minimum: 1
+          maximum: 100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Slot'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+    AppointmentPage:
+      type: object
+      additionalProperties: false
+      properties:
+        count:
+          type: integer
+          minimum: 0
+        page:
+          type: integer
+          minimum: 1
+        page_size:
+          type: integer
+          minimum: 1
+          maximum: 100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Appointment'
+      required:
+      - count
+      - page
+      - page_size
+      - results
