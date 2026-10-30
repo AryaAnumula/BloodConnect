@@ -1,0 +1,119 @@
+openapi: 3.0.3
+info:
+  title: BloodConnect Sprint 2 MOCK notification proposal
+  version: 0.1.0-proposed
+  description: Additive design only; current Node delivery endpoint still returns
+    authenticated 501 until BB-22 implementation. Same existing path; not a second
+    service.
+servers:
+- url: http://notifications:3000
+paths:
+  /internal/notifications:
+    post:
+      operationId: recordMockNotification
+      x-owner: Anumula Arya
+      x-stories:
+      - BB-15
+      - BB-22
+      x-implementation-status: not_implemented
+      x-decision-gates:
+      - S2-06
+      - S2-07
+      security:
+      - internalBearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationEvent'
+      responses:
+        '202':
+          description: Only after mock receipt really recorded; duplicate event/channel
+            returns original receipt; never means real SMS/email
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MockReceipt'
+        '400':
+          description: Invalid event
+        '401':
+          description: Dedicated service authentication missing/invalid
+        '409':
+          description: Same event ID with conflicting payload
+        '503':
+          description: No durable mock receipt recorded; sender retains retry intent
+components:
+  securitySchemes:
+    internalBearer:
+      type: http
+      scheme: bearer
+  schemas:
+    NotificationEvent:
+      type: object
+      additionalProperties: false
+      properties:
+        event_id: &id001
+          type: string
+          format: uuid
+        recipient_id: *id001
+        type:
+          type: string
+          enum:
+          - NEAR_EXPIRY
+          - LOW_STOCK
+          - APPOINTMENT_REMINDER
+          - APPOINTMENT_CANCELLED
+        record_id: *id001
+        due_at:
+          type: string
+          format: date-time
+        channels:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            type: string
+            enum:
+            - IN_APP
+            - EMAIL_MOCK
+            - SMS_MOCK
+      required:
+      - event_id
+      - recipient_id
+      - type
+      - record_id
+      - due_at
+      - channels
+    MockReceipt:
+      type: object
+      additionalProperties: false
+      properties:
+        event_id: *id001
+        delivery_mode:
+          type: string
+          enum:
+          - mock
+        receipts:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              channel:
+                type: string
+                enum:
+                - IN_APP
+                - EMAIL_MOCK
+                - SMS_MOCK
+              status:
+                type: string
+                enum:
+                - DELIVERED
+            required:
+            - channel
+            - status
+      required:
+      - event_id
+      - delivery_mode
+      - receipts
