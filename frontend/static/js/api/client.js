@@ -19,6 +19,7 @@ export async function apiFetch(path, { method = 'GET', body } = {}) {
   if (!response.ok) {
     const error = new Error(payload.error?.message || 'Request failed.');
     error.status = response.status; error.code = payload.error?.code;
+    error.fields = payload.error?.fields && typeof payload.error.fields === 'object' && !Array.isArray(payload.error.fields) ? payload.error.fields : {};
     throw error;
   }
   return payload;

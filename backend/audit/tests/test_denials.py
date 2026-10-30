@@ -96,12 +96,15 @@ class DenialHookTests(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertFalse(SecurityEvent.objects.exists())
 
-    def test_authenticated_unimplemented_route_not_recorded_as_denial(self):
-        user = get_user_model().objects.create_user(email='stub@example.test', password='synthetic-only-password')
+    def test_authenticated_staff_empty_search_is_not_a_denial(self):
+        from django.contrib.auth.models import Permission
+        user = get_user_model().objects.create_user(email='search-staff@example.test', password='synthetic-only-password',role='STAFF')
+        user.user_permissions.add(Permission.objects.get(content_type__app_label='accounts',codename='view_donor_health'))
         client = APIClient()
-        client.force_authenticate(user)
+        client.force_authenticate(get_user_model().objects.get(pk=user.pk))
         response = client.get('/api/v1/donors')
-        self.assertEqual(response.status_code, 501)
+        self.assertEqual(response.status_code,200)
+        self.assertEqual(response.json()['results'],[])
         self.assertFalse(SecurityEvent.objects.exists())
 
     def test_no_audit_listing_or_admin_endpoint_exposed(self):

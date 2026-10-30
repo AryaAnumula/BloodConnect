@@ -11,10 +11,10 @@ Base: current main b23d518 plus independent BB05/BB11 follow-up. BB08/09 endpoin
 | POST /api/v1/auth/logout | Arnav / BB-02 | active authenticated + CSRF | no body → 204 **empty body** | implemented |
 | GET /api/v1/auth/me | Arnav / BB-04 | active authenticated | none → AuthUser 200 | implemented, metadata only |
 | POST /api/v1/auth/register | Ankitha / BB-06, UI Yashwitha BB-10 | public + CSRF; never public elevated-role provisioning | RegistrationInput → RegistrationOutput | implemented201;strict input400;generic duplicate_contact409 |
-| GET /api/v1/donors | Yashwitha / BB-09; Arnav access review | target: IsAuthorizedStaff | query → DonorPage | stub: anonymous 403, authenticated 501; staff gate must be wired |
+| GET /api/v1/donors | Yashwitha / BB-09; Arnav access review | target: IsAuthorizedStaff | query → DonorPage | implemented STAFF+permission gate;strict AND filters;safe summaries and stable pagination |
 | GET /api/v1/donors/{donor_id} | Arnav / BB-12 | own active donor OR authorized clinical staff; all superusers denied | profile UUID → safe DonorProfile | implemented: 200 allowed; 403 role/auth denial; identical404 missing/other-donor; audit failure503 |
 | POST /api/v1/donors/{donor_id}/eligibility | Ankitha / BB-07; Arnav privacy review | target: own donor OR authorized clinical staff + CSRF | UUID + ScreeningInput → EligibilityResult | implemented demo assessment/history;400 invalid;403 role;hidden404;409 policy |
-| GET /api/v1/donors/{donor_id}/eligibility/result | Yashwitha / BB-08; Arnav privacy review | target: own donor OR authorized clinical staff | UUID → EligibilityResult | stub; no real results |
+| GET /api/v1/donors/{donor_id}/eligibility/result | Yashwitha / BB-08; Arnav privacy review | target: own donor OR authorized clinical staff | UUID → EligibilityResult | implemented latest saved result;own/staff;hidden404;policy409 |
 
 Full owner/story/FR/SEC mappings, types, required fields, outputs, response codes and parameters are in each OpenAPI operation. No separate endpoint is invented for SEC-003. Frontend calls Django, never Python imports or the internal Node service.
 
@@ -68,3 +68,6 @@ resetCsrfToken();
 `apiFetch` accepts only agreed same-origin API paths, sends cookies, initializes CSRF, serializes JSON, throws controlled error.message/code/status and handles 204 without JSON parsing. Caller owns UI state and clearing cached CSRF after session changes. No tokens/localStorage, no real donor fixtures. Browser controls/client validation are convenience, not server security.
 
 The mocked Node `/internal/notifications` remains private token-authenticated and 501; no frontend calls or delivery claims. Sprint 2 is excluded.
+
+
+BB08/09/10 master follow-up:actual result/search interfaces and registration UI status are documented in [master guide](../yashwitha-master.md). Earlier provider-first descriptions above must not be read as instructions to recreate merged APIs. BB10 now supplies safe field-error and submit-state handling against real registration.

@@ -319,9 +319,10 @@ paths:
       - SEC-005
       x-allowed-roles:
       - STAFF_UNDER_APPROVED_SEARCH_POLICY
-      x-implementation-status: stub
-      description: Proposed contract; approve docs/decisions.md before feature implementation. Current scaffold
-        returns explicit 501 after applicable CSRF/authentication gates; no business success is implemented.
+      x-implementation-status: implemented
+      description: Implemented authorized STAFF-only saved-data search. AND filters, UUID-stable pagination,
+        latest persisted assessment and version-based stale state. Safe summary only. Demo-scale implementation;
+        approved-load NFR-001 performance is not certified.
       security:
       - sessionCookie: []
       responses:
@@ -332,7 +333,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '200':
-          description: Target response for the approved implementation.
+          description: Successful implemented response.
           content:
             application/json:
               schema:
@@ -345,12 +346,6 @@ paths:
                 $ref: '#/components/schemas/Error'
         '403':
           description: authentication_required or forbidden
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '501':
-          description: Explicit scaffold response. No business action has occurred.
           content:
             application/json:
               schema:
@@ -552,9 +547,9 @@ paths:
       x-allowed-roles:
       - OWN_DONOR
       - AUTHORIZED_STAFF
-      x-implementation-status: stub
-      description: Proposed contract; approve docs/decisions.md before feature implementation. Current scaffold
-        returns explicit 501 after applicable CSRF/authentication gates; no business success is implemented.
+      x-implementation-status: implemented
+      description: Implemented latest persisted result through shared BB12 role/object checks. Missing profile/result404;
+        other donor404 with one denial event. No raw answers; current configured rule version determines is_stale.
       security:
       - sessionCookie: []
       responses:
@@ -565,7 +560,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '200':
-          description: Target response for the approved implementation.
+          description: Successful implemented response.
           content:
             application/json:
               schema:
@@ -588,14 +583,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-        '501':
-          description: Explicit scaffold response. No business action has occurred.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
       parameters:
-      - *id002
+      - name: donor_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: UUID of donor profile, not account UUID. Object authorization is mandatory.
 components:
   securitySchemes:
     sessionCookie:

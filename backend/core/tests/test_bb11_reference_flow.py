@@ -103,16 +103,17 @@ class ReferenceFlowTests(TestCase):
         self.assert_contract('/api/v1/auth/login', 'post', response)
         self.assertFalse(SecurityEvent.objects.exists())
 
-    def test_unimplemented_donor_features_remain_honest_stubs(self):
+    def test_implemented_donor_routes_reject_invalid_or_unauthorized_requests(self):
         self.assertEqual(self.login().status_code, 200)
         token = self.client.get('/api/v1/auth/csrf').json()['csrf_token']
         donor = '00000000-0000-4000-8000-000000000001'
-        # BB-12: the profile route is implemented; see donors/tests/test_profile_api.py.
-        for path in ['/api/v1/donors',
-                     f'/api/v1/donors/{donor}/eligibility/result']:
-            response = self.client.get(path)
-            self.assertEqual(response.status_code, 501)
-            self.assertEqual(response.json()['error']['code'], 'not_implemented')
+        # BB08/09 now use real data/policy providers; no fabricated stub success.
+        response = self.client.get('/api/v1/donors')
+        self.assertEqual(response.status_code,403)  # ordinary donor cannot staff-search
+        self.assertEqual(response.json()['error']['code'],'forbidden')
+        response = self.client.get(f'/api/v1/donors/{donor}/eligibility/result')
+        self.assertEqual(response.status_code,404)
+        self.assertEqual(response.json()['error']['code'],'not_found')
         # BB-06: registration is implemented, so it is no longer in the stub list.
         # An empty body is rejected by validation and creates no account.
         response = self.client.post('/api/v1/auth/register', {}, content_type='application/json', HTTP_X_CSRFTOKEN=token)
