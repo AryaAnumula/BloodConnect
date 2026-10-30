@@ -31,3 +31,16 @@ test('client accepts the real logout contract: 204 with no JSON body', async () 
   try { assert.equal(await apiFetch('/api/v1/auth/logout', { method: 'POST' }), null); }
   finally { globalThis.fetch = original; resetCsrfToken(); }
 });
+
+test('client exposes controlled registration fields without losing status and code', async () => {
+ const original=globalThis.fetch;
+ globalThis.fetch=async()=>new Response(JSON.stringify({error:{code:'validation_error',message:'Request validation failed.',fields:{email:['Enter a valid email.']}}}),{status:400});
+ try { await assert.rejects(apiFetch('/api/v1/auth/register'), e=>e.status===400 && e.code==='validation_error' && e.fields.email[0]==='Enter a valid email.'); }
+ finally { globalThis.fetch=original; }
+});
+test('client does not treat array error fields as a field map', async () => {
+ const original=globalThis.fetch;
+ globalThis.fetch=async()=>new Response(JSON.stringify({error:{message:'Invalid.',fields:['not a map']}}),{status:400});
+ try { await assert.rejects(apiFetch('/api/v1/auth/register'), e=>Object.keys(e.fields).length===0); }
+ finally { globalThis.fetch=original; }
+});

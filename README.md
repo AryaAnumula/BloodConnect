@@ -4,7 +4,7 @@
 
 ## Current integration handoff — independent BB05/BB11 follow-up
 
-Main b23d518 includes registration,screening,profile,login/session and common validation/audit. This independent Arya follow-up adds actual audit/input safety regression evidence for those implemented endpoints. BB08 result and BB09 search APIs remain stubs;BB10 UI follow-up stays separate. No new Yashwitha master prerequisite.
+Main b23d518 includes registration,screening,profile,login/session and common validation/audit. This independent Arya follow-up adds actual audit/input safety regression evidence for those implemented endpoints. The BB08/BB09/BB10 master follow-up now supplies real result/search backends and registration field-error/submit-state UI. Read docs/yashwitha-master.md for current runtime and limits. No new Yashwitha master prerequisite.
 
 Read [BB11 start here](docs/bb11-start-here.md),[runtime contracts](docs/api/endpoints.md),[input evidence](docs/input-validation-matrix.md) and [BB05 handoff](docs/handoffs/BB-05.md). Source stories/IDs/criteria unchanged. No new model/migration/dependency or medical rule. Older bootstrap/provider-first notes are historical;don't interpret them as a blanket claim that merged endpoints are still stubs.
 

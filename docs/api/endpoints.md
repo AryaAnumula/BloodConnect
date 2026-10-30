@@ -68,3 +68,6 @@ resetCsrfToken();
 `apiFetch` accepts only agreed same-origin API paths, sends cookies, initializes CSRF, serializes JSON, throws controlled error.message/code/status and handles 204 without JSON parsing. Caller owns UI state and clearing cached CSRF after session changes. No tokens/localStorage, no real donor fixtures. Browser controls/client validation are convenience, not server security.
 
 The mocked Node `/internal/notifications` remains private token-authenticated and 501; no frontend calls or delivery claims. Sprint 2 is excluded.
+
+
+BB08/09/10 master follow-up:actual result/search interfaces and registration UI status are documented in [master guide](../yashwitha-master.md). Earlier provider-first descriptions above must not be read as instructions to recreate merged APIs. BB10 now supplies safe field-error and submit-state handling against real registration.

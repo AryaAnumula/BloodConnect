@@ -51,4 +51,4 @@ class StarterSmokeTests(APITestCase):
         for path in ['/', '/login', '/register', '/screening', '/eligibility', '/staff/donors']:
             response = self.client.get(path)
             self.assertEqual(response.status_code, 200)
-            self.assertContains(response, 'Starter only')
+            self.assertContains(response, 'College demonstration')
