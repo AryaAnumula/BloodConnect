@@ -1,16 +1,34 @@
 import http from 'node:http';
 import { timingSafeEqual, createHash, randomUUID } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
-import { mkdirSync, existsSync, readFileSync, openSync, writeFileSync, fsyncSync, closeSync, renameSync, unlinkSync } from 'node:fs';
+import { mkdirSync, existsSync, readFileSync, openSync, writeFileSync, fsyncSync, closeSync, renameSync, unlinkSync, chmodSync, lstatSync } from 'node:fs';
 import path from 'node:path';
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const channels = new Set(['IN_APP', 'EMAIL_MOCK', 'SMS_MOCK']);
 const types = new Set(['NEAR_EXPIRY', 'LOW_STOCK', 'APPOINTMENT_REMINDER', 'APPOINTMENT_CANCELLED']);
+// Reject nonexistent calendar dates before Date.parse can normalize them.
+function validTimestamp(value) {
+  if (typeof value !== 'string') return false;
+  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d{1,6})?(Z|[+-]\d{2}:\d{2})$/.exec(value);
+  if (!m) return false;
+  const [,ys,ms,ds,hs,mis,ss,offset] = m;
+  const [year,month,day,hour,minute,second] = [ys,ms,ds,hs,mis,ss].map(Number);
+  if (year < 1 || month < 1 || month > 12 || hour > 23 || minute > 59 || second > 59) return false;
+  const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  const days = [31,leap ? 29 : 28,31,30,31,30,31,31,30,31,30,31];
+  if (day < 1 || day > days[month-1]) return false;
+  if (offset !== 'Z' && (Number(offset.slice(1,3)) > 23 || Number(offset.slice(4,6)) > 59)) return false;
+  const epoch = Date.parse(value);
+  if (!Number.isFinite(epoch)) return false;
+  // Keep canonical UTC timestamps within the four-digit year contract.
+  const canonical = new Date(epoch).toISOString();
+  return /^\d{4}-/.test(canonical) && !canonical.startsWith('0000-');
+}
 function normalize(event) {
   const keys = ['event_id','recipient_id','type','record_id','due_at','channels'];
   if (!event || typeof event !== 'object' || Array.isArray(event) || Object.keys(event).sort().join() !== [...keys].sort().join()) throw new Error('invalid');
   if (![event.event_id,event.recipient_id,event.record_id].every(x => typeof x === 'string' && uuid.test(x))) throw new Error('invalid');
-  if (!types.has(event.type) || typeof event.due_at !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$/.test(event.due_at) || !Number.isFinite(Date.parse(event.due_at))) throw new Error('invalid');
+  if (!types.has(event.type) || !validTimestamp(event.due_at)) throw new Error('invalid');
   if (!Array.isArray(event.channels) || !event.channels.length || event.channels.length > 3 || new Set(event.channels).size !== event.channels.length || !event.channels.every(c => channels.has(c))) throw new Error('invalid');
   return { event_id:event.event_id.toLowerCase(), recipient_id:event.recipient_id.toLowerCase(), type:event.type, record_id:event.record_id.toLowerCase(), due_at:new Date(event.due_at).toISOString(), channels:[...event.channels].sort() };
 }
@@ -41,7 +59,12 @@ function recordReceipt(dir, event) {
 export function createNotificationServer({ token, mockEnabled=false, receiptDir=null }) {
   if (!token || token.length < 32 || token.startsWith('CHANGE_ME')) throw new Error('Set a generated internal token.');
   if (mockEnabled && !receiptDir) throw new Error('Configure a persistent mock receipt directory.');
-  if (mockEnabled) mkdirSync(receiptDir,{recursive:true,mode:0o700});
+  if (mockEnabled) {
+    mkdirSync(receiptDir,{recursive:true,mode:0o700});
+    if (!lstatSync(receiptDir).isDirectory()) throw new Error('Receipt path must be a directory, not a symlink.');
+    // chmod is meaningful on POSIX. Windows requires separate ACL configuration.
+    if (process.platform !== 'win32') chmodSync(receiptDir,0o700);
+  }
   return http.createServer((req,res)=>{
     const send=(status,body)=>{res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(body));};
     const error=(status,code,message)=>send(status,{error:{code,message}});
@@ -50,7 +73,7 @@ export function createNotificationServer({ token, mockEnabled=false, receiptDir=
     const supplied=Buffer.from(req.headers.authorization||'');const expected=Buffer.from(`Bearer ${token}`);
     if (supplied.length!==expected.length || !timingSafeEqual(supplied,expected)) { req.resume();return error(401,'invalid_service_authentication','Service authentication required.'); }
     if (!mockEnabled) { req.resume();return error(501,'not_implemented','Mock delivery is not enabled.'); }
-    if ((req.headers['content-type']||'').split(';')[0].trim()!=='application/json') { req.resume();return error(400,'invalid_event','JSON event required.'); }
+    if ((req.headers['content-type']||'').split(';')[0].trim().toLowerCase()!=='application/json') { req.resume();return error(400,'invalid_event','JSON event required.'); }
     let size=0;const chunks=[];let rejected=false;
     req.on('data',chunk=>{size+=chunk.length;if(size>16384){if(!rejected){rejected=true;error(413,'event_too_large','Event is too large.');}}else if(!rejected)chunks.push(chunk);});
     req.on('end',()=>{

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtempSync,rmSync,readdirSync,readFileSync,writeFileSync} from 'node:fs';
+import {mkdtempSync,rmSync,readdirSync,readFileSync,writeFileSync,chmodSync,statSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {randomUUID} from 'node:crypto';
@@ -13,3 +13,19 @@ test('persistent mock receipt survives service restart and rejects conflicting r
 test('mock rejects unauthorized, unknown fields, invalid channels, oversized input',async()=>{const dir=mkdtempSync(join(tmpdir(),'bb22-'));try{await serve(dir,async b=>{assert.equal((await post(b,event(),false)).status,401);assert.equal((await post(b,{...event(),health:'private'})).status,400);assert.equal((await post(b,{...event(),channels:['SMS_REAL']})).status,400);assert.equal((await post(b,{...event(),extra:'x'.repeat(20000)})).status,413);assert.equal(readdirSync(dir).length,0);});}finally{rmSync(dir,{recursive:true,force:true});}});
 
 test('corrupt receipt store returns redacted 503, never fabricated success',async()=>{const dir=mkdtempSync(join(tmpdir(),'bb22-'));try{const body=event();writeFileSync(join(dir,body.event_id+'.json'),'{broken');await serve(dir,async b=>{const response=await post(b,body);assert.equal(response.status,503);assert.ok(!(await response.text()).includes(dir));});}finally{rmSync(dir,{recursive:true,force:true});}});
+
+
+test('rejects invalid calendar dates and accepts valid leap days',async()=>{
+ const dir=mkdtempSync(join(tmpdir(),'bb22-'));try{await serve(dir,async b=>{
+  for (const due_at of ['2025-02-29T12:00:00Z','2024-02-30T12:00:00Z','2024-04-31T12:00:00Z','2024-01-01T24:00:00Z','2024-01-01T12:00:00+24:00']) {assert.equal((await post(b,{...event(),due_at})).status,400);}
+  assert.equal((await post(b,{...event(),due_at:'2024-02-29T12:00:00.123456+05:30'})).status,202);
+ });}finally{rmSync(dir,{recursive:true,force:true});}
+});
+
+test('existing receipt directory is restricted on POSIX', {skip:process.platform==='win32'},async()=>{
+ const dir=mkdtempSync(join(tmpdir(),'bb22-'));try{chmodSync(dir,0o755);await serve(dir,async()=>{assert.equal(statSync(dir).mode & 0o777,0o700);});}finally{rmSync(dir,{recursive:true,force:true});}
+});
+
+test('content type is case insensitive',async()=>{
+ const dir=mkdtempSync(join(tmpdir(),'bb22-'));try{await serve(dir,async b=>{const r=await fetch(b+'/internal/notifications',{method:'POST',headers:{'content-type':'Application/JSON','Authorization':'Bearer '+token},body:JSON.stringify(event())});assert.equal(r.status,202);});}finally{rmSync(dir,{recursive:true,force:true});}
+});

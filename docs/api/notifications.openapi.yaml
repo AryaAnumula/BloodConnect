@@ -4,7 +4,7 @@ info:
   version: 0.1.0
   description: BB22 provider checkpoint. Existing health and authentication gate retained.
     Mock delivery is disabled by default (501). Explicitly enabled single-process
-    mock mode persists idempotent receipts before202; never real SMS/email. Django
+    mock mode persists idempotent receipts before 202; never real SMS/email. Django
     durable intent/dispatch requires actual S2 policy approval; real appointment integration
     remains pending.
 servers:
@@ -53,7 +53,7 @@ paths:
         '409':
           description: Same event ID with conflicting payload.
         '413':
-          description: Event exceeds16KiB limit.
+          description: Event exceeds 16 KiB limit.
         '503':
           description: Receipt store unavailable; sender retains pending intent.
         '401':

@@ -75,7 +75,11 @@ def dispatch_due(*, now, limit: int=100) -> dict:
             if locked.state!='LEASED' or locked.lease_token!=token:
                 counts['superseded']+=1;continue
             locked.attempts+=1;locked.lease_token=None;locked.lease_until=None;locked.last_error_code=code
-            DeliveryAttempt.objects.create(intent=locked,attempted_at=completed,outcome=outcome,error_code=code)
+            # The mock service acknowledges all requested channels together. Persist one
+            # row per channel; an unacknowledged transport failure proves no receipt.
+            for channel in locked.channels:
+                receipt_key=f'{locked.event_id}:{channel}' if outcome=='DELIVERED' else None
+                DeliveryAttempt.objects.create(intent=locked,channel=channel,receipt_key=receipt_key,attempted_at=completed,outcome=outcome,error_code=code)
             if outcome=='DELIVERED':
                 locked.state='DELIVERED';locked.delivered_at=completed
                 if locked.scheduled_for is not None:locked.timing_met=not locked.late_booking and completed<=locked.scheduled_for-timedelta(hours=24)
