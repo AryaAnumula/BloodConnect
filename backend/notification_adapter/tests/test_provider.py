@@ -126,3 +126,22 @@ class ProviderTests(TransactionTestCase):
             result=dispatch_due(now=self.now)
         self.assertEqual(result['retry'],1)
         self.assertEqual(OutboxIntent.objects.get().next_attempt_at,clock[0]+timedelta(seconds=60))
+
+    def test_multi_channel_attempts_record_channel_and_acknowledgement_identity(self):
+        self.kw['channels']=['IN_APP','EMAIL_MOCK'];self.enqueue()
+        with patch('notification_adapter.services.dispatch.send_notification_intent',return_value={}):
+            self.assertEqual(dispatch_due(now=self.now)['delivered'],1)
+        rows=list(DeliveryAttempt.objects.order_by('channel'))
+        self.assertEqual(len(rows),2)
+        self.assertEqual({r.channel for r in rows},{'IN_APP','EMAIL_MOCK'})
+        for row in rows:
+            self.assertEqual(row.outcome,'DELIVERED')
+            self.assertEqual(row.receipt_key,f'{self.kw["event_id"]}:{row.channel}')
+
+    def test_multi_channel_failure_does_not_claim_receipts(self):
+        self.kw['channels']=['IN_APP','EMAIL_MOCK'];self.enqueue()
+        with patch('notification_adapter.services.dispatch.send_notification_intent',side_effect=NotificationTransportUnavailable()):
+            self.assertEqual(dispatch_due(now=self.now)['retry'],1)
+        rows=list(DeliveryAttempt.objects.all());self.assertEqual(len(rows),2)
+        for row in rows:
+            self.assertEqual(row.outcome,'FAILED');self.assertIsNone(row.receipt_key)

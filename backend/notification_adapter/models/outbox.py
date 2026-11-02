@@ -29,6 +29,9 @@ class OutboxIntent(models.Model):
 
 class DeliveryAttempt(models.Model):
     intent = models.ForeignKey(OutboxIntent, on_delete=models.CASCADE, related_name='delivery_attempts')
+    # Nullable for records created before channel-level evidence was introduced.
+    channel = models.CharField(max_length=16, null=True, blank=True)
+    receipt_key = models.CharField(max_length=60, null=True, blank=True)
     attempted_at = models.DateTimeField()
     outcome = models.CharField(max_length=16)
     error_code = models.CharField(max_length=48, blank=True)
