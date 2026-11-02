@@ -115,3 +115,7 @@ Additional evidence guides: [testing levels](docs/testing.md) and [requirement t
 ## Sprint 2 contract-first planning
 
 See [Sprint 2 design foundation](docs/sprint2/README.md) for proposed APIs, ownership, service interfaces and decision gates. Applying the foundation does not implement Sprint 2 routes. Approve relevant decisions before feature branches diverge.
+
+## BB-22 reminder provider checkpoint
+
+See [BB-22 provider and appointment handoff](docs/handoffs/BB-22.md). Durable notification provider and opt-in Node MOCK receipts are implemented; real appointment integration, policy approval and timing acceptance are pending.
