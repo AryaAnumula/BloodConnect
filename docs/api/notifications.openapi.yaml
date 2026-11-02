@@ -2,8 +2,11 @@ openapi: 3.0.3
 info:
   title: BloodConnect internal notification scaffold
   version: 0.1.0
-  description: Only health and authentication gate are scaffolded. Delivery, durable
-    intent and retries are deferred; no 202 delivery success in Sprint 1.
+  description: BB22 provider checkpoint. Existing health and authentication gate retained.
+    Mock delivery is disabled by default (501). Explicitly enabled single-process
+    mock mode persists idempotent receipts before202; never real SMS/email. Django
+    durable intent/dispatch requires actual S2 policy approval; real appointment integration
+    remains pending.
 servers:
 - url: http://notifications:3000
   description: Docker-private internal service; not publicly published.
@@ -14,14 +17,45 @@ paths:
       security: []
       responses:
         '200':
-          description: Process alive; delivery remains not_implemented.
+          description: Process alive; delivery is mock when enabled, otherwise not_implemented.
   /internal/notifications:
     post:
-      operationId: internalNotificationStub
+      operationId: internalNotificationDelivery
       security:
       - internalBearer: []
-      x-implementation-status: stub
+      x-implementation-status: implemented-opt-in-mock-provider
+      x-stories:
+      - BB-15
+      - BB-22
+      x-requirements:
+      - FR-009
+      - FR-010
+      - FR-020
+      - SEC-002
+      - SEC-005
+      x-contract-status: PROVIDER_CHECKPOINT_APPOINTMENT_INTEGRATION_PENDING
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationEvent'
       responses:
+        '202':
+          description: Enabled mode only, actual persisted mock channel receipts;
+            duplicate event returns original receipt. No real carrier delivery.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MockReceipt'
+        '400':
+          description: Invalid JSON event or fields.
+        '409':
+          description: Same event ID with conflicting payload.
+        '413':
+          description: Event exceeds16KiB limit.
+        '503':
+          description: Receipt store unavailable; sender retains pending intent.
         '401':
           description: Missing/invalid backend service token; never browser credentials.
         '501':
@@ -34,3 +68,72 @@ components:
       scheme: bearer
       description: Dedicated generated backend-to-Node token. Never send to browser
         or commit.
+  schemas:
+    NotificationEvent:
+      type: object
+      additionalProperties: false
+      properties:
+        event_id: &id001
+          type: string
+          format: uuid
+        recipient_id: *id001
+        type:
+          type: string
+          enum:
+          - NEAR_EXPIRY
+          - LOW_STOCK
+          - APPOINTMENT_REMINDER
+          - APPOINTMENT_CANCELLED
+        record_id: *id001
+        due_at:
+          type: string
+          format: date-time
+        channels:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            type: string
+            enum:
+            - IN_APP
+            - EMAIL_MOCK
+            - SMS_MOCK
+      required:
+      - event_id
+      - recipient_id
+      - type
+      - record_id
+      - due_at
+      - channels
+    MockReceipt:
+      type: object
+      additionalProperties: false
+      properties:
+        event_id: *id001
+        delivery_mode:
+          type: string
+          enum:
+          - mock
+        receipts:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              channel:
+                type: string
+                enum:
+                - IN_APP
+                - EMAIL_MOCK
+                - SMS_MOCK
+              status:
+                type: string
+                enum:
+                - DELIVERED
+            required:
+            - channel
+            - status
+      required:
+      - event_id
+      - delivery_mode
+      - receipts
