@@ -66,7 +66,10 @@ class ProviderTests(TransactionTestCase):
     def test_retry_exhaustion(self):
         self.enqueue()
         with patch('notification_adapter.services.dispatch.send_notification_intent',side_effect=NotificationTransportUnavailable()):
-            for seconds in [0,61,182]:dispatch_due(now=self.now+timedelta(seconds=seconds))
+            for seconds in [0,61,182]:
+                current=self.now+timedelta(seconds=seconds)
+                with patch('notification_adapter.services.dispatch.timezone.now',return_value=current):
+                    dispatch_due(now=current)
         row=OutboxIntent.objects.get();self.assertEqual(row.state,'FAILED');self.assertEqual(row.attempts,3)
     def test_missing_real_appointment_reader_blocks(self):
         self.reminder(starts_at=self.now+timedelta(hours=24))
@@ -97,3 +100,29 @@ class ProviderTests(TransactionTestCase):
     def test_dispatch_inside_outer_transaction_rejected(self):
         with transaction.atomic():
             with self.assertRaises(RuntimeError):dispatch_due(now=self.now)
+
+    def test_slow_batch_claims_each_lease_from_current_time(self):
+        self.enqueue()
+        self.kw.update(event_id=uuid.uuid4(), record_id=uuid.uuid4(), due_at=self.now+timedelta(microseconds=1))
+        self.enqueue()
+        start=self.now+timedelta(seconds=1); clock=[start]; leases=[]
+        def send(*, event):
+            row=OutboxIntent.objects.get(event_id=event['event_id'])
+            leases.append((row.lease_until, clock[0]))
+            if len(leases)==1: clock[0]+=timedelta(seconds=31)
+            return {}
+        with patch('notification_adapter.services.dispatch.timezone.now',side_effect=lambda:clock[0]), patch('notification_adapter.services.dispatch.send_notification_intent',side_effect=send):
+            result=dispatch_due(now=start)
+        self.assertEqual(result['delivered'],2)
+        self.assertEqual(len(leases),2)
+        self.assertEqual(leases[1][0],leases[1][1]+timedelta(seconds=30))
+
+    def test_retry_delay_starts_after_transport_finishes(self):
+        self.enqueue(); clock=[self.now]
+        def send(*, event):
+            clock[0]+=timedelta(seconds=90)
+            raise NotificationTransportUnavailable()
+        with patch('notification_adapter.services.dispatch.timezone.now',side_effect=lambda:clock[0]), patch('notification_adapter.services.dispatch.send_notification_intent',side_effect=send):
+            result=dispatch_due(now=self.now)
+        self.assertEqual(result['retry'],1)
+        self.assertEqual(OutboxIntent.objects.get().next_attempt_at,clock[0]+timedelta(seconds=60))

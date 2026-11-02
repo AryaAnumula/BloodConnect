@@ -43,9 +43,11 @@ def dispatch_due(*, now, limit: int=100) -> dict:
         with transaction.atomic():
             row=OutboxIntent.objects.select_for_update().filter(pk=pk).first()
             if row is None or row.due_at>now: continue
-            eligible=row.state in {'PENDING','BLOCKED'} and row.next_attempt_at<=now or row.state=='LEASED' and row.lease_until is not None and row.lease_until<=now
+            # Claim time must be read after acquiring the lock, not at batch start.
+            claim_now = _aware(timezone.now())
+            eligible=row.state in {'PENDING','BLOCKED'} and row.next_attempt_at<=claim_now or row.state=='LEASED' and row.lease_until is not None and row.lease_until<=claim_now
             if not eligible: continue
-            row.state='LEASED';row.lease_token=token;row.lease_until=now+timedelta(seconds=30)
+            row.state='LEASED';row.lease_token=token;row.lease_until=claim_now+timedelta(seconds=30)
             row.save(update_fields=['state','lease_token','lease_until'])
         target=OutboxIntent.objects.filter(pk=pk,state='LEASED',lease_token=token)
         if row.event_type=='APPOINTMENT_REMINDER':
@@ -53,7 +55,7 @@ def dispatch_due(*, now, limit: int=100) -> dict:
                 require_policy('S2-07')
                 current=_reminder_current(row)
             except Exception:
-                target.update(state='BLOCKED',last_error_code='reminder_provider_or_policy_unavailable',next_attempt_at=now+timedelta(seconds=60),lease_token=None,lease_until=None)
+                target.update(state='BLOCKED',last_error_code='reminder_provider_or_policy_unavailable',next_attempt_at=_aware(timezone.now())+timedelta(seconds=60),lease_token=None,lease_until=None)
                 counts['blocked']+=1;continue
             if not current:
                 target.update(state='CANCELLED',last_error_code='appointment_changed_or_cancelled',lease_token=None,lease_until=None)
@@ -80,6 +82,6 @@ def dispatch_due(*, now, limit: int=100) -> dict:
                 counts['delivered']+=1
             elif locked.attempts>=3:locked.state='FAILED';counts['failed']+=1
             else:
-                locked.state='PENDING';locked.next_attempt_at=now+timedelta(seconds=60*2**(locked.attempts-1));counts['retry']+=1
+                locked.state='PENDING';locked.next_attempt_at=completed+timedelta(seconds=60*2**(locked.attempts-1));counts['retry']+=1
             locked.save()
     return counts
