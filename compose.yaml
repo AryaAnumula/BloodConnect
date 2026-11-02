@@ -34,7 +34,12 @@ services:
     environment:
       PORT: "3000"
       NOTIFICATION_INTERNAL_TOKEN: ${NOTIFICATION_INTERNAL_TOKEN:?Run bootstrap_env.py}
+      NOTIFICATION_MOCK_ENABLED: ${NOTIFICATION_MOCK_ENABLED:-0}
+      NOTIFICATION_MOCK_RECEIPT_DIR: /app/receipts
+    volumes:
+      - notification_receipts:/app/receipts
     expose:
       - "3000"
 volumes:
   postgres_data:
+  notification_receipts:
