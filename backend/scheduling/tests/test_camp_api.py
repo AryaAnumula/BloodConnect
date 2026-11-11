@@ -112,6 +112,8 @@ class CampApiTests(TestCase):
             {}, body(name=''), body(location=''), body(capacity=0), body(capacity='5'),
             body(starts_at='2026-12-01T10:00:00'),            # naive datetime
             body(starts_at='not-a-date'),
+            body(starts_at=(timezone.now() - timedelta(days=1)).isoformat(),
+                 ends_at=(timezone.now() + timedelta(days=1)).isoformat()),  # past start
             body(ends_at=start.isoformat(), starts_at=start.isoformat()),  # start == end
             dict(body(), status='CANCELLED'),                 # unknown field
             dict(body(), role='ADMIN'),

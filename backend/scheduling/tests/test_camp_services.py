@@ -65,6 +65,16 @@ class CreateCampTests(TestCase):
                     create_camp(actor=self.admin, data=camp_data(starts_at=start, ends_at=ends))
         self.assertEqual(Camp.objects.count(), 0)
 
+    def test_new_camp_must_start_in_the_future(self):
+        now = timezone.now()
+        for start in (now - timedelta(days=1), now - timedelta(seconds=1)):
+            with self.subTest(start=start):
+                with self.assertRaises(ValidationError) as caught:
+                    create_camp(actor=self.admin, data=camp_data(
+                        starts_at=start, ends_at=start + timedelta(hours=6)))
+                self.assertIn('starts_at', caught.exception.detail)
+        self.assertEqual(Camp.objects.count(), 0)
+
     def test_database_enforces_positive_capacity_and_ordered_times(self):
         start = timezone.now()
         with self.assertRaises(IntegrityError), transaction.atomic():
@@ -107,6 +117,13 @@ class UpdateCampTests(TestCase):
         with self.assertRaises(ValidationError):
             self.update(starts_at=later)  # new start is after the existing end
         self.assertEqual(Camp.objects.get(pk=self.camp['id']).capacity, 40)
+
+    def test_unrelated_edit_of_an_already_started_camp_is_allowed(self):
+        started = timezone.now() - timedelta(hours=1)
+        camp = Camp.objects.create(name='Old', location='Chennai', starts_at=started,
+                                   ends_at=started + timedelta(hours=6), capacity=10)
+        dto = update_camp(actor=self.admin, camp_id=camp.id, data={'name': 'Renamed'})
+        self.assertEqual(dto['name'], 'Renamed')
 
     def test_empty_update_rejected(self):
         with self.assertRaises(ValidationError):

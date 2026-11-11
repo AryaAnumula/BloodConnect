@@ -8,6 +8,7 @@ Not implemented yet and waiting on approvals / BB-21:
 """
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
+from django.utils import timezone
 from rest_framework.exceptions import APIException, NotFound, ValidationError
 
 from scheduling.dto import camp_dto
@@ -33,6 +34,9 @@ def create_camp(*, actor, data: dict) -> dict:
     """Create an ACTIVE camp from already shape-validated data."""
     require_camp_role(user=actor, action='create')
     _check_interval(data['starts_at'], data['ends_at'])
+    # Arya (Nov 11): reject NEW camps that start in the past. Edits are not restricted by this.
+    if data['starts_at'] <= timezone.now():
+        raise ValidationError({'starts_at': ['A new camp must start in the future.']})
     with transaction.atomic():
         camp = Camp.objects.create(
             name=data['name'], location=data['location'],
