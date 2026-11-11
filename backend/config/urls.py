@@ -6,6 +6,7 @@ urlpatterns = [
     path('api/v1/health/ready', ready, name='ready'),
     path('api/v1/auth/', include(('accounts.urls', 'accounts'))),
     path('api/v1/', include(('donors.urls', 'donors'))),
+    path('api/v1/', include(('scheduling.urls', 'scheduling'))),
     path('', TemplateView.as_view(template_name='index.html'), name='home'),
     path('login', TemplateView.as_view(template_name='login.html'), name='login-page'),
     path('register', TemplateView.as_view(template_name='register.html'), name='register-page'),
