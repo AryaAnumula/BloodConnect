@@ -145,6 +145,28 @@ class CampApiTests(TestCase):
         client, _ = client_for(make_user('REQUESTER'))
         self.assertEqual(client.get(self.URL).status_code, 403)
 
+    def test_default_list_hides_cancelled_for_donor_but_not_staff_or_admin(self):
+        self.create(name='Open camp')
+        self.create(name='Cancelled camp')
+        Camp.objects.filter(name='Cancelled camp').update(status='CANCELLED')
+        for role, expected in (('DONOR', 1), ('STAFF', 2), ('ADMIN', 2)):
+            with self.subTest(role=role):
+                client, _ = client_for(make_user(role))
+                data = client.get(self.URL).json()
+                self.assertEqual(data['count'], expected)
+                self.assertEqual(len(data['results']), expected)
+        donor, _ = client_for(make_user('DONOR'))
+        page = donor.get(self.URL + '?page=2&page_size=1').json()
+        self.assertEqual((page['count'], page['results']), (1, []))
+
+    def test_donor_explicit_status_filter_currently_returns_cancelled(self):
+        # PENDING DECISION: documents current behaviour, not an agreed rule.
+        self.create()
+        Camp.objects.update(status='CANCELLED')
+        donor, _ = client_for(make_user('DONOR'))
+        self.assertEqual(donor.get(self.URL + '?status=CANCELLED').json()['count'], 1)
+        self.assertEqual(donor.get(self.URL).json()['count'], 0)
+
     def test_list_query_validation(self):
         for query in ('?status=OPEN', '?page=0', '?page=abc', '?page_size=101', '?unknown=1',
                       '?status=ACTIVE&status=CANCELLED'):

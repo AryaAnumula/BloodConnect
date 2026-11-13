@@ -125,6 +125,12 @@ class UpdateCampTests(TestCase):
         dto = update_camp(actor=self.admin, camp_id=camp.id, data={'name': 'Renamed'})
         self.assertEqual(dto['name'], 'Renamed')
 
+    def test_changing_starts_at_to_a_past_time_is_currently_allowed(self):
+        # PENDING DECISION: documents current behaviour only; this rule is not agreed.
+        past = timezone.now() - timedelta(days=1)
+        dto = self.update(starts_at=past)
+        self.assertEqual(dto['starts_at'], past.isoformat())
+
     def test_empty_update_rejected(self):
         with self.assertRaises(ValidationError):
             self.update()
@@ -169,6 +175,35 @@ class ListCampsTests(TestCase):
         Camp.objects.filter(name='Camp 1').update(status='CANCELLED')
         self.assertEqual(list_camps(actor=self.admin, filters={'status': 'CANCELLED'})['count'], 1)
         self.assertEqual(list_camps(actor=self.admin, filters={'status': 'ACTIVE'})['count'], 2)
+
+    def test_default_list_hides_cancelled_camps_from_donors_only(self):
+        Camp.objects.filter(name='Camp 1').update(status='CANCELLED')
+        donor_page = list_camps(actor=make_user('DONOR'), filters={})
+        self.assertEqual(donor_page['count'], 2)
+        self.assertEqual([c['name'] for c in donor_page['results']], ['Camp 0', 'Camp 2'])
+        for person in (self.admin, make_user('STAFF')):
+            with self.subTest(role=person.role):
+                page = list_camps(actor=person, filters={})
+                self.assertEqual(page['count'], 3)
+                self.assertIn('CANCELLED', [c['status'] for c in page['results']])
+
+    def test_donor_pagination_counts_only_visible_camps(self):
+        Camp.objects.filter(name='Camp 0').update(status='CANCELLED')
+        donor = make_user('DONOR')
+        first = list_camps(actor=donor, filters={}, page=1, page_size=1)
+        second = list_camps(actor=donor, filters={}, page=2, page_size=1)
+        third = list_camps(actor=donor, filters={}, page=3, page_size=1)
+        self.assertEqual((first['count'], second['count']), (2, 2))
+        self.assertEqual([first['results'][0]['name'], second['results'][0]['name']],
+                         ['Camp 1', 'Camp 2'])
+        self.assertEqual(third['results'], [])
+
+    def test_explicit_status_filter_is_applied_as_given_for_donors(self):
+        # PENDING DECISION: documents current behaviour, not an agreed rule.
+        Camp.objects.filter(name='Camp 1').update(status='CANCELLED')
+        donor = make_user('DONOR')
+        self.assertEqual(list_camps(actor=donor, filters={'status': 'CANCELLED'})['count'], 1)
+        self.assertEqual(list_camps(actor=donor, filters={'status': 'ACTIVE'})['count'], 2)
 
     def test_pagination(self):
         first = list_camps(actor=self.admin, filters={}, page=1, page_size=2)
