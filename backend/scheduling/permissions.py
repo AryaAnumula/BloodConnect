@@ -14,6 +14,11 @@ CAMP_ACTION_ROLES = {
     'update': frozenset({'ADMIN', 'STAFF'}),
     'cancel': frozenset({'ADMIN', 'STAFF'}),
     'list': frozenset({'DONOR', 'STAFF', 'ADMIN'}),
+    # BB-21 (S2-04 proposal: slots ADMIN or STAFF; booking DONOR only).
+    'slot_create': frozenset({'ADMIN', 'STAFF'}),
+    'slot_list': frozenset({'DONOR', 'STAFF', 'ADMIN'}),
+    'book': frozenset({'DONOR'}),
+    'own_appointments': frozenset({'DONOR'}),
 }
 
 

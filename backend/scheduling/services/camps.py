@@ -4,7 +4,7 @@ Role checks go through scheduling.permissions (PENDING S2-04).
 Not implemented yet and waiting on approvals / BB-21:
   - cancel_camp (S2-05 / S2-06: cancels appointments and creates notification intents)
   - refusing a capacity reduction below active bookings, or a time change that strands
-    appointments (needs the BB-21 appointment model)
+    slots: done in _check_bookings (BB-21 models)
 """
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
@@ -12,7 +12,8 @@ from django.utils import timezone
 from rest_framework.exceptions import APIException, NotFound, ValidationError
 
 from scheduling.dto import camp_dto
-from scheduling.models import Camp
+from scheduling.exceptions import CapacityConflict, ScheduleConflict
+from scheduling.models import Appointment, Camp, Slot
 from scheduling.permissions import require_camp_role
 
 EDITABLE_FIELDS = ('name', 'location', 'starts_at', 'ends_at', 'capacity')
@@ -45,6 +46,26 @@ def create_camp(*, actor, data: dict) -> dict:
     return camp_dto(camp)
 
 
+def _check_bookings(camp, changes) -> None:
+    """Contract (PATCH /camps): do not cut capacity below active bookings or strand appointments.
+
+    Runs under the camp row lock. Only slots that have CONFIRMED bookings block a time change;
+    empty slots outside the new times are not checked here (open question for Arya).
+    """
+    confirmed = Appointment.objects.filter(slot__camp=camp, status=Appointment.Status.CONFIRMED)
+    if 'capacity' in changes and changes['capacity'] < confirmed.count():
+        raise CapacityConflict('Capacity cannot be below the number of active bookings.')
+    if 'starts_at' in changes or 'ends_at' in changes:
+        starts = changes.get('starts_at', camp.starts_at)
+        ends = changes.get('ends_at', camp.ends_at)
+        # Arya (14 Nov): every linked slot must stay inside the camp interval, empty ones too.
+        # Conflicting changes are rejected; slots are never moved silently. CANCELLED slots are
+        # inert history and are not counted (ASSUMPTION, flagged to Arya).
+        linked = Slot.objects.filter(camp=camp).exclude(status=Slot.Status.CANCELLED)
+        if linked.filter(starts_at__lt=starts).exists() or linked.filter(ends_at__gt=ends).exists():
+            raise ScheduleConflict()
+
+
 def update_camp(*, actor, camp_id, data: dict) -> dict:
     """Apply a partial update under a row lock."""
     require_camp_role(user=actor, action='update')
@@ -65,6 +86,7 @@ def update_camp(*, actor, camp_id, data: dict) -> dict:
             raise ValidationError({'starts_at': ['A camp cannot be moved to start in the past.']})
         _check_interval(changes.get('starts_at', camp.starts_at),
                         changes.get('ends_at', camp.ends_at))
+        _check_bookings(camp, changes)
         for field, value in changes.items():
             setattr(camp, field, value)
         camp.save(update_fields=[*changes, 'updated_at'])
