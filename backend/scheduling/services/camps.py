@@ -34,7 +34,7 @@ def create_camp(*, actor, data: dict) -> dict:
     """Create an ACTIVE camp from already shape-validated data."""
     require_camp_role(user=actor, action='create')
     _check_interval(data['starts_at'], data['ends_at'])
-    # Arya (Nov 11): reject NEW camps that start in the past. Edits are not restricted by this.
+    # Arya (Nov 11): reject NEW camps that start in the past (edits: see update_camp).
     if data['starts_at'] <= timezone.now():
         raise ValidationError({'starts_at': ['A new camp must start in the future.']})
     with transaction.atomic():
@@ -58,6 +58,11 @@ def update_camp(*, actor, camp_id, data: dict) -> dict:
             raise NotFound() from None
         if camp.status != Camp.Status.ACTIVE:
             raise CampNotEditable()
+        # Arya (14 Nov): moving the start to a past time, or exactly now, is rejected. An unchanged
+        # start (even if already past) never blocks other edits.
+        new_start = changes.get('starts_at')
+        if new_start is not None and new_start != camp.starts_at and new_start <= timezone.now():
+            raise ValidationError({'starts_at': ['A camp cannot be moved to start in the past.']})
         _check_interval(changes.get('starts_at', camp.starts_at),
                         changes.get('ends_at', camp.ends_at))
         for field, value in changes.items():

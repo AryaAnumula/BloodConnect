@@ -159,13 +159,22 @@ class CampApiTests(TestCase):
         page = donor.get(self.URL + '?page=2&page_size=1').json()
         self.assertEqual((page['count'], page['results']), (1, []))
 
-    def test_donor_explicit_status_filter_currently_returns_cancelled(self):
-        # PENDING DECISION: documents current behaviour, not an agreed rule.
+    def test_donor_status_cancelled_gets_an_empty_200_page_staff_keep_access(self):
         self.create()
         Camp.objects.update(status='CANCELLED')
         donor, _ = client_for(make_user('DONOR'))
-        self.assertEqual(donor.get(self.URL + '?status=CANCELLED').json()['count'], 1)
+        r = donor.get(self.URL + '?status=CANCELLED')
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json(), {'count': 0, 'page': 1, 'page_size': 20, 'results': []})
         self.assertEqual(donor.get(self.URL).json()['count'], 0)
+        self.assertEqual(self.client.get(self.URL + '?status=CANCELLED').json()['count'], 1)
+
+    def test_patch_moving_start_into_the_past_is_a_400(self):
+        camp_id = self.create().json()['id']
+        past = (timezone.now() - timedelta(hours=1)).isoformat()
+        r = self.send('patch', f'{self.URL}/{camp_id}', {'starts_at': past})
+        self.assertEqual(r.status_code, 400)
+        self.assertEqual(r.json()['error']['code'], 'validation_error')
 
     def test_list_query_validation(self):
         for query in ('?status=OPEN', '?page=0', '?page=abc', '?page_size=101', '?unknown=1',

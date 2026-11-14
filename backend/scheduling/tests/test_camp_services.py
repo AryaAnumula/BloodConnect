@@ -125,11 +125,36 @@ class UpdateCampTests(TestCase):
         dto = update_camp(actor=self.admin, camp_id=camp.id, data={'name': 'Renamed'})
         self.assertEqual(dto['name'], 'Renamed')
 
-    def test_changing_starts_at_to_a_past_time_is_currently_allowed(self):
-        # PENDING DECISION: documents current behaviour only; this rule is not agreed.
-        past = timezone.now() - timedelta(days=1)
-        dto = self.update(starts_at=past)
-        self.assertEqual(dto['starts_at'], past.isoformat())
+    def test_changing_starts_at_to_a_past_time_or_now_is_rejected(self):
+        before = Camp.objects.get(pk=self.camp['id']).starts_at
+        for moved in (timezone.now() - timedelta(days=1), timezone.now() - timedelta(seconds=1)):
+            with self.subTest(moved=moved.isoformat()):
+                with self.assertRaises(ValidationError) as caught:
+                    self.update(starts_at=moved)
+                self.assertIn('starts_at', caught.exception.detail)
+        self.assertEqual(Camp.objects.get(pk=self.camp['id']).starts_at, before)
+
+    def test_moving_start_to_exactly_now_is_rejected(self):
+        from unittest import mock
+        fixed = timezone.now()
+        with mock.patch('scheduling.services.camps.timezone.now', return_value=fixed):
+            with self.assertRaises(ValidationError):
+                self.update(starts_at=fixed)
+
+    def test_resending_an_unchanged_past_start_does_not_block_the_edit(self):
+        started = timezone.now() - timedelta(hours=1)
+        camp = Camp.objects.create(name='Old', location='Chennai', starts_at=started,
+                                   ends_at=started + timedelta(hours=6), capacity=10)
+        dto = update_camp(actor=self.admin, camp_id=camp.id,
+                          data={'starts_at': started, 'capacity': 12})
+        self.assertEqual(dto['capacity'], 12)
+        with self.assertRaises(ValidationError):  # a different past start is still refused
+            update_camp(actor=self.admin, camp_id=camp.id,
+                        data={'starts_at': started - timedelta(minutes=5)})
+
+    def test_moving_start_to_a_future_time_is_allowed(self):
+        later = Camp.objects.get(pk=self.camp['id']).starts_at + timedelta(hours=1)
+        self.assertEqual(self.update(starts_at=later)['starts_at'], later.isoformat())
 
     def test_empty_update_rejected(self):
         with self.assertRaises(ValidationError):
@@ -198,12 +223,14 @@ class ListCampsTests(TestCase):
                          ['Camp 1', 'Camp 2'])
         self.assertEqual(third['results'], [])
 
-    def test_explicit_status_filter_is_applied_as_given_for_donors(self):
-        # PENDING DECISION: documents current behaviour, not an agreed rule.
+    def test_donor_status_cancelled_filter_returns_an_empty_page(self):
         Camp.objects.filter(name='Camp 1').update(status='CANCELLED')
         donor = make_user('DONOR')
-        self.assertEqual(list_camps(actor=donor, filters={'status': 'CANCELLED'})['count'], 1)
+        page = list_camps(actor=donor, filters={'status': 'CANCELLED'})
+        self.assertEqual((page['count'], page['results']), (0, []))
         self.assertEqual(list_camps(actor=donor, filters={'status': 'ACTIVE'})['count'], 2)
+        for person in (self.admin, make_user('STAFF')):  # staff/admin keep access
+            self.assertEqual(list_camps(actor=person, filters={'status': 'CANCELLED'})['count'], 1)
 
     def test_pagination(self):
         first = list_camps(actor=self.admin, filters={}, page=1, page_size=2)
