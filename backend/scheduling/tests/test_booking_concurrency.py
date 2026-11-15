@@ -35,7 +35,14 @@ def run_parallel(jobs):
         t.start()
     for t in threads:
         t.join(timeout=30)
+    hung = [i for i, t in enumerate(threads) if t.is_alive()]
+    if hung:  # a hang must fail clearly, not leave a None result behind
+        raise AssertionError(f'threads {hung} did not finish within 30 seconds')
     return results
+
+
+def error_codes(results):
+    return [r[1] for r in results if r[0] == 'error']
 
 
 @unittest.skipUnless(connection.vendor == 'postgresql', 'needs PostgreSQL row locking')
@@ -46,6 +53,15 @@ class BookingRaceTests(TransactionTestCase):
         results = run_parallel([lambda d=d: book_appointment(actor=d, slot_id=slot.id) for d in donors])
         self.assertEqual([r[0] for r in results].count('ok'), 1, results)
         self.assertEqual([r for r in results if r[0] == 'crash'], [])
+        self.assertEqual(error_codes(results), ['capacity_conflict'] * 5)  # losers lost on capacity
+        self.assertEqual(Appointment.objects.filter(status='CONFIRMED').count(), 1)
+
+    def test_walk_in_slot_last_place_goes_to_exactly_one_donor(self):
+        slot = make_slot(None, capacity=1)  # no camp: only the slot lock protects it
+        donors = [make_donor()[0] for _ in range(6)]
+        results = run_parallel([lambda d=d: book_appointment(actor=d, slot_id=slot.id) for d in donors])
+        self.assertEqual([r[0] for r in results].count('ok'), 1, results)
+        self.assertEqual(error_codes(results), ['capacity_conflict'] * 5)
         self.assertEqual(Appointment.objects.filter(status='CONFIRMED').count(), 1)
 
     def test_camp_total_is_never_exceeded_across_slots(self):
@@ -55,6 +71,7 @@ class BookingRaceTests(TransactionTestCase):
         results = run_parallel([lambda d=d, s=slots[i % 3]: book_appointment(actor=d, slot_id=s.id)
                                 for i, d in enumerate(donors)])
         self.assertEqual([r for r in results if r[0] == 'crash'], [])
+        self.assertEqual(error_codes(results), ['capacity_conflict'] * 4)
         self.assertEqual(Appointment.objects.filter(status='CONFIRMED').count(), 2)
 
     def test_same_donor_double_click_books_once(self):
@@ -63,7 +80,26 @@ class BookingRaceTests(TransactionTestCase):
         results = run_parallel([lambda: book_appointment(actor=donor, slot_id=slot.id)] * 4)
         self.assertEqual([r[0] for r in results].count('ok'), 1, results)
         self.assertEqual([r for r in results if r[0] == 'crash'], [])
+        self.assertEqual(error_codes(results), ['duplicate_booking'] * 3)  # losers are duplicates
         self.assertEqual(Appointment.objects.count(), 1)
+
+    def test_booking_and_a_capacity_reduction_never_leave_the_camp_overbooked(self):
+        from scheduling.models import Camp
+        from scheduling.services.camps import update_camp
+        from scheduling.tests.helpers import make_user
+        camp = make_camp(capacity=3)
+        slot = make_slot(camp, capacity=3)
+        for _ in range(2):
+            book_appointment(actor=make_donor()[0], slot_id=slot.id)  # 2 of 3 confirmed
+        newcomer, admin = make_donor()[0], make_user('ADMIN')
+        results = run_parallel([
+            lambda: book_appointment(actor=newcomer, slot_id=slot.id),             # 3rd booking
+            lambda: update_camp(actor=admin, camp_id=camp.id, data={'capacity': 2})])  # lower to 2
+        self.assertEqual([r for r in results if r[0] == 'crash'], [])
+        # Exactly one side wins: both lock the camp first, so they run one after the other.
+        self.assertEqual(error_codes(results), ['capacity_conflict'], results)
+        confirmed = Appointment.objects.filter(status='CONFIRMED').count()
+        self.assertLessEqual(confirmed, Camp.objects.get(pk=camp.pk).capacity)
 
 
 @unittest.skipUnless(connection.vendor == 'postgresql', 'needs PostgreSQL row locking')
@@ -78,6 +114,9 @@ class CancelRaceTests(TransactionTestCase):
         jobs += [lambda d=d: book_appointment(actor=d, slot_id=slot.id) for d in waiting]
         results = run_parallel(jobs)
         self.assertEqual([r for r in results if r[0] == 'crash'], [])
+        self.assertEqual([r[0] for r in results[:3]], ['ok'] * 3)  # every cancel call succeeds
+        self.assertLessEqual([r[0] for r in results[3:]].count('ok'), 1)
+        self.assertEqual(set(error_codes(results[3:])) - {'capacity_conflict'}, set())
         self.assertLessEqual(Appointment.objects.filter(status='CONFIRMED').count(), 1)
         self.assertEqual(Appointment.objects.get(pk=appt['id']).status, 'CANCELLED')
 
@@ -107,5 +146,6 @@ class CollectionBookingRaceTests(TransactionTestCase):
             thread.join(timeout=1.5)
             self.assertTrue(thread.is_alive(), 'booking must wait on the donor row lock')
         thread.join(timeout=30)
+        self.assertFalse(thread.is_alive(), 'the booking thread hung')
         self.assertEqual(outcome, [('error', 'ineligible_donor')])
         self.assertEqual(Appointment.objects.count(), 0)

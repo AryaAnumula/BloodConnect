@@ -57,7 +57,10 @@ def book_appointment(*, actor, slot_id, now=None) -> dict:
         # read here, inside the transaction, so a collection confirmed at the same moment (which
         # locks the same row) is either seen by the eligibility check or committed after us.
         try:
-            profile = DonorProfile.objects.select_for_update().get(user_id=actor.pk)
+            # NO KEY UPDATE (not FOR UPDATE): same mode as donors' screening and
+            # record_confirmed_collection, so they serialise against each other, but FK inserts to
+            # this profile (FOR KEY SHARE) are not blocked and cannot form a lock-upgrade deadlock.
+            profile = DonorProfile.objects.select_for_update(no_key=True).get(user_id=actor.pk)
         except DonorProfile.DoesNotExist:
             raise IneligibleDonor('Complete donor registration and screening before booking.') from None
         if slot.status != Slot.Status.OPEN or (camp is not None and camp.status != Camp.Status.ACTIVE):
