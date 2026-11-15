@@ -1,9 +1,9 @@
-"""BB-17 BloodRequest. Writer: Arnav. Approved scope: BC-D017–BC-D022 (15 Nov 2026).
+"""BB-17/BB-18 BloodRequest. Writer: Arnav. Approved scope: BC-D017–BC-D022, BC-D029.
 
 Components and the 1–100 whole-unit quantity range are the approved college-demo values,
 enforced again by database constraints. The requester is PROTECTed: request history is
-never deleted with an account; accounts are deactivated instead. Review, issue and closure
-semantics (BB-18/16/19) are not decided here; only the status vocabulary exists.
+never deleted with an account; accounts are deactivated instead. Review decisions (BB-18)
+go through blood_requests.services.review only. Issue and closure (BB-16/19) are not here.
 """
 import uuid
 
@@ -48,6 +48,11 @@ class BloodRequest(models.Model):
     urgency_level = models.CharField(max_length=8, choices=Urgency.choices)
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.SUBMITTED)
     rejection_reason = models.CharField(max_length=240, null=True, blank=True)
+    # BB-18 (BC-D029-d): set server-side by review_request only; internal, not in the DTO.
+    # Historical rows stay null; reviewers are never invented. PROTECT keeps review history.
+    reviewed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT,
+                                    null=True, blank=True, related_name='reviewed_blood_requests')
+    reviewed_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

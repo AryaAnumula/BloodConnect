@@ -33,3 +33,16 @@ class RealAccountTests(TestCase):
         self.assertTrue(may_submit_request(user=make_user('REQUESTER')))
         self.assertFalse(may_submit_request(user=make_clinical_staff()))
         self.assertFalse(may_submit_request(user=make_user('REQUESTER', is_superuser=True, is_staff=True)))
+
+
+class ReviewPredicateTests(SimpleTestCase):
+    def test_only_active_non_superuser_staff_may_review(self):
+        from blood_requests.permissions import IsReviewStaff, may_review_requests
+        self.assertTrue(may_review_requests(user=fake(role='STAFF')))
+        for user in (None, AnonymousUser(), fake(role='STAFF', is_authenticated=False),
+                     fake(role='STAFF', is_active=False), fake(role='STAFF', is_superuser=True),
+                     fake(role='ADMIN'), fake(role='REQUESTER'), fake(role='DONOR'), fake(role='staff')):
+            with self.subTest(user=vars(user) if user is not None else None):
+                self.assertFalse(may_review_requests(user=user))
+        self.assertTrue(IsReviewStaff().has_permission(SimpleNamespace(user=fake(role='STAFF')), None))
+        self.assertFalse(IsReviewStaff().has_permission(SimpleNamespace(user=fake()), None))

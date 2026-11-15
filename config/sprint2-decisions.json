@@ -92,9 +92,114 @@
           "applies_to": [
             "BB-17"
           ]
+        },
+        {
+          "id": "BC-D029-a",
+          "title": "Queue and ordering",
+          "clause": "For BB18, active non-superuser STAFF GET /api/v1/requests defaults to status=SUBMITTED. Optional status accepts exactly SUBMITTED, APPROVED, REJECTED, ISSUED, CLOSED; an explicit valid status filters to that status. Sort all filtered rows by urgency rank CRITICAL, URGENT, ROUTINE, then created_at ascending (oldest first), then UUID id ascending. Filter/sort before pagination/count. page>=1, page_size 1..100 default 20; empty or beyond-last page 200 with results=[], truthful filtered count; unknown/repeated/invalid query keys 400. No arbitrary client sort or requester_id filter.",
+          "central_gates": [
+            "S2-03",
+            "S2-04"
+          ],
+          "approved_by": "Codex assistant acting under Arya's explicitly delegated project-decision authority",
+          "approved_at": "2026-11-15",
+          "evidence": "Central PROJECT_DECISION_LOG.md BC-D029; BloodConnect_Arnav_BB18_Task/DECISIONS_AND_BOUNDARIES.md (workpack prepared 15 November 2026)",
+          "applies_to": [
+            "BB-18"
+          ]
+        },
+        {
+          "id": "BC-D029-b",
+          "title": "Review state machine and reasons",
+          "clause": "PATCH /api/v1/requests/{request_id}/status accepts only status APPROVED or REJECTED, and conditionally rejection_reason. Only SUBMITTED may transition, once. REJECTED requires a string reason, trimmed at both ends, 1..240 characters after trimming; omitted/null/blank/non-string/too-long 400. APPROVED requires the rejection_reason key to be absent (even explicit null is 400); saved reason remains null. All unknown/read-only keys rejected 400. Already decided/ISSUED/CLOSED requests, including an identical replay, return 422 invalid_transition without overwriting history. Review does not change owner, group/component, quantity, urgency or fulfilled_quantity. Approval does not reserve or require stock, or imply issue/delivery.",
+          "central_gates": [
+            "S2-03",
+            "S2-04"
+          ],
+          "approved_by": "Codex assistant acting under Arya's explicitly delegated project-decision authority",
+          "approved_at": "2026-11-15",
+          "evidence": "Central PROJECT_DECISION_LOG.md BC-D029; BloodConnect_Arnav_BB18_Task/DECISIONS_AND_BOUNDARIES.md (workpack prepared 15 November 2026)",
+          "applies_to": [
+            "BB-18"
+          ]
+        },
+        {
+          "id": "BC-D029-c",
+          "title": "Role and authentication gate",
+          "clause": "Staff queue and review API/direct services require authenticated active role STAFF, is_superuser=False; ADMIN/DONOR/REQUESTER/inactive/anonymous/every superuser have no staff-review access. STAFF does not need clinical view_donor_health. Keep current same-origin sessions, CSRF for PATCH, strict JSON/parser/error/correlation/audit conventions. Feature-private pure operational predicate+DRF gate+service guard in blood_requests is authorized until a shared helper is integrated; no clinical gate changes or duplicate denial audits.",
+          "central_gates": [
+            "S2-03",
+            "S2-04"
+          ],
+          "approved_by": "Codex assistant acting under Arya's explicitly delegated project-decision authority",
+          "approved_at": "2026-11-15",
+          "evidence": "Central PROJECT_DECISION_LOG.md BC-D029; BloodConnect_Arnav_BB18_Task/DECISIONS_AND_BOUNDARIES.md (workpack prepared 15 November 2026)",
+          "applies_to": [
+            "BB-18"
+          ]
+        },
+        {
+          "id": "BC-D029-d",
+          "title": "Atomic decision history and migration",
+          "clause": "review_request owns transaction.atomic, locks the existing BloodRequest with select_for_update, rereads SUBMITTED state after lock, then atomically saves status, rejection_reason and server reviewer/time metadata. Add reviewed_by nullable AUTH_USER_MODEL FK PROTECT and reviewed_at nullable aware DateTimeField to the existing BloodRequest via a new Django-generated migration. Both are set for every new successful BB18 decision; retain old rows as null when history is unknown, without invented/backdated reviewers. Keep existing requester PROTECT/quantity/fulfilled constraints. Response stays existing BloodRequest DTO (metadata internal for now). No ordinary overwrite/delete review endpoint. Concurrent review requests yield exactly one committed decision and one 422 after lock; failures roll back all decision fields.",
+          "central_gates": [
+            "S2-03",
+            "S2-04"
+          ],
+          "approved_by": "Codex assistant acting under Arya's explicitly delegated project-decision authority",
+          "approved_at": "2026-11-15",
+          "evidence": "Central PROJECT_DECISION_LOG.md BC-D029; BloodConnect_Arnav_BB18_Task/DECISIONS_AND_BOUNDARIES.md (workpack prepared 15 November 2026)",
+          "applies_to": [
+            "BB-18"
+          ]
+        },
+        {
+          "id": "BC-D029-e",
+          "title": "Shared list route and ownership boundary",
+          "clause": "Arnav owns staff queue/review only; Arya owns BB19 requester list/detail/tracking/close and coordinates the one shared GET /api/v1/requests endpoint. Extend existing BB17 collection route with per-method role dispatch: POST remains requester-only unchanged, GET delegates to staff_queue. Preserve any newer existing requester-own GET behavior; if not implemented yet, REQUESTER GET is temporarily 403 forbidden and explicitly documented as BB19 pending, never a permanent role-policy change or global list leak. Do not implement BB19 to finish BB18 or claim BB19 complete. No duplicate path shadowing or separate competing BloodRequest model.",
+          "central_gates": [
+            "S2-03",
+            "S2-04"
+          ],
+          "approved_by": "Codex assistant acting under Arya's explicitly delegated project-decision authority",
+          "approved_at": "2026-11-15",
+          "evidence": "Central PROJECT_DECISION_LOG.md BC-D029; BloodConnect_Arnav_BB18_Task/DECISIONS_AND_BOUNDARIES.md (workpack prepared 15 November 2026)",
+          "applies_to": [
+            "BB-18"
+          ]
+        },
+        {
+          "id": "BC-D029-f",
+          "title": "Interfaces and scoped wiring authority",
+          "clause": "Keep blood_requests.services.review.review_request(*,actor,request_id,status:str,rejection_reason:str|None=None)->dict returning current BloodRequest DTO. Add staff selector blood_requests.selectors.review_queue.staff_queue(*,actor,status:str|None=None,page:int=1,page_size:int=20)->dict returning RequestPage; None selects SUBMITTED. Validate at API and direct-service/selector boundaries. Minimal existing collection/status app URLs, per-method permission dispatch, one staff review page route /staff/requests, feature UI/tests, scripts/check.sh additions preserving all current suites, scoped decisions/OpenAPI/handoff updates are authorized in the SAME BB18 PR. Reuse installed blood_requests app/root include; no broad settings/dependency/compose/client/CI/protection change.",
+          "central_gates": [
+            "S2-03",
+            "S2-04"
+          ],
+          "approved_by": "Codex assistant acting under Arya's explicitly delegated project-decision authority",
+          "approved_at": "2026-11-15",
+          "evidence": "Central PROJECT_DECISION_LOG.md BC-D029; BloodConnect_Arnav_BB18_Task/DECISIONS_AND_BOUNDARIES.md (workpack prepared 15 November 2026)",
+          "applies_to": [
+            "BB-18"
+          ]
+        },
+        {
+          "id": "BC-D029-g",
+          "title": "Dependency, scope and approval provenance",
+          "clause": "BB18 consumes reviewed BB17 code and does not wait on BB16, inventory allocation, scheduling, outbox/notification delivery or unrelated parent S2 policies. Adopted acceptance is queue/order/permitted decisions/reason/access/demo; no request-reviewed notification event is approved or required here. Use synthetic data and chosen PostgreSQL16 for row-lock/race evidence; SQLite is smoke only. Publish these exact scoped clauses in config/sprint2-decisions.json and tracked docs before dependent implementation, approved_by Codex assistant acting under Arya explicitly delegated project-decision authority, approved_at 2026-11-15, evidence central PROJECT_DECISION_LOG BC-D029/current workpack. Keep unresolved parent policies PROPOSED. No unseen code/merge/test-result approval implied. Manual testing-branch workflow BC-D028 remains unchanged.",
+          "central_gates": [
+            "S2-03",
+            "S2-04"
+          ],
+          "approved_by": "Codex assistant acting under Arya's explicitly delegated project-decision authority",
+          "approved_at": "2026-11-15",
+          "evidence": "Central PROJECT_DECISION_LOG.md BC-D029; BloodConnect_Arnav_BB18_Task/DECISIONS_AND_BOUNDARIES.md (workpack prepared 15 November 2026)",
+          "applies_to": [
+            "BB-18"
+          ]
         }
       ],
-      "scoped_approval_note": "Scoped approval only. Urgency ordering/tie-break, review transitions, rejection, partial/complete issue and closure (BB-18/16/19) remain PROPOSED."
+      "scoped_approval_note": "Scoped approvals only (BB-17 clauses and BB-18 BC-D029). Partial/complete issue, fulfilment and closure (BB-16/19) remain PROPOSED."
     },
     {
       "id": "S2-04",
@@ -105,7 +210,8 @@
       "status": "PROPOSED",
       "approved_by": null,
       "approved_at": null,
-      "evidence": null
+      "evidence": null,
+      "scoped_approval_note": "BC-D029-c (recorded under S2-03, central_gates S2-03/S2-04) approves only the BB-18 staff review gate: active non-superuser STAFF, no clinical permission required. The rest of S2-04 (inventory, camps, ADMIN dashboard) remains PROPOSED."
     },
     {
       "id": "S2-05",

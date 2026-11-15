@@ -97,3 +97,7 @@ Approved clauses:
 7. **Endpoint:** `POST /api/v1/requests` → 201 `BloodRequest`, no trailing slash. Input-contract amendments are the fourth component and the maximum quantity. API urgency values stay CRITICAL, URGENT, ROUTINE; the older document's "Emergency" corresponds to CRITICAL.
 
 Still unresolved (not approved by this record): shelf-life values, urgency ordering and tie-break for review, review/issue/closure transitions and fulfilment semantics, notification policies, and the remainder of S2-01 and S2-03. No merge approval is implied.
+
+## Scoped approval record — BB-18 staff review (BC-D029)
+
+Date: 15 November 2026. Authority: Codex assistant acting under Arya's explicitly delegated project-decision authority. Evidence: central PROJECT_DECISION_LOG.md BC-D029 and the BB-18 workpack. The exact clauses BC-D029-a … g (queue and ordering, review state machine and reasons, STAFF role gate, atomic decision history and migration, shared list route boundary, interfaces and wiring, scope and provenance) are recorded verbatim in `docs/sprint2/bb18-decisions.md` and under `scoped_approvals` on S2-03 in `config/sprint2-decisions.json`. S2-03 and S2-04 as a whole remain **PROPOSED**; issue, fulfilment, closure (BB-16/19) and notification policies are not approved by this record.
