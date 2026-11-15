@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Blood request review — BloodConnect{% endblock %}
+
+{% block content %}
+{# BB-18 staff review queue, served at /staff/requests. The API decides access; this page only displays it. #}
+<h1>Blood request review</h1>
+<p>For staff. Requests are listed most urgent first (Critical, Urgent, Routine), then oldest first.
+  Approving a request does not reserve or issue blood.</p>
+
+<form id="queue-filter">
+  <label for="queue-status">Show requests with status</label>
+  <select id="queue-status" name="status">
+    <option value="SUBMITTED" selected>Submitted (pending review)</option>
+    <option value="APPROVED">Approved</option>
+    <option value="REJECTED">Rejected</option>
+    <option value="ISSUED">Issued</option>
+    <option value="CLOSED">Closed</option>
+  </select>
+  <button type="submit">Show</button>
+</form>
+
+<p id="queue-summary" aria-live="polite"></p>
+
+<table id="queue-table">
+  <caption>Blood requests</caption>
+  <thead>
+    <tr>
+      <th scope="col">Urgency</th>
+      <th scope="col">Blood group</th>
+      <th scope="col">Component</th>
+      <th scope="col">Quantity</th>
+      <th scope="col">Status</th>
+      <th scope="col">Submitted at</th>
+      <th scope="col">Request ID</th>
+      <th scope="col">Decision</th>
+    </tr>
+  </thead>
+  <tbody id="queue-body"></tbody>
+</table>
+
+<nav aria-label="Queue pages">
+  <button type="button" id="queue-prev">Previous page</button>
+  <span id="queue-page"></span>
+  <button type="button" id="queue-next">Next page</button>
+</nav>
+{% endblock %}
+
+{% block scripts %}
+<script type="module" src="{% static 'js/pages/staff-requests.js' %}"></script>
+{% endblock %}

@@ -39,3 +39,29 @@ def post_json(client, body, token=None, raw=None):
     headers = {} if token is None else {'HTTP_X_CSRFTOKEN': token}
     data = raw if raw is not None else json.dumps(body)
     return client.post(URL, data=data, content_type='application/json', **headers)
+
+
+def make_request(requester, *, urgency='ROUTINE', status='SUBMITTED', created_at=None, id=None,
+                 rejection_reason=None, **fields):
+    """Insert a synthetic BloodRequest directly (test setup only, not a public path)."""
+    from blood_requests.models import BloodRequest
+    data = dict(blood_group='A+', component_type='RBC', quantity=2, urgency_level=urgency,
+                status=status, rejection_reason=rejection_reason)
+    data.update(fields)
+    if id is not None:
+        data['id'] = id
+    row = BloodRequest.objects.create(requester=requester, **data)
+    if created_at is not None:
+        BloodRequest.objects.filter(pk=row.pk).update(created_at=created_at)
+        row.refresh_from_db()
+    return row
+
+
+def review_url(request_id):
+    return f'/api/v1/requests/{request_id}/status'
+
+
+def patch_json(client, url, body, token=None, raw=None):
+    headers = {} if token is None else {'HTTP_X_CSRFTOKEN': token}
+    data = raw if raw is not None else json.dumps(body)
+    return client.patch(url, data=data, content_type='application/json', **headers)

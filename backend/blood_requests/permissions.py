@@ -1,22 +1,30 @@
-"""BB-17 private requester gate (approved BC-D017–BC-D022: interim helper in this app).
+"""Private blood_requests role gates (BC-D017–BC-D022 for BB-17, BC-D029-c for BB-18).
 
-Submission requires an authenticated, active, non-superuser account whose role is
-REQUESTER. Every superuser is denied, including one with role REQUESTER, and clinical
-permissions (view_donor_health) grant nothing here. The same predicate is used by the
-API permission class and the submission service. Pure: no writes, no audit calls; the
-shared DRF exception handler records the single access_denied event.
+Pure predicates: no writes, no audit calls. The shared DRF exception handler records the
+single access_denied event. Every superuser is denied, and clinical permissions
+(view_donor_health) grant nothing here. The same predicates guard the API and the services.
 """
 from rest_framework.permissions import BasePermission
 
 
-def may_submit_request(*, user) -> bool:
+def _active_non_superuser_with_role(user, role) -> bool:
     if user is None or not getattr(user, 'is_authenticated', False):
         return False
     if not getattr(user, 'is_active', False):
         return False
     if getattr(user, 'is_superuser', False):
         return False
-    return getattr(user, 'role', None) == 'REQUESTER'
+    return getattr(user, 'role', None) == role
+
+
+def may_submit_request(*, user) -> bool:
+    """BB-17: authenticated, active, non-superuser REQUESTER."""
+    return _active_non_superuser_with_role(user, 'REQUESTER')
+
+
+def may_review_requests(*, user) -> bool:
+    """BB-18: authenticated, active, non-superuser STAFF; no clinical permission needed."""
+    return _active_non_superuser_with_role(user, 'STAFF')
 
 
 class IsRequester(BasePermission):
@@ -24,3 +32,10 @@ class IsRequester(BasePermission):
 
     def has_permission(self, request, view):
         return may_submit_request(user=request.user)
+
+
+class IsReviewStaff(BasePermission):
+    """Use after IsAuthenticated so anonymous callers keep 403 authentication_required."""
+
+    def has_permission(self, request, view):
+        return may_review_requests(user=request.user)

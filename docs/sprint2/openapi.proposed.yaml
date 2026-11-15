@@ -661,19 +661,24 @@ paths:
       - FR-013
       - FR-014
       - SEC-002
-      x-contract-status: PROPOSED_APPROVAL_REQUIRED
-      x-implementation-status: not_implemented
+      x-contract-status: STAFF_SLICE_APPROVED_BC-D029
+      x-implementation-status: implemented
+      x-implementation-note: STAFF queue (BB-18) implemented. REQUESTER own list (BB-19,
+        Arya) NOT implemented; until then REQUESTER GET returns 403 forbidden (temporary).
       x-allowed-roles:
       - STAFF
       - REQUESTER
       x-decision-gates:
       - S2-03
-      description: Design contract only. No route is added by this pack. All superusers
-        denied under proposed operational matrix. Missing/expired sessions keep existing
-        DRF 403 authentication_required, not a new JWT/401 architecture. For owner-restricted
-        records use identical 404 for other owner and missing record. Dates/times
-        and validation follow conventions.md. STAFF queue by urgency rank then created_at/id;
-        REQUESTER own requests only; same deterministic sorting.
+      description: 'BB-18 STAFF slice implemented (BC-D029-a/c/e). Active non-superuser STAFF
+        only; no clinical permission needed. Allowed query keys exactly status, page, page_size;
+        unknown, repeated, blank or invalid values return 400. Default status SUBMITTED. Order:
+        urgency rank CRITICAL, URGENT, ROUTINE, then created_at ascending, then id ascending,
+        applied in the database before count/pagination. A page beyond the last returns 200 with
+        results [] and the truthful filtered count. Results use the BB-17 BloodRequest DTO with
+        no review metadata. REQUESTER own-list is BB-19 (pending: 403 forbidden for now); other
+        roles, inactive users and every superuser get 403 forbidden; anonymous 403
+        authentication_required.'
       security:
       - sessionCookie: []
       parameters:
@@ -823,18 +828,21 @@ paths:
       - FR-013
       - FR-014
       - SEC-002
-      x-contract-status: PROPOSED_APPROVAL_REQUIRED
-      x-implementation-status: not_implemented
+      x-contract-status: APPROVED_BC-D029
+      x-implementation-status: implemented
       x-allowed-roles:
       - STAFF
       x-decision-gates:
       - S2-03
-      description: Design contract only. No route is added by this pack. All superusers
-        denied under proposed operational matrix. Missing/expired sessions keep existing
-        DRF 403 authentication_required, not a new JWT/401 architecture. For owner-restricted
-        records use identical 404 for other owner and missing record. Dates/times
-        and validation follow conventions.md. SUBMITTED only; REJECTED requires nonblank
-        rejection_reason; APPROVED forbids rejection_reason.
+      description: 'BB-18 implemented (BC-D029-b/c/d). Active non-superuser STAFF only; no
+        clinical permission needed; CSRF required. Only SUBMITTED may change, once, to APPROVED
+        or REJECTED. REJECTED requires rejection_reason, trimmed, 1-240 characters; APPROVED
+        requires the rejection_reason key to be absent (explicit null is 400). Unknown or
+        read-only keys are 400. The row is locked (select_for_update) and reread; status, reason,
+        reviewer and time are saved atomically; a concurrent or repeated review gets 422
+        invalid_transition. Review never changes owner, contents or fulfilled_quantity and does
+        not check or reserve stock. Missing request 404; storage failure 503 storage_unavailable
+        after rollback.'
       security:
       - sessionCookie: []
       parameters:
@@ -852,7 +860,7 @@ paths:
           minLength: 1
       responses:
         '200':
-          description: Successful real implementation response; not currently implemented
+          description: Decision saved; returns the BloodRequest DTO with the new status and the saved trimmed reason (null when approved)
           content:
             application/json:
               schema:
@@ -882,7 +890,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '422':
-          description: Ineligible donor, unsafe unit or invalid state transition
+          description: 'invalid_transition: request is not SUBMITTED (already decided, ISSUED or CLOSED, including an identical replay); history is not overwritten'
           content:
             application/json:
               schema:
@@ -2130,6 +2138,8 @@ components:
     ReviewRequest:
       type: object
       additionalProperties: false
+      description: APPROVED must omit rejection_reason (even null is rejected). REJECTED requires
+        rejection_reason, trimmed at both ends, 1-240 characters after trimming (BC-D029-b).
       properties:
         status:
           type: string
@@ -2138,6 +2148,7 @@ components:
           - REJECTED
         rejection_reason:
           type: string
+          minLength: 1
           maxLength: 240
       required:
       - status
