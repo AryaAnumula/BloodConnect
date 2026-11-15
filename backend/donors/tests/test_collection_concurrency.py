@@ -43,7 +43,13 @@ def insert_fk_row(profile):
 
 @unittest.skipUnless(connection.vendor == 'postgresql', 'needs PostgreSQL row locking')
 class DonorLockRaceTests(TransactionTestCase):
-    def test_two_collections_that_insert_first_do_not_deadlock_and_the_later_date_wins(self):
+    def run_two_collections(self, immediate_fk_checks):
+        """Two transactions each insert an FK row to the profile, then record a collection.
+
+        Django's PostgreSQL foreign keys are DEFERRABLE INITIALLY DEFERRED, so by default the
+        FK check (FOR KEY SHARE on the profile) runs only at commit. With immediate_fk_checks the
+        check runs at insert time, which is when a FOR UPDATE lock upgrade could deadlock.
+        """
         _, profile = make_donor()
         today = timezone.localdate()
         dates = [today - timedelta(days=5), today - timedelta(days=2)]
@@ -53,7 +59,10 @@ class DonorLockRaceTests(TransactionTestCase):
         def collect(index):
             try:
                 with transaction.atomic():
-                    insert_fk_row(profile)          # KEY SHARE on the profile row first
+                    if immediate_fk_checks:
+                        with connection.cursor() as cursor:
+                            cursor.execute('SET CONSTRAINTS ALL IMMEDIATE')
+                    insert_fk_row(profile)          # KEY SHARE on the profile row (if immediate)
                     barrier.wait(timeout=10)         # both have inserted before either locks
                     record_confirmed_collection(donor_id=profile.pk, collected_on=dates[index])
                 outcomes[index] = 'ok'
@@ -71,6 +80,13 @@ class DonorLockRaceTests(TransactionTestCase):
         self.assertEqual(outcomes, ['ok', 'ok'])
         profile.refresh_from_db()
         self.assertEqual(profile.last_confirmed_collection_date, dates[1])
+
+    def test_two_collections_with_deferred_fk_checks_do_not_deadlock(self):
+        self.run_two_collections(immediate_fk_checks=False)
+
+    def test_two_collections_with_immediate_fk_checks_do_not_deadlock(self):
+        # Fails with FOR UPDATE (deadlock detected); passes with FOR NO KEY UPDATE.
+        self.run_two_collections(immediate_fk_checks=True)
 
     @patch('donors.services.screening.approved_screening_rules', return_value=RULES)
     def test_screening_waits_for_a_collection_in_progress_and_then_sees_it(self, _rules):
