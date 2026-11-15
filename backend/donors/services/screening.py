@@ -103,7 +103,7 @@ def screen_donor(*, actor, donor_id: UUID, answers: dict):
     with transaction.atomic():
         # Lock the profile so a collection confirmed at the same moment is either seen here or
         # makes this result history-stale afterwards (never silently missed).
-        confirmed = (DonorProfile.objects.select_for_update()
+        confirmed = (DonorProfile.objects.select_for_update(no_key=True)
                      .values_list('last_confirmed_collection_date', flat=True).get(pk=profile.pk))
         # S2-10: the later of the self-reported and the confirmed date, with the configured gap.
         effective_last = max((d for d in (last, confirmed) if d is not None), default=None)
