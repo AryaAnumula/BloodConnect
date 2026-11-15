@@ -58,10 +58,10 @@ def _check_bookings(camp, changes) -> None:
     if 'starts_at' in changes or 'ends_at' in changes:
         starts = changes.get('starts_at', camp.starts_at)
         ends = changes.get('ends_at', camp.ends_at)
-        # Arya (14 Nov): every linked slot must stay inside the camp interval, empty ones too.
-        # Conflicting changes are rejected; slots are never moved silently. CANCELLED slots are
-        # inert history and are not counted (ASSUMPTION, flagged to Arya).
-        linked = Slot.objects.filter(camp=camp).exclude(status=Slot.Status.CANCELLED)
+        # BC-D005: EVERY linked slot (open, cancelled or historical, with or without bookings)
+        # must stay inside the camp interval. A conflicting change is rejected with 409
+        # slot_conflict; slots are never moved or deleted silently.
+        linked = Slot.objects.filter(camp=camp)
         if linked.filter(starts_at__lt=starts).exists() or linked.filter(ends_at__gt=ends).exists():
             raise ScheduleConflict()
 
