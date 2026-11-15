@@ -46,10 +46,10 @@ class ProviderTests(TransactionTestCase):
             with self.assertRaises(ValueError):
                 with transaction.atomic():enqueue_intent(**kw)
     def test_timing_boundaries(self):
-        for hours,late in [(48,False),(24,False),(23,True)]:
+        for hours,late in [(48,False),(25,False),(24,True),(23,True)]:
             result=self.reminder(starts_at=self.now+timedelta(hours=hours))
             row=OutboxIntent.objects.get(pk=result['id']);self.assertEqual(row.late_booking,late)
-            self.assertEqual(row.due_at,self.now if late else row.scheduled_for-timedelta(hours=24))
+            self.assertEqual(row.due_at,self.now if late else row.scheduled_for-timedelta(hours=25))
     def test_past_appointment_rejected(self):
         with self.assertRaises(ValueError):self.reminder(starts_at=self.now)
     def test_cancel_atomic(self):
@@ -145,3 +145,72 @@ class ProviderTests(TransactionTestCase):
         rows=list(DeliveryAttempt.objects.all());self.assertEqual(len(rows),2)
         for row in rows:
             self.assertEqual(row.outcome,'FAILED');self.assertIsNone(row.receipt_key)
+
+    def test_insufficient_lead_can_still_meet_receipt_boundary(self):
+        self.reminder(starts_at=self.now + timedelta(hours=24, minutes=30))
+        with patch('notification_adapter.services.dispatch._reminder_current', return_value=True), patch('notification_adapter.services.dispatch.send_notification_intent', return_value={}), patch('notification_adapter.services.dispatch.timezone.now', return_value=self.now):
+            dispatch_due(now=self.now)
+        row = OutboxIntent.objects.get()
+        self.assertTrue(row.late_booking)
+        self.assertTrue(row.timing_met)
+
+    def test_camp_cancel_intent_and_state(self):
+        from notification_adapter.services.reminders import enqueue_camp_cancellation, reminder_state
+        result = self.reminder()
+        row = OutboxIntent.objects.get(pk=result['id'])
+        self.assertEqual(reminder_state(appointment_id=row.record_id), 'PENDING')
+        args = dict(appointment_id=row.record_id, donor_user_id=row.recipient_id, cancelled_at=self.now)
+        with transaction.atomic():
+            cancel_appointment_reminders(appointment_id=row.record_id)
+            first = enqueue_camp_cancellation(**args)
+            self.assertEqual(first, enqueue_camp_cancellation(**args))
+        self.assertEqual(reminder_state(appointment_id=row.record_id), 'CANCELLED')
+        self.assertEqual(OutboxIntent.objects.filter(event_type='APPOINTMENT_CANCELLED').count(), 1)
+        with self.assertRaises(LookupError):
+            reminder_state(appointment_id=uuid.uuid4())
+
+    def test_scoped_policy_requires_real_metadata(self):
+        path = Path(self.temp.name) / 'scoped.json'
+        scope = {'status': 'APPROVED', 'approved_by': 'synthetic test', 'approved_at': '2026-11-15', 'evidence': 'test only'}
+        path.write_text(json.dumps({'decisions': [{'id': x, 'status': 'PROPOSED', 'notification_provider_scope': scope} for x in ['S2-06', 'S2-07']]}))
+        with override_settings(NOTIFICATION_DECISIONS_FILE=path):
+            self.enqueue()
+            scope.pop('evidence')
+            path.write_text(json.dumps({'decisions': [{'id': x, 'status': 'PROPOSED', 'notification_provider_scope': scope} for x in ['S2-06', 'S2-07']]}))
+            with self.assertRaises(DecisionRequired):
+                self.enqueue()
+
+    def test_cancel_invalidation_rolls_back_with_caller(self):
+        result = self.reminder()
+        row = OutboxIntent.objects.get(pk=result['id'])
+        with self.assertRaises(RuntimeError):
+            with transaction.atomic():
+                cancel_appointment_reminders(appointment_id=row.record_id)
+                raise RuntimeError('synthetic caller failure')
+        row.refresh_from_db()
+        self.assertEqual(row.state, 'PENDING')
+
+    def test_camp_cancellation_requires_transaction(self):
+        from notification_adapter.services.reminders import enqueue_camp_cancellation
+        with self.assertRaises(RuntimeError):
+            enqueue_camp_cancellation(appointment_id=uuid.uuid4(), donor_user_id=uuid.uuid4(), cancelled_at=self.now)
+
+    def test_camp_cancellation_delivery_failure_does_not_undo_intent(self):
+        from notification_adapter.services.reminders import enqueue_camp_cancellation
+        with transaction.atomic():
+            result = enqueue_camp_cancellation(appointment_id=uuid.uuid4(), donor_user_id=uuid.uuid4(), cancelled_at=self.now)
+        with patch('notification_adapter.services.dispatch.send_notification_intent', side_effect=NotificationTransportUnavailable()):
+            self.assertEqual(dispatch_due(now=self.now)['retry'], 1)
+        row = OutboxIntent.objects.get(pk=result['id'])
+        self.assertEqual(row.state, 'PENDING')
+        self.assertEqual(row.attempts, 1)
+
+    def test_conflicting_receipt_is_permanent_failure(self):
+        from notification_adapter.client import NotificationEventConflict
+        self.enqueue()
+        with patch('notification_adapter.services.dispatch.send_notification_intent', side_effect=NotificationEventConflict()):
+            self.assertEqual(dispatch_due(now=self.now)['failed'], 1)
+        row = OutboxIntent.objects.get()
+        self.assertEqual(row.state, 'FAILED')
+        self.assertEqual(row.last_error_code, 'event_conflict')
+        self.assertEqual(row.attempts, 1)

@@ -5,6 +5,7 @@ import requests
 from django.conf import settings
 
 class NotificationTransportUnavailable(Exception): pass
+class NotificationEventConflict(NotificationTransportUnavailable): pass
 
 def send_notification_intent(*, event: dict) -> dict:
     base=getattr(settings,'NOTIFICATION_BASE_URL',os.environ.get('NOTIFICATION_BASE_URL','http://notifications:3000')).rstrip('/')
@@ -17,6 +18,7 @@ def send_notification_intent(*, event: dict) -> dict:
     except (ValueError,TypeError): raise NotificationTransportUnavailable('Notification transport is not configured.') from None
     try:
         response=requests.post(base+'/internal/notifications',json=event,headers={'Authorization':'Bearer '+token},timeout=(2,3),allow_redirects=False)
+        if response.status_code==409: raise NotificationEventConflict('Conflicting mock event.')
         if response.status_code!=202: raise ValueError()
         data=response.json()
         if set(data)!={'event_id','delivery_mode','receipts'} or uuid.UUID(data['event_id'])!=uuid.UUID(str(event['event_id'])) or data['delivery_mode']!='mock': raise ValueError()

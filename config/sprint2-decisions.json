@@ -304,7 +304,13 @@
           ]
         }
       ],
-      "scoped_approval_note": "See shared-rules.md for approved scope and unresolved matters; parent status and runtime gates are unchanged."
+      "scoped_approval_note": "See shared-rules.md for approved scope and unresolved matters; parent status and runtime gates are unchanged.",
+      "notification_provider_scope": {
+        "status": "APPROVED",
+        "approved_by": "Codex assistant acting under Arya's explicitly delegated project-decision authority",
+        "approved_at": "2026-11-15",
+        "evidence": "docs/sprint2/shared-rules.md v1.1; BC-D008 and BC-D009; scoped provider policy only"
+      }
     },
     {
       "id": "S2-07",
@@ -328,7 +334,13 @@
           ]
         }
       ],
-      "scoped_approval_note": "See shared-rules.md for approved scope and unresolved matters; parent status and runtime gates are unchanged."
+      "scoped_approval_note": "See shared-rules.md for approved scope and unresolved matters; parent status and runtime gates are unchanged.",
+      "notification_provider_scope": {
+        "status": "APPROVED",
+        "approved_by": "Codex assistant acting under Arya's explicitly delegated project-decision authority",
+        "approved_at": "2026-11-15",
+        "evidence": "docs/sprint2/shared-rules.md v1.1; BC-D008 and BC-D009; scoped provider policy only"
+      }
     },
     {
       "id": "S2-08",

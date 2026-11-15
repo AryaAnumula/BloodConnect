@@ -11,7 +11,8 @@ def require_policy(*decision_ids):
         records = {d['id']: d for d in data['decisions']}
         for key in decision_ids:
             d = records[key]
-            if d['status'] != 'APPROVED' or not all(d.get(k) for k in ('approved_by','approved_at','evidence')):
+            scope = d.get('notification_provider_scope', d)
+            if scope['status'] != 'APPROVED' or not all(scope.get(k) for k in ('approved_by','approved_at','evidence')):
                 raise ValueError('Unapproved')
     except (OSError, ValueError, KeyError, TypeError, AttributeError):
         raise DecisionRequired('Notification policy approval is required.') from None

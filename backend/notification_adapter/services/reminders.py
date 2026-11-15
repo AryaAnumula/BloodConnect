@@ -12,7 +12,7 @@ def schedule_appointment_reminder(*, appointment_id, donor_user_id, starts_at, b
     appointment_id=_uuid(appointment_id);donor_user_id=_uuid(donor_user_id)
     starts_at=_aware(starts_at);booked_at=_aware(booked_at)
     if starts_at<=booked_at: raise ValueError('Appointment must be in the future.')
-    deadline=starts_at-timedelta(hours=24);late=booked_at>deadline
+    deadline=starts_at-timedelta(hours=25);late=booked_at>deadline
     due_at=booked_at if late else deadline
     event_id=uuid.uuid5(uuid.NAMESPACE_URL, f'bloodconnect:reminder:{appointment_id}:{starts_at.isoformat()}')
     result=enqueue_intent(event_id=event_id,recipient_id=donor_user_id,event_type='APPOINTMENT_REMINDER',record_id=appointment_id,due_at=due_at,channels=channels if channels is not None else ['IN_APP'])
@@ -27,3 +27,24 @@ def cancel_appointment_reminders(*, appointment_id) -> int:
     require_policy('S2-06','S2-07')
     if not connection.in_atomic_block: raise RuntimeError('Caller must own cancellation atomic transaction.')
     return OutboxIntent.objects.filter(record_id=_uuid(appointment_id),event_type='APPOINTMENT_REMINDER',state__in=['PENDING','BLOCKED','LEASED']).update(state='CANCELLED',lease_token=None,lease_until=None,last_error_code='appointment_cancelled')
+
+
+def reminder_state(*, appointment_id):
+    """Read the latest real reminder state, or raise LookupError if absent.
+
+    Internal trusted service: callers must enforce appointment ownership.
+    """
+    require_policy('S2-06', 'S2-07')
+    row = OutboxIntent.objects.filter(record_id=_uuid(appointment_id), event_type='APPOINTMENT_REMINDER').order_by('-created_at', '-id').first()
+    if row is None:
+        raise LookupError('Reminder intent is unavailable.')
+    return row.state
+
+
+def enqueue_camp_cancellation(*, appointment_id, donor_user_id, cancelled_at, channels=None):
+    """Persist one cancellation event in the caller's atomic transaction."""
+    appointment_id = _uuid(appointment_id)
+    event_id = uuid.uuid5(uuid.NAMESPACE_URL, f'bloodconnect:camp-cancel:{appointment_id}')
+    return enqueue_intent(event_id=event_id, recipient_id=donor_user_id,
+                          event_type='APPOINTMENT_CANCELLED', record_id=appointment_id,
+                          due_at=cancelled_at, channels=channels if channels is not None else ['IN_APP'])

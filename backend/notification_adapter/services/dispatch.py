@@ -8,7 +8,7 @@ from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 from notification_adapter.models import OutboxIntent,DeliveryAttempt
-from notification_adapter.client import send_notification_intent,NotificationTransportUnavailable
+from notification_adapter.client import send_notification_intent,NotificationTransportUnavailable,NotificationEventConflict
 from notification_adapter.policy import require_policy
 from .intents import _aware
 
@@ -65,6 +65,8 @@ def dispatch_due(*, now, limit: int=100) -> dict:
         event={'event_id':str(row.event_id),'recipient_id':str(row.recipient_id),'type':row.event_type,'record_id':str(row.record_id),'due_at':row.due_at.isoformat(),'channels':row.channels}
         try:
             send_notification_intent(event=event);outcome='DELIVERED';code=''
+        except NotificationEventConflict:
+            outcome='FAILED';code='event_conflict'
         except NotificationTransportUnavailable:
             outcome='FAILED';code='transport_unavailable'
         except Exception:
@@ -82,9 +84,9 @@ def dispatch_due(*, now, limit: int=100) -> dict:
                 DeliveryAttempt.objects.create(intent=locked,channel=channel,receipt_key=receipt_key,attempted_at=completed,outcome=outcome,error_code=code)
             if outcome=='DELIVERED':
                 locked.state='DELIVERED';locked.delivered_at=completed
-                if locked.scheduled_for is not None:locked.timing_met=not locked.late_booking and completed<=locked.scheduled_for-timedelta(hours=24)
+                if locked.scheduled_for is not None:locked.timing_met=completed<=locked.scheduled_for-timedelta(hours=24)
                 counts['delivered']+=1
-            elif locked.attempts>=3:locked.state='FAILED';counts['failed']+=1
+            elif code=='event_conflict' or locked.attempts>=3:locked.state='FAILED';counts['failed']+=1
             else:
                 locked.state='PENDING';locked.next_attempt_at=completed+timedelta(seconds=60*2**(locked.attempts-1));counts['retry']+=1
             locked.save()
