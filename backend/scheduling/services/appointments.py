@@ -1,4 +1,5 @@
-"""BB-21 booking. One atomic transaction; lock order camp -> slot -> bookings (walk-in: slot only).
+"""BB-21 booking. One atomic transaction; lock order camp -> slot -> donor profile -> bookings
+(walk-in: slot first).
 
 Not wired yet (INTEGRATION_PENDING): the reminder intent. notification_adapter.services.intents
 .enqueue_intent is not on main (Arya's PR #44), so no intent is written and nothing is claimed sent.
@@ -40,19 +41,25 @@ def _require_current_eligibility(profile) -> None:
         saved = read_saved_results(donor_ids=[profile.pk]).get(str(profile.pk))
     except DecisionRequired:
         raise PolicyUnresolved('Screening rules are not configured.') from None
-    if saved is None or saved['status'] != 'ELIGIBLE' or saved['is_stale']:
+    # S2-10 (Arya, 14 Nov): a result is trusted only if it is ELIGIBLE, assessed under the current
+    # rules (is_stale) AND not superseded by a later confirmed collection (is_history_stale).
+    if (saved is None or saved['status'] != 'ELIGIBLE'
+            or saved['is_stale'] or saved['is_history_stale']):
         raise IneligibleDonor()
 
 
 def book_appointment(*, actor, slot_id, now=None) -> dict:
     require_camp_role(user=actor, action='book')
-    try:
-        profile = DonorProfile.objects.get(user_id=actor.pk)
-    except DonorProfile.DoesNotExist:
-        raise IneligibleDonor('Complete donor registration and screening before booking.') from None
 
     with transaction.atomic():
         camp, slot = _lock_slot(slot_id)
+        # Agreed lock order: Camp -> Slot -> DonorProfile -> Appointment. The profile is locked and
+        # read here, inside the transaction, so a collection confirmed at the same moment (which
+        # locks the same row) is either seen by the eligibility check or committed after us.
+        try:
+            profile = DonorProfile.objects.select_for_update().get(user_id=actor.pk)
+        except DonorProfile.DoesNotExist:
+            raise IneligibleDonor('Complete donor registration and screening before booking.') from None
         if slot.status != Slot.Status.OPEN or (camp is not None and camp.status != Camp.Status.ACTIVE):
             raise SlotUnavailable()
         # Read the clock only now, after every lock is held (Arya, 14 Nov): a request that waited

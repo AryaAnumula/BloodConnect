@@ -4,6 +4,7 @@ PENDING DECISIONS are labelled: booking a slot that has already started is refus
 The reminder intent is not wired (enqueue_intent is not on main), so nothing about it is asserted.
 """
 from datetime import timedelta
+from unittest import mock
 
 from django.contrib.auth.models import AnonymousUser
 from django.test import TestCase
@@ -65,6 +66,51 @@ class BookAppointmentTests(TestCase):
                 with self.assertRaises(IneligibleDonor):
                     self.book(person)
         self.assertEqual(Appointment.objects.count(), 0)
+
+    def test_history_stale_result_is_refused_even_if_eligible_and_rules_current(self):
+        # S2-10: a collection confirmed after the assessment supersedes it.
+        confirmed = timezone.localdate() - timedelta(days=1)
+        type(self.profile).objects.filter(pk=self.profile.pk).update(
+            last_confirmed_collection_date=confirmed)
+        with self.assertRaises(IneligibleDonor):
+            self.book()
+        self.assertEqual(Appointment.objects.count(), 0)
+
+    def test_a_fresh_screening_after_the_collection_allows_booking_again(self):
+        confirmed = timezone.localdate() - timedelta(days=120)
+        type(self.profile).objects.filter(pk=self.profile.pk).update(
+            last_confirmed_collection_date=confirmed)
+        with self.assertRaises(IneligibleDonor):
+            self.book()
+        save_result(self.profile, 'ELIGIBLE', confirmed_collection_date=confirmed)
+        self.assertEqual(self.book()['status'], 'CONFIRMED')
+
+    def test_a_later_collection_stales_the_newer_result_again(self):
+        first = timezone.localdate() - timedelta(days=120)
+        type(self.profile).objects.filter(pk=self.profile.pk).update(
+            last_confirmed_collection_date=first)
+        save_result(self.profile, 'ELIGIBLE', confirmed_collection_date=first)
+        type(self.profile).objects.filter(pk=self.profile.pk).update(
+            last_confirmed_collection_date=timezone.localdate())
+        with self.assertRaises(IneligibleDonor):
+            self.book()
+
+    def test_locks_are_taken_in_the_agreed_order_camp_slot_donor(self):
+        from django.db.models.query import QuerySet
+        events = []
+        original = QuerySet.select_for_update
+
+        def spy(queryset, *args, **kwargs):
+            events.append(queryset.model.__name__)
+            return original(queryset, *args, **kwargs)
+
+        with mock.patch.object(QuerySet, 'select_for_update', spy):
+            self.book()
+        self.assertEqual(events, ['Camp', 'Slot', 'DonorProfile'])
+        events.clear()
+        with mock.patch.object(QuerySet, 'select_for_update', spy):
+            self.book(make_donor()[0], slot=make_slot(None, capacity=1))  # walk-in: no camp lock
+        self.assertEqual(events, ['Slot', 'DonorProfile'])
 
     def test_the_latest_result_decides(self):
         save_result(self.profile, 'INELIGIBLE')

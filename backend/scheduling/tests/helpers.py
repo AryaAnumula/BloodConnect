@@ -36,10 +36,11 @@ def make_donor(eligible=True, rules_version=None):
     return user, profile
 
 
-def save_result(profile, status, rules_version=None):
+def save_result(profile, status, rules_version=None, confirmed_collection_date=None):
     return EligibilityResult.objects.create(
         donor=profile, age_years=30, weight_kg=Decimal('60'), last_donation_date=None,
         status=status, reason_codes=[], reasons=[],
+        confirmed_collection_date=confirmed_collection_date,
         rules_version=rules_version or approved_screening_rules()['rules_version'])
 
 

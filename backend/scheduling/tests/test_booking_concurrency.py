@@ -5,7 +5,8 @@ On SQLite (no row locks) these are skipped, so they only count as evidence from 
 import threading
 import unittest
 
-from django.db import connection, connections
+from django.db import connection, connections, transaction
+from django.utils import timezone
 from django.test import TransactionTestCase
 from rest_framework.exceptions import APIException
 
@@ -79,3 +80,32 @@ class CancelRaceTests(TransactionTestCase):
         self.assertEqual([r for r in results if r[0] == 'crash'], [])
         self.assertLessEqual(Appointment.objects.filter(status='CONFIRMED').count(), 1)
         self.assertEqual(Appointment.objects.get(pk=appt['id']).status, 'CANCELLED')
+
+
+@unittest.skipUnless(connection.vendor == 'postgresql', 'needs PostgreSQL row locking')
+class CollectionBookingRaceTests(TransactionTestCase):
+    def test_booking_waits_for_a_collection_in_progress_then_rejects_the_stale_result(self):
+        from donors.services.collections import record_confirmed_collection
+        slot = make_slot(make_camp(capacity=10), capacity=3)
+        donor, profile = make_donor()  # has a current ELIGIBLE result with no confirmed date
+        outcome = []
+
+        def booking():
+            try:
+                outcome.append(('ok', book_appointment(actor=donor, slot_id=slot.id)))
+            except APIException as exc:
+                outcome.append(('error', exc.default_code))
+            except Exception as exc:  # surfaced in the assertion below
+                outcome.append(('crash', repr(exc)))
+            finally:
+                connections.close_all()
+
+        with transaction.atomic():
+            record_confirmed_collection(donor_id=profile.pk, collected_on=timezone.localdate())
+            thread = threading.Thread(target=booking)
+            thread.start()
+            thread.join(timeout=1.5)
+            self.assertTrue(thread.is_alive(), 'booking must wait on the donor row lock')
+        thread.join(timeout=30)
+        self.assertEqual(outcome, [('error', 'ineligible_donor')])
+        self.assertEqual(Appointment.objects.count(), 0)

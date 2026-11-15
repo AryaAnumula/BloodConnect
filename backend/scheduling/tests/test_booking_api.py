@@ -119,6 +119,14 @@ class AppointmentApiTests(TestCase):
         full = send(c3, t3, 'post', self.URL, {'slot_id': str(self.slot.id)})
         self.assertEqual((full.status_code, full.json()['error']['code']), (409, 'capacity_conflict'))
 
+    def test_history_stale_result_is_a_422_ineligible_donor(self):
+        from donors.models import DonorProfile
+        DonorProfile.objects.filter(pk=self.profile.pk).update(
+            last_confirmed_collection_date=timezone.localdate() - timedelta(days=1))
+        r = self.book()
+        self.assertEqual((r.status_code, r.json()['error']['code']), (422, 'ineligible_donor'))
+        self.assertEqual(Appointment.objects.count(), 0)
+
     def test_donor_sees_only_own_appointments(self):
         self.book()
         other, _ = make_donor()
