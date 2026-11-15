@@ -197,9 +197,57 @@
           "applies_to": [
             "BB-18"
           ]
+        },
+        {
+          "id": "BC-D035-a",
+          "title": "Requester tracking",
+          "clause": "GET /api/v1/requests dispatches STAFF to unchanged staff_queue (default SUBMITTED) and active non-superuser REQUESTER to own_requests (default all own statuses). Owner filtering precedes status/order/count/page. Strict status/page/page_size only; default20, size1..100, page>=1, repeated/blank/unknown400. Urgency CRITICAL,URGENT,ROUTINE then created_at/id ascending; no client requester_id or sort. Shared POST requester submission and review PATCH stay unchanged.",
+          "status": "APPROVED",
+          "approved_by": "Project decision under Arya's delegated authority; implementation requested by Arya on 2026-11-15",
+          "approved_at": "2026-11-15",
+          "evidence": "BB19 detailed plan (15Nov2026), explicit implementation request, central PROJECT_DECISION_LOG.md BC-D035",
+          "applies_to": [
+            "BB-19"
+          ]
+        },
+        {
+          "id": "BC-D035-b",
+          "title": "Detail and privacy",
+          "clause": "GET /api/v1/requests/{request_id} permits active non-superuser REQUESTER for own records or active non-superuser STAFF for minimized operational detail. Foreign-owner and missing valid UUID use the same404 envelope/message; direct selectors repeat role and ownership. All superusers, ADMIN and DONOR denied. Existing BloodRequest/RequestPage DTOs unchanged; own rejection reason shown as text, no clinical/contact/reviewer internals.",
+          "status": "APPROVED",
+          "approved_by": "Project decision under Arya's delegated authority; implementation requested by Arya on 2026-11-15",
+          "approved_at": "2026-11-15",
+          "evidence": "BB19 detailed plan (15Nov2026), explicit implementation request, central PROJECT_DECISION_LOG.md BC-D035",
+          "applies_to": [
+            "BB-19"
+          ]
+        },
+        {
+          "id": "BC-D035-c",
+          "title": "Closure",
+          "clause": "POST /api/v1/requests/{request_id}/close requires owning active non-superuser REQUESTER and session+CSRF; no body (even{} rejected400) or query fields. close_request owns atomic owner-scoped request row lock; only ISSUED with fulfilled_quantity==quantity changes to CLOSED. CLOSED replay200 without a save/updated_at change. Other states or incomplete ISSUED422 invalid_transition; foreign/missing404. Only status/updated_at change; no new model/migration/closed_at, no issue/stock/notification writer. Expected storage failure503 after rollback; existing review messages remain unchanged.",
+          "status": "APPROVED",
+          "approved_by": "Project decision under Arya's delegated authority; implementation requested by Arya on 2026-11-15",
+          "approved_at": "2026-11-15",
+          "evidence": "BB19 detailed plan (15Nov2026), explicit implementation request, central PROJECT_DECISION_LOG.md BC-D035",
+          "applies_to": [
+            "BB-19"
+          ]
+        },
+        {
+          "id": "BC-D035-d",
+          "title": "Scope, tests and integration",
+          "clause": "Arya owns BB19 (BC-D023); Arnav BB16/17/18 only. Implement own_requests/request_detail selectors and close_request service in blood_requests, shared collection per-method gates, detail/close URLs, /requests and /requests/{uuid} pages, feature tests and minimal shared runner/routes/contracts. BB17/18 integration is real; ISSUED/partial/CLOSED test fixtures do not prove actual BB16 integration. Full acceptance waits real BB16/inventory issue-to-track-to-close demo. Manual CI unchanged (BC-D028); ONLY ARYA merges (BC-D033); existing Git identity, no assistant coauthor/access changes.",
+          "status": "APPROVED",
+          "approved_by": "Project decision under Arya's delegated authority; implementation requested by Arya on 2026-11-15",
+          "approved_at": "2026-11-15",
+          "evidence": "BB19 detailed plan (15Nov2026), explicit implementation request, central PROJECT_DECISION_LOG.md BC-D035",
+          "applies_to": [
+            "BB-19"
+          ]
         }
       ],
-      "scoped_approval_note": "Scoped approvals only (BB-17 clauses and BB-18 BC-D029). Partial/complete issue, fulfilment and closure (BB-16/19) remain PROPOSED."
+      "scoped_approval_note": "Scoped approvals only (BB-17 clauses and BB-18 BC-D029). Partial/complete issue, fulfilment and closure (BB-16/19) remain PROPOSED. BB19 BC-D035 scoped clauses also apply; unresolved parent policy remains PROPOSED."
     },
     {
       "id": "S2-04",
@@ -211,7 +259,21 @@
       "approved_by": null,
       "approved_at": null,
       "evidence": null,
-      "scoped_approval_note": "BC-D029-c (recorded under S2-03, central_gates S2-03/S2-04) approves only the BB-18 staff review gate: active non-superuser STAFF, no clinical permission required. The rest of S2-04 (inventory, camps, ADMIN dashboard) remains PROPOSED."
+      "scoped_approval_note": "BC-D029-c (recorded under S2-03, central_gates S2-03/S2-04) approves only the BB-18 staff review gate: active non-superuser STAFF, no clinical permission required. The rest of S2-04 (inventory, camps, ADMIN dashboard) remains PROPOSED. BB19 BC-D035 scoped clauses also apply; unresolved parent policy remains PROPOSED.",
+      "scoped_approvals": [
+        {
+          "id": "BC-D035-b",
+          "title": "Detail and privacy",
+          "clause": "GET /api/v1/requests/{request_id} permits active non-superuser REQUESTER for own records or active non-superuser STAFF for minimized operational detail. Foreign-owner and missing valid UUID use the same404 envelope/message; direct selectors repeat role and ownership. All superusers, ADMIN and DONOR denied. Existing BloodRequest/RequestPage DTOs unchanged; own rejection reason shown as text, no clinical/contact/reviewer internals.",
+          "status": "APPROVED",
+          "approved_by": "Project decision under Arya's delegated authority; implementation requested by Arya on 2026-11-15",
+          "approved_at": "2026-11-15",
+          "evidence": "BB19 detailed plan (15Nov2026), explicit implementation request, central PROJECT_DECISION_LOG.md BC-D035",
+          "applies_to": [
+            "BB-19"
+          ]
+        }
+      ]
     },
     {
       "id": "S2-05",
