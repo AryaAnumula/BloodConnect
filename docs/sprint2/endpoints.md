@@ -11,11 +11,11 @@ Exact shapes and validations are in openapi.proposed.yaml, conventions.md and de
 | GET `/api/v1/stock` | BB-14 | Ch Yashwitha | STAFF, ADMIN | none → 200 StockPage | S2-02 |
 | GET `/api/v1/stock/alerts` | BB-15 | Ch Yashwitha | STAFF | none → 200 AlertPage | S2-06 |
 | POST `/api/v1/requests` | BB-17 | Arnav Chaudhary | REQUESTER | RequestCreate → 201 BloodRequest | S2-01, S2-03 |
-| GET `/api/v1/requests` | BB-18, BB-19 | Arnav Chaudhary | STAFF, REQUESTER | none → 200 RequestPage | S2-03 |
-| GET `/api/v1/requests/{request_id}` | BB-19 | Arnav Chaudhary | STAFF, REQUESTER_OWNER | none → 200 BloodRequest | S2-03 |
+| GET `/api/v1/requests` | BB-18, BB-19 | Arya (tracking), Arnav (staff queue) | STAFF, REQUESTER | none → 200 RequestPage | S2-03 |
+| GET `/api/v1/requests/{request_id}` | BB-19 | Anumula Arya | STAFF, REQUESTER_OWNER | none → 200 BloodRequest | S2-03 |
 | PATCH `/api/v1/requests/{request_id}/status` | BB-18 | Arnav Chaudhary | STAFF | ReviewRequest → 200 BloodRequest | S2-03 |
 | POST `/api/v1/requests/{request_id}/issues` | BB-16 | Arnav Chaudhary | STAFF | IssueCreate → 201 IssueResponse | S2-01, S2-02, S2-03 |
-| POST `/api/v1/requests/{request_id}/close` | BB-19 | Arnav Chaudhary | REQUESTER_OWNER | none → 200 BloodRequest | S2-03 |
+| POST `/api/v1/requests/{request_id}/close` | BB-19 | Anumula Arya | REQUESTER_OWNER | none → 200 BloodRequest | S2-03 |
 | POST `/api/v1/camps` | BB-20 | Ankitha Lakshmmi Mohan | ADMIN | CampCreate → 201 Camp | S2-04, S2-05 |
 | GET `/api/v1/camps` | BB-20 | Ankitha Lakshmmi Mohan | DONOR, STAFF, ADMIN | none → 200 CampPage | S2-04, S2-05 |
 | PATCH `/api/v1/camps/{camp_id}` | BB-20 | Ankitha Lakshmmi Mohan | ADMIN, STAFF | CampUpdate → 200 Camp | S2-04, S2-05 |
@@ -26,3 +26,7 @@ Exact shapes and validations are in openapi.proposed.yaml, conventions.md and de
 | GET `/api/v1/appointments` | BB-21 | Ankitha Lakshmmi Mohan | DONOR | none → 200 AppointmentPage | S2-05 |
 | GET `/api/v1/dashboard` | BB-23 | Anumula Arya | ADMIN | none → 200 Dashboard | S2-04, S2-08 |
 | GET `/api/v1/reports` | BB-24 | Anumula Arya | ADMIN | none → 200 ActivityReport | S2-08 |
+
+## BB19 current implementation — BC-D035
+
+GET collection now dispatches per actor: STAFF defaults pending SUBMITTED, REQUESTER defaults all own statuses; explicit status filter permitted. Same strict query/order/pagination/DTO conventions. Detail permits owner requester or operational staff, hides foreign records as404. Close requires owning requester, no body/query, full ISSUED->CLOSED; CLOSED replay read-only. Actual BB16 issue-to-track-to-close integration pending. No automatic CI, new schema or issue writer.

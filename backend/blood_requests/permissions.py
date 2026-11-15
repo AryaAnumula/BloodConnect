@@ -39,3 +39,10 @@ class IsReviewStaff(BasePermission):
 
     def has_permission(self, request, view):
         return may_review_requests(user=request.user)
+
+
+class IsRequestReader(BasePermission):
+    """BB-19 collection/detail: requester ownership is enforced in the selector."""
+
+    def has_permission(self, request, view):
+        return may_submit_request(user=request.user) or may_review_requests(user=request.user)

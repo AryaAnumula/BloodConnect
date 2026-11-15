@@ -14,5 +14,7 @@ urlpatterns = [
     path('eligibility', TemplateView.as_view(template_name='eligibility.html'), name='result-page'),
     path('staff/donors', TemplateView.as_view(template_name='search.html'), name='search-page'),
     path('requests/new', TemplateView.as_view(template_name='request_create.html'), name='request-create-page'),
+    path('requests', TemplateView.as_view(template_name='request_tracking.html'), name='request-tracking-page'),
+    path('requests/<uuid:request_id>', TemplateView.as_view(template_name='request_detail.html'), name='request-detail-page'),
     path('staff/requests', TemplateView.as_view(template_name='staff_requests.html'), name='staff-requests-page'),
 ]
