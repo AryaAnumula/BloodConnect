@@ -195,9 +195,19 @@ class AccessDenialTests(TestCase):
         self.assert_denied(client, None, 'csrf_failed')
         self.assert_denied(client, 'b' * 32, 'csrf_failed')
 
-    def test_get_is_not_allowed(self):
+    def test_requester_get_is_forbidden_until_bb19(self):
+        # BC-D029-e: requester own-list is BB-19 (Arya); until then requester GET is 403,
+        # and it must never expose the staff queue.
         client, _ = signed_in(make_user('REQUESTER'))
-        self.assertEqual(client.get(URL).status_code, 405)
+        response = client.get(URL)
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.json()['error']['code'], 'forbidden')
+        self.assertNotIn('results', response.json())
+
+    def test_other_methods_are_not_allowed(self):
+        client, token = signed_in(make_user('REQUESTER'))
+        self.assertEqual(client.put(URL, data='{}', content_type='application/json',
+                                    HTTP_X_CSRFTOKEN=token).status_code, 405)
 
     def test_denial_happens_before_body_validation(self):
         client, token = signed_in(make_user('DONOR'))
