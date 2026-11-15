@@ -4,7 +4,7 @@
 {% block title %}Submit a blood request — BloodConnect{% endblock %}
 
 {% block content %}
-{# BB-17. Not routed yet: the page route in backend/config/urls.py is a shared change (STEP C). #}
+{# BB-17, served at /requests/new. The API (POST /api/v1/requests) decides access and validity. #}
 <h1>Submit a blood request</h1>
 <p>For hospital/requester accounts. Staff review each request; submitting does not reserve or issue blood.</p>
 
@@ -19,7 +19,7 @@
   </select>
   <p id="request-blood-group-error" class="field-error"></p>
 
-  {# PENDING S2-01: the four SRS components. The server is the authority on what is accepted. #}
+  {# Approved components (BC-D017–BC-D022). The server policy is the authority. #}
   <label for="request-component">Component</label>
   <select id="request-component" name="component_type" required aria-describedby="request-component-error">
     <option value="">Choose a component</option>
@@ -30,10 +30,11 @@
   </select>
   <p id="request-component-error" class="field-error"></p>
 
-  <label for="request-quantity">Quantity (whole units)</label>
-  <input id="request-quantity" name="quantity" type="number" required min="1" step="1"
+  <label for="request-quantity">Quantity (whole units, 1 to 100)</label>
+  <input id="request-quantity" name="quantity" type="number" required min="1" max="100" step="1"
          inputmode="numeric" aria-describedby="request-quantity-help request-quantity-error">
-  <p id="request-quantity-help">One unit is one whole unit. Units are not split.</p>
+  <p id="request-quantity-help">One unit is one whole unit; units are not split. 100 is a college-demo limit,
+    not a clinical one. Submitting does not need blood to be in stock.</p>
   <p id="request-quantity-error" class="field-error"></p>
 
   <label for="request-urgency">Urgency</label>

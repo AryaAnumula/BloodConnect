@@ -172,6 +172,7 @@ paths:
         schema: &id009
           type: string
           enum:
+          - WHOLE_BLOOD
           - RBC
           - PLASMA
           - PLATELETS
@@ -571,18 +572,22 @@ paths:
       - FR-012
       - SEC-002
       - SEC-003
-      x-contract-status: PROPOSED_APPROVAL_REQUIRED
-      x-implementation-status: not_implemented
+      x-contract-status: APPROVED_BC-D017-D022
+      x-implementation-status: implemented
       x-allowed-roles:
       - REQUESTER
       x-decision-gates:
       - S2-01
       - S2-03
-      description: 'Design contract only. No route is added by this pack. All superusers
-        denied under proposed operational matrix. Missing/expired sessions keep existing
-        DRF 403 authentication_required, not a new JWT/401 architecture. For owner-restricted
-        records use identical 404 for other owner and missing record. Dates/times
-        and validation follow conventions.md. '
+      description: 'Implemented for BB-17 (backend/blood_requests). Approved scope BC-D017-BC-D022
+        (15 Nov 2026). Requires an authenticated, active, non-superuser REQUESTER; every
+        superuser is denied and clinical permissions grant nothing. Accepts exactly blood_group,
+        component_type, quantity and urgency_level; requester_id, status and any other field
+        are rejected (400 validation_error). Server sets status SUBMITTED, fulfilled_quantity
+        0 and rejection_reason null; the requester is the session user. Missing/expired session:
+        403 authentication_required; wrong role: 403 forbidden; missing or invalid runtime policy
+        (config/request-policy.json): 409 policy_unresolved. Urgency CRITICAL corresponds to the
+        older document''s "Emergency".'
       security:
       - sessionCookie: []
       parameters:
@@ -595,7 +600,7 @@ paths:
           minLength: 1
       responses:
         '201':
-          description: Successful real implementation response; not currently implemented
+          description: Request saved with status SUBMITTED for the session requester
           content:
             application/json:
               schema:
@@ -2070,9 +2075,13 @@ components:
       properties:
         blood_group: *id008
         component_type: *id009
-        quantity: &id011
+        quantity: &id013
           type: integer
           minimum: 1
+          maximum: 100
+          description: Whole units, strict JSON integer 1-100 inclusive (approved college-demo
+            limit BC-D017-BC-D022, not clinical). Strings, booleans and fractions are rejected;
+            values are never clamped. Submission does not require current stock.
         urgency_level:
           type: string
           enum:
@@ -2092,7 +2101,7 @@ components:
         requester_id: *id001
         blood_group: *id008
         component_type: *id009
-        quantity: *id011
+        quantity: *id013
         fulfilled_quantity:
           type: integer
           minimum: 0
@@ -2193,7 +2202,9 @@ components:
           maxLength: 120
         starts_at: *id006
         ends_at: *id006
-        capacity: *id011
+        capacity: &id011
+          type: integer
+          minimum: 1
       required:
       - name
       - location

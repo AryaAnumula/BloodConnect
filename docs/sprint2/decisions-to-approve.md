@@ -82,3 +82,18 @@ Driver: Yashwitha + Ankitha + Arya. Affects: BB-13/21/24.
 
 Status: **PROPOSED — approval required**. Record approved wording, approver/date, affected files and PR.
 
+## Scoped approval record — BB-17 request submission (S2-01 and S2-03, partial)
+
+Date: 15 November 2026. Authority: Codex assistant acting under Arya's explicitly delegated project-decision authority. Evidence: BC-D017–BC-D022 in the central decision log and Arya's reply to Arnav. Applies to BB-17 only; S2-01 and S2-03 as a whole remain **PROPOSED** (see `scoped_approvals` in `config/sprint2-decisions.json`).
+
+Approved clauses:
+
+1. **Components (S2-01):** WHOLE_BLOOD, RBC, PLASMA and PLATELETS. The three-component proposal is superseded. The shared OpenAPI component enum is corrected narrowly, consistent with the inventory vocabulary.
+2. **Quantity (S2-01):** strict JSON integers 1–100 inclusive, a college-demo limit, not a clinical limit. Strings, booleans, fractions and out-of-range values are rejected with 400 `validation_error`; values are never clamped. Submission does not require sufficient current stock. Values are recorded in versioned `config/request-policy.json` and aligned in the serializer, form, OpenAPI and database constraint. Missing or invalid runtime policy fails closed with 409 `policy_unresolved`.
+3. **Submission rules (S2-03):** REQUESTER accounts are provisioned through a restricted local management command only; there is no public requester registration or role assignment. New requests receive server-set `SUBMITTED`, `fulfilled_quantity: 0` and `rejection_reason: null`. The requester comes exclusively from the authenticated session. Exactly `blood_group`, `component_type`, `quantity` and `urgency_level` are accepted; client-supplied `requester_id`, `status` and other undeclared fields are rejected. The requester relationship is protected against deletion of request history; accounts are deactivated instead.
+4. **Superusers (S2-03):** every superuser is denied, even one whose role is REQUESTER. Submission requires an authenticated, active, non-superuser REQUESTER. Clinical permissions do not grant submission access.
+5. **Permission helper:** a small private helper in `backend/blood_requests/permissions.py`, used at the API and service boundaries, with existing session/CSRF/error/audit conventions and no duplicate audit recording. No need to wait for the shared helper.
+6. **Shared files:** minimal app registration, API include, form route `/requests/new` and test-runner additions ship in the BB-17 PR. Existing routes and checks are preserved. No separate integration PR.
+7. **Endpoint:** `POST /api/v1/requests` → 201 `BloodRequest`, no trailing slash. Input-contract amendments are the fourth component and the maximum quantity. API urgency values stay CRITICAL, URGENT, ROUTINE; the older document's "Emergency" corresponds to CRITICAL.
+
+Still unresolved (not approved by this record): shelf-life values, urgency ordering and tie-break for review, review/issue/closure transitions and fulfilment semantics, notification policies, and the remainder of S2-01 and S2-03. No merge approval is implied.

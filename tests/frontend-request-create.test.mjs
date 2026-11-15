@@ -83,7 +83,7 @@ test('BB17 rejects missing choices and invalid quantities before calling the API
     [{ blood_group: '' }, 'Blood group'], [{ component_type: '' }, 'Component'],
     [{ urgency_level: '' }, 'Urgency'], [{ quantity: '' }, 'Quantity'], [{ quantity: '0' }, 'Quantity'],
     [{ quantity: '-1' }, 'Quantity'], [{ quantity: '1.5' }, 'Quantity'], [{ quantity: '2.0' }, 'Quantity'],
-    [{ quantity: '1e2' }, 'Quantity'], [{ quantity: 'abc' }, 'Quantity'],
+    [{ quantity: '1e2' }, 'Quantity'], [{ quantity: 'abc' }, 'Quantity'], [{ quantity: '101' }, 'Quantity'],
     [{ quantity: '99999999999999999999' }, 'Quantity'],
   ];
   for (const [input, label] of cases) {
@@ -92,6 +92,17 @@ test('BB17 rejects missing choices and invalid quantities before calling the API
     assert.equal(h.calls.length, 0, JSON.stringify(input));
     assert.ok(h.errorTexts().some(text => text.startsWith(`${label}:`)), JSON.stringify(input));
     assert.equal(h.status.at(-1), 'Please correct the highlighted fields.');
+  }
+});
+
+test('BB17 accepts the approved quantity boundaries 1 and 100', async () => {
+  for (const quantity of ['1', '100', ' 7 ']) {
+    const h = setup({ quantity });
+    const pending = h.submit();
+    assert.equal(h.calls.length, 1, quantity);
+    assert.equal(h.calls[0].options.body.quantity, Number(quantity.trim()));
+    h.calls[0].resolve(savedResponse());
+    await pending;
   }
 });
 

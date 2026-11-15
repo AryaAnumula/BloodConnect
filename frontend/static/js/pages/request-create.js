@@ -15,6 +15,7 @@ const OUTPUTS = {
   component_type: '#out-request-component', quantity: '#out-request-quantity',
   urgency_level: '#out-request-urgency', created_at: '#out-request-created-at',
 };
+const MAX_QUANTITY = 100; // approved college-demo limit; the server enforces it too
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const DENIED = {
   authentication_required: 'Sign in with a requester account to submit a request.',
@@ -57,8 +58,8 @@ function readInput() {
   const raw = data.get('quantity');
   const text = typeof raw === 'string' ? raw.trim() : '';
   const number = Number(text);
-  if (/^[0-9]+$/.test(text) && Number.isSafeInteger(number) && number >= 1) body.quantity = number;
-  else problems.quantity = 'Enter a whole number of units, at least 1.';
+  if (/^[0-9]+$/.test(text) && number >= 1 && number <= MAX_QUANTITY) body.quantity = number;
+  else problems.quantity = `Enter a whole number of units from 1 to ${MAX_QUANTITY}.`;
   return { body, problems };
 }
 

@@ -1,8 +1,8 @@
-"""BB-17 STEP B: RequestCreate input validation in isolation (no database, no route).
+"""BB-17: RequestCreate input validation in isolation (no database, no route).
 
-The policy below is a SYNTHETIC TEST FIXTURE, not an approved S2-01 value: four components
-as intended by the shared context, and an arbitrary maximum of 10 units. These tests prove
-shape validation only. They do NOT prove saving, ownership, authentication or CSRF.
+SYNTHETIC_POLICY deliberately uses max 10 (not the approved 100) to prove the serializer
+follows whatever policy it is given. The approved values are tested in
+test_configuration.py and end-to-end in test_create_api.py.
 """
 from django.test import SimpleTestCase
 
@@ -153,6 +153,8 @@ class PolicyFailsClosedTests(SimpleTestCase):
             dict(component_types=('RBC',), max_quantity=True),
             dict(component_types=('RBC',), max_quantity=5.0),
             dict(component_types=('RBC',), max_quantity=None),
+            dict(component_types=('CRYO',), max_quantity=5),  # not a database choice
+            dict(component_types=('RBC',), max_quantity=101),  # above the database constraint
         ]
         for kwargs in bad_policies:
             with self.subTest(policy=kwargs):
