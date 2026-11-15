@@ -23,6 +23,10 @@ class TransactionRequired(RuntimeError):
 def record_confirmed_collection(*, donor_id: UUID, collected_on: date, today: date | None = None) -> date:
     """Advance the donor's confirmed collection date; return the date now stored.
 
+    CONTRACT FOR CALLERS (inventory): call this BEFORE inserting the CollectionEvent or the
+    BloodUnit in your transaction, once per event (with the first BloodUnit), so the profile lock
+    is taken before any foreign-key row for this donor exists in your transaction.
+
     Never moves the date backwards (a late or repeated call is harmless). Locks the profile row,
     so it serialises with booking and screening for the same donor. Raises TransactionRequired
     (not in an atomic block), ValidationError (not a date / in the future), NotFound (no profile).
@@ -35,7 +39,12 @@ def record_confirmed_collection(*, donor_id: UUID, collected_on: date, today: da
         raise ValidationError({'collected_on': ['A collection date cannot be in the future.']})
     try:
         with transaction.atomic():  # savepoint inside the caller's transaction
-            profile = DonorProfile.objects.select_for_update().get(pk=donor_id)
+            # NO KEY UPDATE, not FOR UPDATE: inserting a row with a foreign key to this profile
+            # (CollectionEvent, BloodUnit, EligibilityResult, Appointment) takes FOR KEY SHARE on
+            # it, which conflicts with FOR UPDATE and could deadlock two transactions that both
+            # inserted first and then tried to lock. We only change a non-key column, and NO KEY
+            # UPDATE still serialises screening, booking and this service against each other.
+            profile = DonorProfile.objects.select_for_update(no_key=True).get(pk=donor_id)
             current = profile.last_confirmed_collection_date
             if current is None or collected_on > current:
                 profile.last_confirmed_collection_date = collected_on
