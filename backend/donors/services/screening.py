@@ -32,14 +32,8 @@ def is_stale(result, rules) -> bool:
 
 
 def is_history_stale(*, result_confirmed_date, profile_confirmed_date) -> bool:
-    """True when a collection was confirmed after the assessment saw the donor's history.
-
-    Compares dates only: the profile has a confirmed date and the result recorded none, or an
-    earlier one. A history-stale result must not be trusted even if ELIGIBLE and rules-current.
-    """
-    if profile_confirmed_date is None:
-        return False
-    return result_confirmed_date is None or result_confirmed_date < profile_confirmed_date
+    """Any mismatch between the assessment snapshot and current projection is stale."""
+    return result_confirmed_date != profile_confirmed_date
 
 
 def _validated_answers(answers, today):

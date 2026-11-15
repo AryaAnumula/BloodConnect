@@ -28,6 +28,12 @@ class DuplicateBooking(APIException):
     default_detail = 'You already have an active booking for this slot.'
 
 
+class AppointmentConflict(APIException):
+    status_code = 409
+    default_code = 'appointment_conflict'
+    default_detail = 'You already have a confirmed appointment during this time.'
+
+
 class PolicyUnresolved(APIException):
     status_code = 409
     default_code = 'policy_unresolved'

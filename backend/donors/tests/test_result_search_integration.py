@@ -85,6 +85,13 @@ class RealResultSearchTests(TestCase):
             self.assertTrue(self.owner.get(self.result_path).json()['is_stale'])
             value=self.staff.get('/api/v1/donors?eligibility_status=STALE').json();self.assertEqual(value['count'],1)
         self.assertFalse(self.owner.get(self.result_path).json()['is_stale'])
+    def test_history_change_is_stale_in_saved_result_and_search(self):
+        self.screen()
+        DonorProfile.objects.filter(pk=self.a.pk).update(last_confirmed_collection_date=timezone.localdate())
+        self.assertTrue(self.owner.get(self.result_path).json()['is_stale'])
+        response = self.staff.get('/api/v1/donors?eligibility_status=STALE').json()
+        self.assertEqual(response['count'], 1)
+        self.assertEqual(response['results'][0]['id'], str(self.a.pk))
     def test_old_assessment_is_not_used_over_latest_timestamp(self):
         self.screen(age=17);old=EligibilityResult.objects.get(donor=self.a)
         self.screen();EligibilityResult.objects.filter(pk=old.pk).update(assessed_at=timezone.now()-timedelta(days=1))

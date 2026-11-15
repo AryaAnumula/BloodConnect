@@ -160,11 +160,11 @@ class HistoryStaleTests(TestCase):
     def test_helper_rules(self):
         d1, d2 = date(2026, 10, 1), date(2026, 10, 2)
         self.assertFalse(is_history_stale(result_confirmed_date=None, profile_confirmed_date=None))
-        self.assertFalse(is_history_stale(result_confirmed_date=d1, profile_confirmed_date=None))
+        self.assertTrue(is_history_stale(result_confirmed_date=d1, profile_confirmed_date=None))
         self.assertTrue(is_history_stale(result_confirmed_date=None, profile_confirmed_date=d1))
         self.assertTrue(is_history_stale(result_confirmed_date=d1, profile_confirmed_date=d2))
         self.assertFalse(is_history_stale(result_confirmed_date=d2, profile_confirmed_date=d2))
-        self.assertFalse(is_history_stale(result_confirmed_date=d2, profile_confirmed_date=d1))
+        self.assertTrue(is_history_stale(result_confirmed_date=d2, profile_confirmed_date=d1))
 
     def test_not_stale_before_any_collection(self):
         self.result()

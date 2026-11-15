@@ -47,6 +47,15 @@ def error_codes(results):
 
 @unittest.skipUnless(connection.vendor == 'postgresql', 'needs PostgreSQL row locking')
 class BookingRaceTests(TransactionTestCase):
+    def test_same_donor_overlapping_camp_and_walkin_slots_serialize(self):
+        camp_slot = make_slot(make_camp(capacity=10))
+        walkin = make_slot(None, starts_at=camp_slot.starts_at, ends_at=camp_slot.ends_at)
+        donor = make_donor()[0]
+        results = run_parallel([lambda: book_appointment(actor=donor, slot_id=camp_slot.id),
+                                lambda: book_appointment(actor=donor, slot_id=walkin.id)])
+        self.assertEqual([r[0] for r in results].count('ok'), 1, results)
+        self.assertEqual(error_codes(results), ['appointment_conflict'])
+        self.assertEqual(Appointment.objects.filter(status='CONFIRMED').count(), 1)
     def test_last_place_goes_to_exactly_one_donor(self):
         slot = make_slot(make_camp(capacity=10), capacity=1)
         donors = [make_donor()[0] for _ in range(6)]

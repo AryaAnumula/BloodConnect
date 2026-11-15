@@ -13,7 +13,7 @@ from donors.eligibility_reader import read_saved_results
 from donors.models import DonorProfile
 from notification_adapter.services.reminders import schedule_appointment_reminder, cancel_appointment_reminders
 from scheduling.dto import appointment_dto
-from scheduling.exceptions import (AppointmentNotCancellable, CapacityConflict, DuplicateBooking, IneligibleDonor,
+from scheduling.exceptions import (AppointmentConflict, AppointmentNotCancellable, CapacityConflict, DuplicateBooking, IneligibleDonor,
                                    PolicyUnresolved, SlotUnavailable)
 from scheduling.models import Appointment, Camp, Slot
 from scheduling.permissions import require_camp_role
@@ -73,6 +73,10 @@ def book_appointment(*, actor, slot_id, now=None) -> dict:
         confirmed = Appointment.objects.filter(slot=slot, status=Appointment.Status.CONFIRMED)
         if confirmed.filter(donor=profile).exists():
             raise DuplicateBooking()
+        if Appointment.objects.filter(donor=profile, status=Appointment.Status.CONFIRMED,
+                                      slot__starts_at__lt=slot.ends_at,
+                                      slot__ends_at__gt=slot.starts_at).exists():
+            raise AppointmentConflict()
         if confirmed.count() >= slot.capacity:
             raise CapacityConflict('This slot is full.')
         if camp is not None:

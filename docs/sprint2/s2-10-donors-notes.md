@@ -16,19 +16,23 @@ rules-current.
   Returns the date now stored.
 - `screen_donor` locks the profile, then evaluates with the LATER of self-reported and confirmed dates
   using the existing `min_days_between_donations`.
-- History-stale rule (dates only, no timestamps): the profile has a confirmed date and the result
-  recorded none or an earlier one. Rows saved before this change count as stale once a first collection
-  is recorded.
+- History-stale rule (dates only, no timestamps): any difference between the assessment snapshot and
+  the profile projection is stale, including a missing value on either side.
 - `read_saved_results` adds `confirmed_collection_date` and `is_history_stale` to its returned dict.
   The public result API serializer is unchanged (declared fields only).
 
 ## For callers
-- Inventory: call `record_confirmed_collection` after creating the CollectionEvent and before/with the
-  first BloodUnit, all in one `transaction.atomic()`. Lock order: donor profile first.
+- Inventory: lock the donor profile first, validate current eligibility and the new event date against
+  the existing projection, then call `record_confirmed_collection` before inserting the CollectionEvent
+  and first BloodUnit; all writes are in one `transaction.atomic()`. Reject a new event dated before the
+  latest confirmed date in the inventory event service. The projection service itself is idempotent and
+  never moves backwards; it does not prove a new event is permitted. Adding another component to an
+  existing event is not a new donation and must not advance the projection or rerun the gap check.
 - Booking: reject when `is_stale` OR `is_history_stale`, and lock the donor profile row after the slot lock.
 
 ## Open
-- `donors.selectors.search` still labels a history-stale ELIGIBLE donor as ELIGIBLE (only `is_stale`
-  shows STALE). Yashwitha's file; decide whether search should show STALE for history-stale too.
+- Search and the saved-result response expose stale on either rules or history mismatch. Booking rejects
+  either stale flag. Reconciliation/backfill and the coordinated rules-version transition remain required
+  before enabling existing data; this draft is not an inventory implementation.
 - Tests for four mocked reader tests were adjusted (fake row gets `confirmed_collection_date=None`,
   profile lookup mocked).
