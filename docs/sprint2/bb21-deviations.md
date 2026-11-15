@@ -10,7 +10,6 @@ intent inside the booking transaction. Cancellation must invalidate pending remi
 
 ## Decisions applied (Arya, 14 Nov)
 - Booking a slot that has started (including exactly at its start) is refused: 409 `slot_unavailable`, rechecked after the locks are taken.
-- A camp time change must keep every linked slot inside the camp interval, empty slots included. Conflicting changes are rejected (409 `schedule_conflict`); slots are never moved silently.
-- ASSUMPTION to confirm: CANCELLED slots are not counted in that check.
+- A camp time change must keep every linked slot inside the camp interval, empty slots included (BC-D005). Conflicting changes are rejected (409 `slot_conflict`); slots are never moved or deleted silently. Per BC-D005, cancelled and historical slots count too. No endpoint reactivates a slot today; if one is added it must recheck the camp interval.
 - Donor self-cancellation (POST /api/v1/appointments/<id>/cancel): own confirmed appointment only, before the slot starts (422 `invalid_transition` at or after start), idempotent, history kept (status CANCELLED + cancelled_at), capacity never released twice. Invalidating pending reminders in the same transaction is NOT wired (no provider on main); draft blocker with the reminder.
 - Migration `0002` is included with the matching models for draft review; its contents and deletion rules (PROTECT) still need review.
