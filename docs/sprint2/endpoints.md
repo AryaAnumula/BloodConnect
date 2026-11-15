@@ -1,5 +1,7 @@
 # Sprint 2 endpoint guide — proposed, not mounted
 
+Current scoped policy: [shared rules](shared-rules.md). These routes and future behavior are design targets, not proof of implementation.
+
 Exact shapes and validations are in openapi.proposed.yaml, conventions.md and decisions-to-approve.md. Required fields are defined in request schema; response enums/required fields in response schema. Every operation lists owner, stories, requirement IDs, roles, auth, status codes and decision gates. No route changes occur on applying the foundation. Existing Sprint 1 API spec remains authoritative for implemented donor/auth routes.
 
 | Method/path | Story | Owner | Roles | Request → success | Gates |
@@ -16,10 +18,10 @@ Exact shapes and validations are in openapi.proposed.yaml, conventions.md and de
 | PATCH `/api/v1/requests/{request_id}/status` | BB-18 | Arnav Chaudhary | STAFF | ReviewRequest → 200 BloodRequest | S2-03 |
 | POST `/api/v1/requests/{request_id}/issues` | BB-16 | Arnav Chaudhary | STAFF | IssueCreate → 201 IssueResponse | S2-01, S2-02, S2-03 |
 | POST `/api/v1/requests/{request_id}/close` | BB-19 | Arnav Chaudhary | REQUESTER_OWNER | none → 200 BloodRequest | S2-03 |
-| POST `/api/v1/camps` | BB-20 | Ankitha Lakshmmi Mohan | ADMIN | CampCreate → 201 Camp | S2-04, S2-05 |
+| POST `/api/v1/camps` | BB-20 | Ankitha Lakshmmi Mohan | ADMIN, STAFF | CampCreate → 201 Camp | S2-04, S2-05 |
 | GET `/api/v1/camps` | BB-20 | Ankitha Lakshmmi Mohan | DONOR, STAFF, ADMIN | none → 200 CampPage | S2-04, S2-05 |
 | PATCH `/api/v1/camps/{camp_id}` | BB-20 | Ankitha Lakshmmi Mohan | ADMIN, STAFF | CampUpdate → 200 Camp | S2-04, S2-05 |
-| POST `/api/v1/camps/{camp_id}/cancel` | BB-20 | Ankitha Lakshmmi Mohan | ADMIN | CancelAction → 200 Camp | S2-04, S2-05, S2-06 |
+| POST `/api/v1/camps/{camp_id}/cancel` | BB-20 | Ankitha Lakshmmi Mohan | ADMIN, STAFF | CancelAction → 200 Camp | S2-04, S2-05, S2-06 |
 | POST `/api/v1/appointment-slots` | BB-21 | Ankitha Lakshmmi Mohan | ADMIN, STAFF | SlotCreate → 201 Slot | S2-04, S2-05 |
 | GET `/api/v1/appointment-slots` | BB-21 | Ankitha Lakshmmi Mohan | DONOR, STAFF, ADMIN | none → 200 SlotPage | S2-05 |
 | POST `/api/v1/appointments` | BB-21 | Ankitha Lakshmmi Mohan | DONOR | AppointmentCreate → 201 Appointment | S2-05, S2-07 |

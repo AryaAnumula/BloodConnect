@@ -31,9 +31,19 @@
           "applies_to": [
             "BB-17"
           ]
+        },
+        {
+          "clause": "**Approved scoped rules [BC-D015, D017, D018, D026]:** shared component vocabulary is `WHOLE_BLOOD`, `RBC`, `PLASMA`, `PLATELETS`; `BloodUnit.quantity` is exactly 1, with no bag splitting in the demo. Allocation requires exact group and component matching. Request quantity is a strict integer 1–100 inclusive, a college-demo cap; reject boolean, string, fractional, null and out-of-range values. Request submission does not depend on available stock. Existing versioned request policy fails closed if missing or invalid.\n\n**NEW — inventory configuration:** each supported component must have an explicit positive integer shelf-life day value in versioned deployment configuration. No numerical clinical values are approved by this decision. For a synthetic demo, a clearly named test fixture may provide synthetic values; it must never silently become production configuration. Missing, incomplete or invalid policy fails closed before unit creation. The responsible owner must supply clinically authorized values before any real-world use. WHO notes that storage time depends on product and preservative; this college model does not establish a clinical shelf life ([WHO good practices](https://www.who.int/publications/m/item/trs-1060---annex-4--good-practices-for-blood-establishments)).",
+          "approved_by": "Codex assistant acting under Arya's explicitly delegated project-decision authority",
+          "approved_at": "2026-11-15",
+          "evidence": "docs/sprint2/shared-rules.md v1.1 and docs/sprint2/decision-provenance.md; approved scope and unresolved items are stated in the clause",
+          "applies_to": [
+            "Sprint 2 scoped policy"
+          ]
         }
       ],
-      "scoped_approval_note": "Scoped approval only. Shelf-life, unit/inventory and other S2-01 clauses remain PROPOSED."
+      "scoped_approval_note": "See shared-rules.md for approved scope and unresolved matters; parent status and runtime gates are unchanged.",
+      "proposal_note": "Historical proposal; superseded where it conflicts with scoped decisions in docs/sprint2/shared-rules.md. Parent status remains unchanged; implementation and policy gates are separate."
     },
     {
       "id": "S2-02",
@@ -44,7 +54,20 @@
       "status": "PROPOSED",
       "approved_by": null,
       "approved_at": null,
-      "evidence": null
+      "evidence": null,
+      "proposal_note": "Historical proposal; superseded where it conflicts with scoped decisions in docs/sprint2/shared-rules.md. Parent status remains unchanged; implementation and policy gates are separate.",
+      "scoped_approvals": [
+        {
+          "clause": "**Approved issue boundary [BC-D026]:** a unit is issuable only when stored state is `AVAILABLE`, exact group/component match, and Asia/Kolkata local date is strictly before `expiry_date`; equality is expired. Recheck after acquiring unit locks.\n\n**NEW — demo semantics:** collection date must be a valid local date no later than the current local date; `expiry_date = collection_date + configured shelf_life_days`. Store `AVAILABLE`, `ISSUED`, `DISCARDED`, `QUARANTINED`; `EXPIRED` is a derived display state for an otherwise AVAILABLE unit on/after expiry, not an automatic stored transition. Available stock is the sum of unexpired AVAILABLE unit quantities. Never maintain an independent decrement counter. Historical ISSUED/DISCARDED/QUARANTINED state remains visible even when its expiry date passes. A future discard/quarantine reversal workflow requires a separate decision. Lock and recheck states for issue; never treat expiry as a new donation or change donor history.",
+          "approved_by": "Codex assistant acting under Arya's explicitly delegated project-decision authority",
+          "approved_at": "2026-11-15",
+          "evidence": "docs/sprint2/shared-rules.md v1.1 and docs/sprint2/decision-provenance.md; approved scope and unresolved items are stated in the clause",
+          "applies_to": [
+            "Sprint 2 scoped policy"
+          ]
+        }
+      ],
+      "scoped_approval_note": "See shared-rules.md for approved scope and unresolved matters; parent status and runtime gates are unchanged."
     },
     {
       "id": "S2-03",
@@ -197,9 +220,19 @@
           "applies_to": [
             "BB-18"
           ]
+        },
+        {
+          "clause": "**Approved [BC-D018–D021, D026–D027, D029]:** REQUESTER accounts are provisioned by a restricted management command, not public role selection. The active non-superuser requester submits exactly `blood_group`, `component_type`, `quantity`, `urgency_level`; ownership and `SUBMITTED`, fulfilled 0, null rejection are server assigned. `CRITICAL`, `URGENT`, `ROUTINE` are canonical; older “Emergency” maps to CRITICAL. Staff queue defaults to SUBMITTED, ordered CRITICAL, URGENT, ROUTINE then creation time and ID. Active non-superuser STAFF alone reviews: SUBMITTED → APPROVED or REJECTED once; rejection reason is trimmed 1–240 characters; approval omits it. Preserve review actor/time and reject replay without overwriting history.\n\nIssue only APPROVED requests: selected units 1 through remaining amount; partial issue stays APPROVED, exact fulfilment becomes ISSUED, never oversupply. Lock request then unit rows in UUID order; revalidate, mark units and create unique protected issue records in one transaction. No inventory → requests import or separate commit. Allocation returns one `{unit_id, quantity: 1}` DTO per unit. Duplicate payload is 400; conflicting replay 409; invalid transitions/unsafe allocation follow agreed 422 mapping. No fabricated delivery claim.\n\n**NEW — BB-19 closure:** owner may transition only their fully ISSUED request to CLOSED; repeat close by the same owner returns the current closed representation without another side effect. Foreign or missing objects remain indistinguishable 404. Lock and recheck before transition. No reopen or requester cancellation in this scope. Coordinate list/detail response and the existing shared route with Arnav; do not change BB-18 semantics. This finalizes the narrow planning target in BC-D034, not unseen code.",
+          "approved_by": "Codex assistant acting under Arya's explicitly delegated project-decision authority",
+          "approved_at": "2026-11-15",
+          "evidence": "docs/sprint2/shared-rules.md v1.1 and docs/sprint2/decision-provenance.md; approved scope and unresolved items are stated in the clause",
+          "applies_to": [
+            "Sprint 2 scoped policy"
+          ]
         }
       ],
-      "scoped_approval_note": "Scoped approvals only (BB-17 clauses and BB-18 BC-D029). Partial/complete issue, fulfilment and closure (BB-16/19) remain PROPOSED."
+      "scoped_approval_note": "See shared-rules.md for approved scope and unresolved matters; parent status and runtime gates are unchanged.",
+      "proposal_note": "Historical proposal; superseded where it conflicts with scoped decisions in docs/sprint2/shared-rules.md. Parent status remains unchanged; implementation and policy gates are separate."
     },
     {
       "id": "S2-04",
@@ -211,7 +244,19 @@
       "approved_by": null,
       "approved_at": null,
       "evidence": null,
-      "scoped_approval_note": "BC-D029-c (recorded under S2-03, central_gates S2-03/S2-04) approves only the BB-18 staff review gate: active non-superuser STAFF, no clinical permission required. The rest of S2-04 (inventory, camps, ADMIN dashboard) remains PROPOSED."
+      "scoped_approval_note": "See shared-rules.md for approved scope and unresolved matters; parent status and runtime gates are unchanged.",
+      "proposal_note": "Historical proposal; superseded where it conflicts with scoped decisions in docs/sprint2/shared-rules.md. Parent status remains unchanged; implementation and policy gates are separate.",
+      "scoped_approvals": [
+        {
+          "clause": "**Approved [BC-D001, D002, D020, D029]:** active authenticated non-superuser STAFF and ADMIN may create, update and cancel camps and set up slots. DONOR, STAFF and ADMIN may list permitted camps/slots. Only DONOR books and cancels their own appointment. REQUESTER, anonymous, inactive and all superusers have no scheduling access through these gates. Camp management grants no clinical-data permission and requires no clinical permission. For donor camp lists, exclude CANCELLED before filtering, count and pagination; `status=CANCELLED` returns 200 with an empty page. Staff/admin can list and filter both states. Invalid filter remains 400; own cancelled appointment history remains accessible.\n\nInventory and request review/issue use active non-superuser STAFF; requester submission uses active non-superuser REQUESTER. Dashboard/report access is ADMIN under the demo policy. Shared operational helpers must not weaken existing clinical access rules. Negative tests cover inactive, wrong role, anonymous and superuser users.",
+          "approved_by": "Codex assistant acting under Arya's explicitly delegated project-decision authority",
+          "approved_at": "2026-11-15",
+          "evidence": "docs/sprint2/shared-rules.md v1.1 and docs/sprint2/decision-provenance.md; approved scope and unresolved items are stated in the clause",
+          "applies_to": [
+            "Sprint 2 scoped policy"
+          ]
+        }
+      ]
     },
     {
       "id": "S2-05",
@@ -222,7 +267,20 @@
       "status": "PROPOSED",
       "approved_by": null,
       "approved_at": null,
-      "evidence": null
+      "evidence": null,
+      "proposal_note": "Historical proposal; superseded where it conflicts with scoped decisions in docs/sprint2/shared-rules.md. Parent status remains unchanged; implementation and policy gates are separate.",
+      "scoped_approvals": [
+        {
+          "clause": "**Approved [BC-D003–D007, D014]:** new camp start is strictly after server now; when changing a start, the replacement must be after now, while resubmitting an unchanged historical start does not block an unrelated edit. Require start < end. CANCELLED camp edits return 422. Every linked slot, including empty, cancelled and historical slots, must remain wholly within a changed camp interval: `camp.start <= slot.start < slot.end <= camp.end`; otherwise 409 `slot_conflict`. Never silently move or delete slots. Capacity is positive and cannot be reduced below confirmed appointments; equality is allowed.\n\nBook only an available slot whose start is strictly after a fresh server time read after locks; at or after start return 409 `slot_unavailable`. Reject cancelled slots/camps, stale or non-ELIGIBLE assessments, duplicate confirmed donor/slot and slot/camp over-capacity. Walk-ins have no camp. Check saved assessment rule version **and** confirmed-history snapshot under the donor lock. Only CONFIRMED appointments consume capacity.\n\nDonor cancellation: `POST /api/v1/appointments/{id}/cancel` with strict `{}`; own CONFIRMED appointment can be cancelled only before start. Already CANCELLED own appointment returns unchanged 200 even after start. Foreign/missing is identical 404; other invalid transitions are 422. Change status and invalidate pending/blocked/leased reminders atomically; provider failure rolls back status and capacity release. Delivered receipts cannot be unsent. No donor-cancellation notification is required. [BC-D006, D008]\n\n**NEW — camp-wide cancellation:** active non-superuser STAFF or ADMIN may cancel an ACTIVE camp; lock camp, all linked slots in UUID order and affected appointments in UUID order; reread state under lock. One transaction sets camp CANCELLED, changes every CONFIRMED linked appointment to CANCELLED (including started appointments still CONFIRMED), records cancellation time, invalidates each pending/blocked/leased reminder and creates one durable camp-cancellation notification intent per affected appointment. Keep slot and appointment records for history; slots need not change status because a cancelled camp cannot accept bookings. Each intent references only the donor/appointment and safe camp details needed for delivery; never include health data. If any write or provider call fails, roll back the whole transaction and retain previous capacity/status. A repeat on an already CANCELLED camp returns current representation without duplicate effects; no new appointments or cancellation intents. Delivery happens after commit through the single provider, never during locks. This settles a demo product policy, not proof that PR #44 currently supports a camp-cancellation event; Arya must publish/review that provider contract and tests before merge. For large camps an atomic synchronous operation may need later redesign; do not silently replace atomicity with partial batches.\n\nLock order where eligibility is checked: camp → slots sorted UUID → donor profile → appointments. Cancellation may omit the donor lock; never acquire it after an appointment lock. Inventory uses donor profile → event → units and never takes scheduling locks. Use PostgreSQL races for booking versus booking/edit/cancel and camp cancellation; test rollback and repeat cancellation. [BC-D012/014]",
+          "approved_by": "Codex assistant acting under Arya's explicitly delegated project-decision authority",
+          "approved_at": "2026-11-15",
+          "evidence": "docs/sprint2/shared-rules.md v1.1 and docs/sprint2/decision-provenance.md; approved scope and unresolved items are stated in the clause",
+          "applies_to": [
+            "Sprint 2 scoped policy"
+          ]
+        }
+      ],
+      "scoped_approval_note": "See shared-rules.md for approved scope and unresolved matters; parent status and runtime gates are unchanged."
     },
     {
       "id": "S2-06",
@@ -233,7 +291,20 @@
       "status": "PROPOSED",
       "approved_by": null,
       "approved_at": null,
-      "evidence": null
+      "evidence": null,
+      "proposal_note": "Historical proposal; superseded where it conflicts with scoped decisions in docs/sprint2/shared-rules.md. Parent status remains unchanged; implementation and policy gates are separate.",
+      "scoped_approvals": [
+        {
+          "clause": "**NEW — demo alert configuration:** require explicit non-negative integer per-group/component minimum and positive near-expiry-days values in versioned configuration; synthetic demo values are test data, not clinical thresholds. Missing or invalid config fails closed and emits no fabricated alert. Low stock means usable quantity strictly less than minimum; equality is not low. Near expiry means `0 < expiry_date - local_date <= configured_days`; exclude expired/non-AVAILABLE units. Evaluate using the same stock selector as the UI. Deduplicate one durable alert per condition and configured threshold episode; resolve the episode once the condition ceases, allowing a later new episode. Concurrent sweeps must not duplicate an episode.\n\n**NEW — delivery architecture:** Arya owns a single Django transactional outbox with retry and idempotency; a controlled manual management command dispatches to the Node mock. Node receipt is simulated and idempotent, never represented as real SMS/email. Configure synthetic recipients outside public APIs. The domain transaction creates durable intent; no network or `on_commit` replacement for persistence. A provider failure rolls back the triggering transaction where the domain contract requires an intent. Retry delivery failures without duplicating receipts; distinguish queued, leased/blocked, delivered and failed facts. Cancellation marks pending/blocked/leased reminders ineligible for any new dispatch, and the dispatcher rechecks live appointment/camp state before send. A send already in flight can race with cancellation and its accepted mock receipt cannot be recalled; record that limitation and do not claim cancellation guarantees prevention of an already-started send. Coordinate provider event types and exact state transitions before integration. [BC-D008, D009]",
+          "approved_by": "Codex assistant acting under Arya's explicitly delegated project-decision authority",
+          "approved_at": "2026-11-15",
+          "evidence": "docs/sprint2/shared-rules.md v1.1 and docs/sprint2/decision-provenance.md; approved scope and unresolved items are stated in the clause",
+          "applies_to": [
+            "Sprint 2 scoped policy"
+          ]
+        }
+      ],
+      "scoped_approval_note": "See shared-rules.md for approved scope and unresolved matters; parent status and runtime gates are unchanged."
     },
     {
       "id": "S2-07",
@@ -244,7 +315,20 @@
       "status": "PROPOSED",
       "approved_by": null,
       "approved_at": null,
-      "evidence": null
+      "evidence": null,
+      "proposal_note": "Historical proposal; superseded where it conflicts with scoped decisions in docs/sprint2/shared-rules.md. Parent status remains unchanged; implementation and policy gates are separate.",
+      "scoped_approvals": [
+        {
+          "clause": "**NEW — demo schedule:** for a booking made at least 25 hours before start, target `starts_at - 25 hours` so an hourly manual/scheduled dispatcher has a one-hour safety margin; run it at least hourly in the demonstrated operating window and record actual dispatch/receipt timestamps. A successful receipt at least 24 hours before start is required as evidence; an intent alone is not evidence of delivery. A booking with less than 25 hours lead, including exactly 24 hours, is tagged late/insufficient-lead and queued immediately as best effort, and is tracked separately; only an actual receipt at or before start minus 24 hours counts as meeting the timing criterion. At exactly 25 hours it is immediately due. Dispatch downtime, retries or manual operation can miss the target: report the miss honestly rather than claiming a guarantee. This choice does not change the adopted FR-020 criterion.\n\nCancellation or changed time invalidates old pending intents; a changed confirmed appointment requires a new revision and deduplicated intent. **NEW — response mapping:** expose the current reminder intent state using the provider vocabulary `PENDING`, `LEASED`, `BLOCKED`, `DELIVERED`, `FAILED`, `CANCELLED`; do not collapse states or fabricate a state when no real intent exists. On cancellation after delivery retain `DELIVERED` because the receipt is historical; appointment cancellation is represented separately by appointment status. A missing intent for a confirmed appointment is an integration error, not a fake PENDING value. Provider and OpenAPI must implement and test this mapping together. `DELIVERED` requires a receipt. Until provider mapping and timing contract are implemented and validated, omission remains an explicitly documented draft deviation, not merge-ready final behavior. [BC-D008–D009] Camp cancellation uses S2-05 and S2-06; donor cancellation does not send a separate cancellation message.",
+          "approved_by": "Codex assistant acting under Arya's explicitly delegated project-decision authority",
+          "approved_at": "2026-11-15",
+          "evidence": "docs/sprint2/shared-rules.md v1.1 and docs/sprint2/decision-provenance.md; approved scope and unresolved items are stated in the clause",
+          "applies_to": [
+            "Sprint 2 scoped policy"
+          ]
+        }
+      ],
+      "scoped_approval_note": "See shared-rules.md for approved scope and unresolved matters; parent status and runtime gates are unchanged."
     },
     {
       "id": "S2-08",
@@ -255,7 +339,20 @@
       "status": "PROPOSED",
       "approved_by": null,
       "approved_at": null,
-      "evidence": null
+      "evidence": null,
+      "proposal_note": "Historical proposal; superseded where it conflicts with scoped decisions in docs/sprint2/shared-rules.md. Parent status remains unchanged; implementation and policy gates are separate.",
+      "scoped_approvals": [
+        {
+          "clause": "**NEW — demo definitions:** date inputs are inclusive Asia/Kolkata local calendar dates; query aware UTC half-open `[start of from, start of day after to)`. Reject missing/reversed/invalid dates. Dashboard current stock uses S2-02 selector; pending means SUBMITTED; upcoming means ACTIVE camp with start ≥ now. Donations count confirmed CollectionEvent records once by event date, separately label component/unit counts; never count components as independent donations. Issues count IssueRecord entries by issue time. Wastage counts explicitly recorded discard events once by discard time; expiry alone is not a discard event. Where an event source or timestamp is not implemented, return an honest unavailable/error state rather than inferred data. Restrict reports/dashboard to active non-superuser ADMIN. Test empty/boundary/timezone/reconciliation cases; no health answers or donor-identifying data in aggregate reports.",
+          "approved_by": "Codex assistant acting under Arya's explicitly delegated project-decision authority",
+          "approved_at": "2026-11-15",
+          "evidence": "docs/sprint2/shared-rules.md v1.1 and docs/sprint2/decision-provenance.md; approved scope and unresolved items are stated in the clause",
+          "applies_to": [
+            "Sprint 2 scoped policy"
+          ]
+        }
+      ],
+      "scoped_approval_note": "See shared-rules.md for approved scope and unresolved matters; parent status and runtime gates are unchanged."
     },
     {
       "id": "S2-09",
@@ -266,7 +363,20 @@
       "status": "PROPOSED",
       "approved_by": null,
       "approved_at": null,
-      "evidence": null
+      "evidence": null,
+      "proposal_note": "Historical proposal; superseded where it conflicts with scoped decisions in docs/sprint2/shared-rules.md. Parent status remains unchanged; implementation and policy gates are separate.",
+      "scoped_approvals": [
+        {
+          "clause": "**NEW — reproducible demo protocol, not an SRS change:** 500 synthetic donors, 500 synthetic units, 5 concurrent clients, 60 seconds measured after a documented warm-up; record hardware, commit, database, dataset, endpoint mix, sample count, errors and p95. Treat p95 ≤2 seconds as the demo target, not an achieved measurement. Failed requests count in error reporting; don't discard slow responses. Record actual availability observation window, uptime, downtime and exclusions and compare against the adopted SRS target; no invented availability claim and no unobserved time counted as uptime. If the SRS target and this protocol differ, preserve both and surface the difference.",
+          "approved_by": "Codex assistant acting under Arya's explicitly delegated project-decision authority",
+          "approved_at": "2026-11-15",
+          "evidence": "docs/sprint2/shared-rules.md v1.1 and docs/sprint2/decision-provenance.md; approved scope and unresolved items are stated in the clause",
+          "applies_to": [
+            "Sprint 2 scoped policy"
+          ]
+        }
+      ],
+      "scoped_approval_note": "See shared-rules.md for approved scope and unresolved matters; parent status and runtime gates are unchanged."
     },
     {
       "id": "S2-10",
@@ -277,7 +387,20 @@
       "status": "PROPOSED",
       "approved_by": null,
       "approved_at": null,
-      "evidence": null
+      "evidence": null,
+      "proposal_note": "Historical proposal; superseded where it conflicts with scoped decisions in docs/sprint2/shared-rules.md. Parent status remains unchanged; implementation and policy gates are separate.",
+      "scoped_approvals": [
+        {
+          "clause": "**Approved [BC-D011–D016]:** a collection event records one confirmed donation; it contains WHOLE_BLOOD alone or a non-empty subset of RBC, PLASMA, PLATELETS, each at most once. Enforce `(event, component)` uniqueness in the database and cross-group exclusivity under event lock in either insertion order. Reusing an event for another compatible component is not a new donation: don't rerun the new-donation gap or advance history; validate actor, active donor, donor/date/group identity, quantity, expiry and component consistency.\n\n`CollectionEvent.donor`, `BloodUnit.collection_event`, and any retained direct `BloodUnit.donor` use PROTECT. Test the actual User → DonorProfile deletion chain; deactivate accounts with linked history rather than erase history. Existing screening CASCADE for accounts without collection history is not globally changed. Deactivation is not anonymisation; retention, corrections, voids and reversal are not settled.\n\nThe effective last donation is the later non-null self-reported date and latest confirmed event date; both absent skips only the gap check. Preserve original answers and historical results. Keep configured age, weight and gap rules unchanged; no new clinical values. Reject a new event before the latest confirmed date. Inventory is authoritative; it calls the donor-owned evaluator with an explicit confirmed date and updates the donor-owned latest-date projection atomically with new event + first unit. Donors never imports inventory. Record the projection snapshot on each new assessment; freshness fails on version mismatch OR snapshot mismatch. Readers, search and booking share this predicate. Reconcile/backfill before enabling, fail closed on projection mismatch, and bump to `demo-2026-11-history-v2` when the coordinated behavior lands. No silent rewrite of old assessments. Use the exact APIs and lock sequence in the central log's BC-D012/014 contracts.",
+          "approved_by": "Codex assistant acting under Arya's explicitly delegated project-decision authority",
+          "approved_at": "2026-11-15",
+          "evidence": "docs/sprint2/shared-rules.md v1.1 and docs/sprint2/decision-provenance.md; approved scope and unresolved items are stated in the clause",
+          "applies_to": [
+            "Sprint 2 scoped policy"
+          ]
+        }
+      ],
+      "scoped_approval_note": "See shared-rules.md for approved scope and unresolved matters; parent status and runtime gates are unchanged."
     }
   ]
 }
