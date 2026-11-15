@@ -7,6 +7,7 @@
 {# BB-17, served at /requests/new. The API (POST /api/v1/requests) decides access and validity. #}
 <h1>Submit a blood request</h1>
 <p>For hospital/requester accounts. Staff review each request; submitting does not reserve or issue blood.</p>
+<p><a href="/requests">View my blood requests</a></p>
 
 <ul id="request-errors" role="alert"></ul>
 
@@ -61,6 +62,7 @@
     <dt>Urgency</dt><dd id="out-request-urgency"></dd>
     <dt>Submitted at</dt><dd id="out-request-created-at"></dd>
   </dl>
+  <p><a id="out-request-link" href="/requests">View this request's status</a></p>
 </section>
 {% endblock %}
 

@@ -1,0 +1,8 @@
+.tracking-records { display: grid; gap: 1rem; margin: 1rem 0; }
+.tracking-record { background: white; border: 1px solid #cbd5e1; border-radius: .4rem; padding: 1rem; }
+.tracking-record h2 { margin-top: 0; font-size: 1.15rem; }
+.tracking-record p { overflow-wrap: anywhere; }
+.tracking-record a { display: inline-block; padding: .4rem 0; }
+#tracking-page button:disabled { opacity: .6; cursor: wait; }
+#tracking-page nav { align-items: center; }
+@media (min-width: 650px) { #tracking-page[data-view="list"] .tracking-records { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

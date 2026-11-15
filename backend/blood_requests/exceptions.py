@@ -16,3 +16,9 @@ class StorageUnavailable(APIException):
     status_code = 503
     default_code = 'storage_unavailable'
     default_detail = 'Request storage is temporarily unavailable. Nothing was changed.'
+
+
+class CloseInvalidTransition(APIException):
+    status_code = 422
+    default_code = 'invalid_transition'
+    default_detail = 'Only a fully issued request can be closed.'

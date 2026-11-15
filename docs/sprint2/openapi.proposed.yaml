@@ -649,11 +649,13 @@ paths:
               $ref: '#/components/schemas/RequestCreate'
     get:
       operationId: listBloodRequests
-      summary: STAFF queue by urgency rank then created_at/id; REQUESTER own requests
-        only; same deterministic sorting.
+      summary: STAFF review queue or REQUESTER owner-scoped tracking; role-specific status default.
       tags:
       - blood_requests
-      x-owner: Arnav Chaudhary
+      x-owner: Anumula Arya
+      x-story-owners:
+        BB-18: Arnav Chaudhary
+        BB-19: Anumula Arya
       x-stories:
       - BB-18
       - BB-19
@@ -661,24 +663,15 @@ paths:
       - FR-013
       - FR-014
       - SEC-002
-      x-contract-status: STAFF_SLICE_APPROVED_BC-D029
+      x-contract-status: APPROVED_BC-D035
       x-implementation-status: implemented
-      x-implementation-note: STAFF queue (BB-18) implemented. REQUESTER own list (BB-19,
-        Arya) NOT implemented; until then REQUESTER GET returns 403 forbidden (temporary).
       x-allowed-roles:
       - STAFF
       - REQUESTER
       x-decision-gates:
       - S2-03
-      description: 'BB-18 STAFF slice implemented (BC-D029-a/c/e). Active non-superuser STAFF
-        only; no clinical permission needed. Allowed query keys exactly status, page, page_size;
-        unknown, repeated, blank or invalid values return 400. Default status SUBMITTED. Order:
-        urgency rank CRITICAL, URGENT, ROUTINE, then created_at ascending, then id ascending,
-        applied in the database before count/pagination. A page beyond the last returns 200 with
-        results [] and the truthful filtered count. Results use the BB-17 BloodRequest DTO with
-        no review metadata. REQUESTER own-list is BB-19 (pending: 403 forbidden for now); other
-        roles, inactive users and every superuser get 403 forbidden; anonymous 403
-        authentication_required.'
+      description: >-
+        BC-D029/035: active non-superuser STAFF uses the unchanged staff queue, default status SUBMITTED. Active non-superuser REQUESTER sees ONLY own requests; omitted status means all own statuses. Explicit status filters the role-scoped rows. Allowed query keys status/page/page_size only; repeated, blank, unknown or invalid values400. Filter before count and pagination. Order CRITICAL,URGENT,ROUTINE then created_at/id ascending. Empty or beyond-last page200/results[]. Existing BloodRequest DTO only. Other roles and all superusers403. BB19 requester tracking is implemented; actual BB16 issue-to-tracking integration remains pending.
       security:
       - sessionCookie: []
       parameters:
@@ -698,7 +691,7 @@ paths:
           - CLOSED
       responses:
         '200':
-          description: Successful real implementation response; not currently implemented
+          description: Role-scoped RequestPage with truthful filtered count
           content:
             application/json:
               schema:
@@ -745,24 +738,21 @@ paths:
       summary: getBloodRequest
       tags:
       - blood_requests
-      x-owner: Arnav Chaudhary
+      x-owner: Anumula Arya
       x-stories:
       - BB-19
       x-requirements:
       - FR-017
       - SEC-002
-      x-contract-status: PROPOSED_APPROVAL_REQUIRED
-      x-implementation-status: not_implemented
+      x-contract-status: APPROVED_BC-D035
+      x-implementation-status: implemented
       x-allowed-roles:
       - STAFF
       - REQUESTER_OWNER
       x-decision-gates:
       - S2-03
-      description: 'Design contract only. No route is added by this pack. All superusers
-        denied under proposed operational matrix. Missing/expired sessions keep existing
-        DRF 403 authentication_required, not a new JWT/401 architecture. For owner-restricted
-        records use identical 404 for other owner and missing record. Dates/times
-        and validation follow conventions.md. '
+      description: >-
+        BC-D035: active non-superuser REQUESTER reads only own record; active non-superuser STAFF reads minimized operational detail. Owner-filtered requester lookup returns the same404 for missing and foreign UUID. No query fields. Response remains BloodRequest DTO with own saved rejection reason and fulfilled quantity; no clinical/contact/reviewer internals. Other roles/superusers403.
       security:
       - sessionCookie: []
       parameters:
@@ -773,7 +763,7 @@ paths:
         schema: *id001
       responses:
         '200':
-          description: Successful real implementation response; not currently implemented
+          description: Current authoritative BloodRequest DTO
           content:
             application/json:
               schema:
@@ -1011,24 +1001,20 @@ paths:
         state without mutation.
       tags:
       - blood_requests
-      x-owner: Arnav Chaudhary
+      x-owner: Anumula Arya
       x-stories:
       - BB-19
       x-requirements:
       - FR-017
       - SEC-002
-      x-contract-status: PROPOSED_APPROVAL_REQUIRED
-      x-implementation-status: not_implemented
+      x-contract-status: APPROVED_BC-D035
+      x-implementation-status: implemented
       x-allowed-roles:
       - REQUESTER_OWNER
       x-decision-gates:
       - S2-03
-      description: Design contract only. No route is added by this pack. All superusers
-        denied under proposed operational matrix. Missing/expired sessions keep existing
-        DRF 403 authentication_required, not a new JWT/401 architecture. For owner-restricted
-        records use identical 404 for other owner and missing record. Dates/times
-        and validation follow conventions.md. No request body; ISSUED→CLOSED only;
-        retries on CLOSED return same state without mutation.
+      description: >-
+        BC-D035: owning active non-superuser REQUESTER only, session+CSRF. No request body (including{}), no query fields; supplied data400. Atomic owner-scoped request row lock; only ISSUED with fulfilled_quantity equal to quantity changes to CLOSED. Already CLOSED returns same DTO200 without save/updated_at mutation. Other states/incomplete ISSUED422 invalid_transition. Foreign/missing404; wrong role403; expected storage failure503 after rollback. Only status/updated_at change; no stock/issue/notification write. Real BB16 lifecycle integration remains pending.
       security:
       - sessionCookie: []
       parameters:
@@ -1046,7 +1032,7 @@ paths:
           minLength: 1
       responses:
         '200':
-          description: Successful real implementation response; not currently implemented
+          description: Current authoritative BloodRequest DTO
           content:
             application/json:
               schema:

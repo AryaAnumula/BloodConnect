@@ -195,14 +195,15 @@ class AccessDenialTests(TestCase):
         self.assert_denied(client, None, 'csrf_failed')
         self.assert_denied(client, 'b' * 32, 'csrf_failed')
 
-    def test_requester_get_is_forbidden_until_bb19(self):
-        # BC-D029-e: requester own-list is BB-19 (Arya); until then requester GET is 403,
-        # and it must never expose the staff queue.
+    def test_requester_get_reads_only_own_records_under_bb19(self):
+        # BB19 replaces temporary403 with a private list, never the staff queue.
+        from blood_requests.tests.helpers import make_request
+        make_request(make_user('REQUESTER'))
         client, _ = signed_in(make_user('REQUESTER'))
         response = client.get(URL)
-        self.assertEqual(response.status_code, 403)
-        self.assertEqual(response.json()['error']['code'], 'forbidden')
-        self.assertNotIn('results', response.json())
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['count'], 0)
+        self.assertEqual(response.json()['results'], [])
 
     def test_other_methods_are_not_allowed(self):
         client, token = signed_in(make_user('REQUESTER'))
