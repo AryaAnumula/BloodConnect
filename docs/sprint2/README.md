@@ -1,5 +1,7 @@
 # BloodConnect Sprint 2 contract-first foundation
 
+Current scoped policy: [shared rules v1.1](shared-rules.md); [decision provenance](decision-provenance.md). Parent approval gates and implementation status remain separate.
+
 Reviewed main: `a46f81817d7ee26bff7b3ce6e423785a34f951c7` (PR42 merged). This is a **design/documentation foundation**, not implemented Sprint2 functionality. It intentionally adds no runtime routes/models/migrations/dependencies and does not change Sprint1 API/auth. No personal AI prompt files belong on main.
 
 ## Main-branch update needed before parallel development

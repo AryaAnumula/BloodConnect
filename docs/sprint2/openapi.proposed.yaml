@@ -1104,6 +1104,7 @@ paths:
       x-implementation-status: not_implemented
       x-allowed-roles:
       - ADMIN
+      - STAFF
       x-decision-gates:
       - S2-04
       - S2-05
@@ -1364,6 +1365,7 @@ paths:
       x-implementation-status: not_implemented
       x-allowed-roles:
       - ADMIN
+      - STAFF
       x-decision-gates:
       - S2-04
       - S2-05
