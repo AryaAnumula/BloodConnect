@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Submit a blood request — BloodConnect{% endblock %}
+
+{% block content %}
+{# BB-17, served at /requests/new. The API (POST /api/v1/requests) decides access and validity. #}
+<h1>Submit a blood request</h1>
+<p>For hospital/requester accounts. Staff review each request; submitting does not reserve or issue blood.</p>
+
+<ul id="request-errors" role="alert"></ul>
+
+<form id="request-form" novalidate>
+  <label for="request-blood-group">Blood group</label>
+  <select id="request-blood-group" name="blood_group" required aria-describedby="request-blood-group-error">
+    <option value="">Choose a blood group</option>
+    <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+    <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
+  </select>
+  <p id="request-blood-group-error" class="field-error"></p>
+
+  {# Approved components (BC-D017–BC-D022). The server policy is the authority. #}
+  <label for="request-component">Component</label>
+  <select id="request-component" name="component_type" required aria-describedby="request-component-error">
+    <option value="">Choose a component</option>
+    <option value="WHOLE_BLOOD">Whole blood</option>
+    <option value="RBC">Red blood cells (RBC)</option>
+    <option value="PLASMA">Plasma</option>
+    <option value="PLATELETS">Platelets</option>
+  </select>
+  <p id="request-component-error" class="field-error"></p>
+
+  <label for="request-quantity">Quantity (whole units, 1 to 100)</label>
+  <input id="request-quantity" name="quantity" type="number" required min="1" max="100" step="1"
+         inputmode="numeric" aria-describedby="request-quantity-help request-quantity-error">
+  <p id="request-quantity-help">One unit is one whole unit; units are not split. 100 is a college-demo limit,
+    not a clinical one. Submitting does not need blood to be in stock.</p>
+  <p id="request-quantity-error" class="field-error"></p>
+
+  <label for="request-urgency">Urgency</label>
+  <select id="request-urgency" name="urgency_level" required aria-describedby="request-urgency-error">
+    <option value="">Choose urgency</option>
+    <option value="CRITICAL">Critical</option>
+    <option value="URGENT">Urgent</option>
+    <option value="ROUTINE">Routine</option>
+  </select>
+  <p id="request-urgency-error" class="field-error"></p>
+
+  <button type="submit">Submit request</button>
+</form>
+
+<section id="request-confirmation" aria-labelledby="request-confirmation-heading" tabindex="-1" hidden>
+  <h2 id="request-confirmation-heading">Request submitted</h2>
+  <p>Keep this request ID to identify your request.</p>
+  <dl>
+    <dt>Request ID</dt><dd id="out-request-id"></dd>
+    <dt>Status</dt><dd id="out-request-status"></dd>
+    <dt>Blood group</dt><dd id="out-request-blood-group"></dd>
+    <dt>Component</dt><dd id="out-request-component"></dd>
+    <dt>Quantity</dt><dd id="out-request-quantity"></dd>
+    <dt>Urgency</dt><dd id="out-request-urgency"></dd>
+    <dt>Submitted at</dt><dd id="out-request-created-at"></dd>
+  </dl>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script type="module" src="{% static 'js/pages/request-create.js' %}"></script>
+{% endblock %}

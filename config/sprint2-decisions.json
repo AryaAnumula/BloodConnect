@@ -12,7 +12,28 @@
       "status": "PROPOSED",
       "approved_by": null,
       "approved_at": null,
-      "evidence": null
+      "evidence": null,
+      "scoped_approvals": [
+        {
+          "clause": "Components: WHOLE_BLOOD, RBC, PLASMA and PLATELETS. The three-component proposal is superseded; the shared OpenAPI component enum is corrected narrowly, consistent with the inventory vocabulary.",
+          "approved_by": "Codex assistant acting under Arya's explicitly delegated project-decision authority",
+          "approved_at": "2026-11-15",
+          "evidence": "BC-D017–BC-D022 in the central decision log; Arya's reply to Arnav (15 November 2026)",
+          "applies_to": [
+            "BB-17"
+          ]
+        },
+        {
+          "clause": "Request quantity: strict JSON integers 1–100 inclusive (college-demo limit, not clinical). Strings, booleans, fractions and out-of-range values are rejected with 400 validation_error; values are never clamped. Submission does not require sufficient current stock. Values recorded in versioned config/request-policy.json and aligned in serializer, form, OpenAPI and database constraint; missing or invalid runtime policy fails closed with 409 policy_unresolved.",
+          "approved_by": "Codex assistant acting under Arya's explicitly delegated project-decision authority",
+          "approved_at": "2026-11-15",
+          "evidence": "BC-D017–BC-D022 in the central decision log; Arya's reply to Arnav (15 November 2026)",
+          "applies_to": [
+            "BB-17"
+          ]
+        }
+      ],
+      "scoped_approval_note": "Scoped approval only. Shelf-life, unit/inventory and other S2-01 clauses remain PROPOSED."
     },
     {
       "id": "S2-02",
@@ -34,7 +55,46 @@
       "status": "PROPOSED",
       "approved_by": null,
       "approved_at": null,
-      "evidence": null
+      "evidence": null,
+      "scoped_approvals": [
+        {
+          "clause": "REQUESTER accounts are provisioned through a restricted local management command only; no public requester registration or role assignment.",
+          "approved_by": "Codex assistant acting under Arya's explicitly delegated project-decision authority",
+          "approved_at": "2026-11-15",
+          "evidence": "BC-D017–BC-D022 in the central decision log; Arya's reply to Arnav (15 November 2026)",
+          "applies_to": [
+            "BB-17"
+          ]
+        },
+        {
+          "clause": "New requests receive server-set status SUBMITTED, fulfilled_quantity 0 and rejection_reason null. The requester comes exclusively from the authenticated session. Accept exactly blood_group, component_type, quantity and urgency_level; reject client-supplied requester_id, status and other undeclared fields. Protect the requester relationship against deletion of request history; deactivate accounts instead.",
+          "approved_by": "Codex assistant acting under Arya's explicitly delegated project-decision authority",
+          "approved_at": "2026-11-15",
+          "evidence": "BC-D017–BC-D022 in the central decision log; Arya's reply to Arnav (15 November 2026)",
+          "applies_to": [
+            "BB-17"
+          ]
+        },
+        {
+          "clause": "Submission requires an authenticated, active, non-superuser REQUESTER. Every superuser is denied, even one whose role is REQUESTER. Clinical permissions do not grant submission access. Implemented by a small private helper in blood_requests/permissions.py used at the API and service boundaries, with existing session/CSRF/error/audit conventions and no duplicate audit recording.",
+          "approved_by": "Codex assistant acting under Arya's explicitly delegated project-decision authority",
+          "approved_at": "2026-11-15",
+          "evidence": "BC-D017–BC-D022 in the central decision log; Arya's reply to Arnav (15 November 2026)",
+          "applies_to": [
+            "BB-17"
+          ]
+        },
+        {
+          "clause": "Endpoint POST /api/v1/requests -> 201 BloodRequest, no trailing slash. Input-contract amendments: fourth component and maximum quantity. API urgency values CRITICAL, URGENT, ROUTINE; the older document's 'Emergency' corresponds to CRITICAL. Minimal app registration, API include, form route /requests/new and test-runner additions ship in the BB-17 PR.",
+          "approved_by": "Codex assistant acting under Arya's explicitly delegated project-decision authority",
+          "approved_at": "2026-11-15",
+          "evidence": "BC-D017–BC-D022 in the central decision log; Arya's reply to Arnav (15 November 2026)",
+          "applies_to": [
+            "BB-17"
+          ]
+        }
+      ],
+      "scoped_approval_note": "Scoped approval only. Urgency ordering/tie-break, review transitions, rejection, partial/complete issue and closure (BB-18/16/19) remain PROPOSED."
     },
     {
       "id": "S2-04",
