@@ -12,7 +12,7 @@ class CapacityConflict(APIException):
 
 class ScheduleConflict(APIException):
     status_code = 409
-    default_code = 'schedule_conflict'
+    default_code = 'slot_conflict'  # BC-D005
     default_detail = 'The change would leave a slot of this camp outside the camp times.'
 
 

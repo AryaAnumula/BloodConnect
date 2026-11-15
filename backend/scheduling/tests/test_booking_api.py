@@ -77,6 +77,18 @@ class SlotApiTests(TestCase):
         self.assertEqual(client.get(self.URL).status_code, 403)
 
 
+class CampTimeChangeApiTests(TestCase):
+    def test_time_change_that_strands_a_slot_is_409_slot_conflict(self):
+        camp = make_camp(capacity=5)
+        make_slot(camp, capacity=1, status='CANCELLED')  # cancelled slots count too (BC-D005)
+        client, token = client_for(make_user('STAFF'))
+        late_start = (camp.starts_at + timedelta(minutes=1)).isoformat()
+        r = send(client, token, 'patch', f'/api/v1/camps/{camp.id}', {'starts_at': late_start})
+        self.assertEqual((r.status_code, r.json()['error']['code']), (409, 'slot_conflict'))
+        camp.refresh_from_db()
+        self.assertEqual(Slot.objects.filter(camp=camp).count(), 1)
+
+
 class AppointmentApiTests(TestCase):
     URL = '/api/v1/appointments'
 

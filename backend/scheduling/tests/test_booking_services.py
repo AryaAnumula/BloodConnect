@@ -167,14 +167,29 @@ class UpdateCampWithBookingsTests(TestCase):
         self.assertEqual((empty_slot.starts_at, empty_slot.ends_at,
                           empty_camp.starts_at, empty_camp.ends_at), before)
 
-    def test_widening_the_camp_is_fine_and_cancelled_slots_are_ignored(self):
+    def test_cancelled_and_historical_slots_must_also_fit_the_camp_interval(self):
+        # BC-D005: every linked slot counts, whatever its status.
+        camp = make_camp(capacity=3)
+        cancelled = make_slot(camp, capacity=1, status='CANCELLED',
+                              starts_at=camp.starts_at, ends_at=camp.ends_at)
+        with self.assertRaises(ScheduleConflict) as caught:
+            update_camp(actor=self.admin, camp_id=camp.id,
+                        data={'ends_at': camp.ends_at - timedelta(hours=3)})
+        self.assertEqual((caught.exception.status_code, caught.exception.default_code),
+                         (409, 'slot_conflict'))
+        camp.refresh_from_db()
+        cancelled.refresh_from_db()
+        self.assertEqual(cancelled.ends_at, camp.ends_at)  # nothing moved, nothing deleted
+        self.assertEqual(Slot.objects.filter(camp=camp).count(), 1)
+
+    def test_widening_the_camp_is_always_fine(self):
         camp = make_camp(capacity=3)
         make_slot(camp, capacity=1)
         make_slot(camp, capacity=1, status='CANCELLED',
                   starts_at=camp.starts_at, ends_at=camp.ends_at)
         dto = update_camp(actor=self.admin, camp_id=camp.id, data={
             'starts_at': camp.starts_at - timedelta(hours=1),
-            'ends_at': camp.ends_at - timedelta(hours=3), 'capacity': 1})
+            'ends_at': camp.ends_at + timedelta(hours=3), 'capacity': 1})
         self.assertEqual(dto['capacity'], 1)
 
     def test_a_camp_without_slots_can_be_moved_and_shrunk(self):
