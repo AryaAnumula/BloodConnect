@@ -1,9 +1,7 @@
 """BB-21 booking. One atomic transaction; lock order camp -> slot -> donor profile -> bookings
 (walk-in: slot first).
 
-Not wired yet (INTEGRATION_PENDING): the reminder intent. notification_adapter.services.intents
-.enqueue_intent is not on main (Arya's PR #44), so no intent is written and nothing is claimed sent.
-PENDING DECISION (Arya): a slot that has already started is currently treated as unavailable.
+Reminder creation and cancellation are persisted in the same transaction as the appointment.
 """
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import IntegrityError, transaction
@@ -13,6 +11,7 @@ from rest_framework.exceptions import NotFound
 from core.errors import DecisionRequired
 from donors.eligibility_reader import read_saved_results
 from donors.models import DonorProfile
+from notification_adapter.services.reminders import schedule_appointment_reminder, cancel_appointment_reminders
 from scheduling.dto import appointment_dto
 from scheduling.exceptions import (AppointmentNotCancellable, CapacityConflict, DuplicateBooking, IneligibleDonor,
                                    PolicyUnresolved, SlotUnavailable)
@@ -67,7 +66,8 @@ def book_appointment(*, actor, slot_id, now=None) -> dict:
             raise SlotUnavailable()
         # Read the clock only now, after every lock is held (Arya, 14 Nov): a request that waited
         # on a lock must not succeed with a timestamp taken before the wait.
-        if slot.starts_at <= (now or timezone.now()):
+        booked_at = now or timezone.now()
+        if slot.starts_at <= booked_at:
             raise SlotUnavailable()
         _require_current_eligibility(profile)
         confirmed = Appointment.objects.filter(slot=slot, status=Appointment.Status.CONFIRMED)
@@ -85,6 +85,8 @@ def book_appointment(*, actor, slot_id, now=None) -> dict:
                 appointment = Appointment.objects.create(donor=profile, slot=slot)
         except IntegrityError:
             raise DuplicateBooking() from None
+        schedule_appointment_reminder(appointment_id=appointment.pk, donor_user_id=actor.pk,
+                                      starts_at=slot.starts_at, booked_at=booked_at)
     appointment.slot = slot
     return appointment_dto(appointment)
 
@@ -97,9 +99,7 @@ def cancel_appointment(*, actor, appointment_id, now=None) -> dict:
     kept (status CANCELLED + cancelled_at). Someone else's appointment is indistinguishable from
     an unknown id (404). Lock order camp -> slot -> appointment, same as booking.
 
-    INTEGRATION_PENDING: pending reminders must be invalidated in this same transaction. There is
-    no reminder provider on main (enqueue_intent is only in PR #44), so nothing is invalidated
-    yet and no reminder state is claimed.
+    Pending reminders are invalidated in the same transaction.
     """
     require_camp_role(user=actor, action='cancel_own')
     try:
@@ -123,5 +123,6 @@ def cancel_appointment(*, actor, appointment_id, now=None) -> dict:
             appointment.status = Appointment.Status.CANCELLED
             appointment.cancelled_at = current
             appointment.save(update_fields=['status', 'cancelled_at', 'updated_at'])
+            cancel_appointment_reminders(appointment_id=appointment.pk)
     appointment.slot = slot
     return appointment_dto(appointment)

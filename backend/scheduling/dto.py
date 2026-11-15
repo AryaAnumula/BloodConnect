@@ -27,8 +27,8 @@ def slot_dto(slot, confirmed_count: int) -> dict:
 
 
 def appointment_dto(appointment) -> dict:
-    # reminder_state (contract field) is intentionally omitted until the real notification
-    # provider (enqueue_intent) exists; a fake PENDING would claim a reminder is queued.
+    # The provider exists in this checkpoint, but response mapping is still pending. Never
+    # fabricate a reminder state or claim that an outbox intent was delivered.
     return {
         'id': str(appointment.id),
         'donor_id': str(appointment.donor_id),
