@@ -1,0 +1,9 @@
+{
+  "policy_version": "bb17-college-demo-v1",
+  "demo_only": true,
+  "component_types": ["WHOLE_BLOOD", "RBC", "PLASMA", "PLATELETS"],
+  "min_quantity": 1,
+  "max_quantity": 100,
+  "requires_current_stock": false,
+  "approval": "BC-D017-BC-D022, 15 November 2026: Codex assistant acting under Arya's delegated project-decision authority. College-demo limits, not clinical limits."
+}
