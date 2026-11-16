@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 
 from core.validation import StrictInputSerializer
 from reporting.permissions import IsReportingAdmin
+from reporting.dataset import response_headers
 from reporting.selectors.dashboard import dashboard_for_admin
 
 
@@ -18,6 +19,6 @@ class DashboardView(APIView):
     def get(self, request):
         query = EmptyQuery(data=request.query_params)
         query.is_valid(raise_exception=True)
-        return Response(dashboard_for_admin(actor=request.user, now=timezone.now()))
+        return Response(dashboard_for_admin(actor=request.user, now=timezone.now()), headers=response_headers())
 
 

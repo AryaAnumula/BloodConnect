@@ -8,6 +8,8 @@ from core.input_schemas import BLOOD_GROUPS
 from reporting.providers import dashboard as providers
 from reporting.selectors.common import nonnegative
 from reporting.exceptions import ReportingUnavailable
+from reporting.dataset import read_snapshot, source_mode
+from reporting.providers.synthetic_dashboard import dashboard_snapshot
 from reporting.permissions import require_admin
 
 
@@ -16,6 +18,8 @@ def dashboard_for_admin(*, actor, now) -> dict:
     require_admin(actor=actor)
     if not isinstance(now, datetime) or timezone.is_naive(now):
         raise ValidationError({'now': ['An aware server timestamp is required.']})
+    if source_mode() == 'synthetic':
+        return dashboard_snapshot(read_snapshot())
     try:
         page = providers.current_stock(actor=actor)
         if not isinstance(page, dict) or not isinstance(page.get('results'), list):

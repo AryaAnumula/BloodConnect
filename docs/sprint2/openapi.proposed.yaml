@@ -1803,6 +1803,7 @@ paths:
       description: BB-23 independent API/UI checkpoint; active non-superuser ADMIN.
         Missing real providers return503 reporting_unavailable; available empty sources
         may return zero. Full source reconciliation and acceptance remain pending.
+      x-synthetic-source: Explicit DEBUG-only canonical dataset mode under BC-D039; source header and read-only snapshot label; domain is default.
       security:
       - sessionCookie: []
       parameters: []

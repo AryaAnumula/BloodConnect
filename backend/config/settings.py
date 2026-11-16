@@ -47,3 +47,6 @@ SESSION_SAVE_EVERY_REQUEST = False
 CSRF_FAILURE_VIEW = 'core.errors.csrf_failure'
 REST_FRAMEWORK = {'DEFAULT_AUTHENTICATION_CLASSES': ['rest_framework.authentication.SessionAuthentication'], 'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.IsAuthenticated'], 'DEFAULT_RENDERER_CLASSES': ['rest_framework.renderers.JSONRenderer'], 'EXCEPTION_HANDLER': 'core.errors.exception_handler', 'DEFAULT_PARSER_CLASSES': ['rest_framework.parsers.JSONParser']}
 # No CORS wildcard: frontend and backend share an origin.
+# Explicit mini-project snapshot mode; source selection is never a missing-provider fallback.
+BLOODCONNECT_REPORT_SOURCE = os.environ.get('BLOODCONNECT_REPORT_SOURCE', 'domain')
+BLOODCONNECT_DEMO_DATASET_PATH = os.environ.get('BLOODCONNECT_DEMO_DATASET_PATH', '')
