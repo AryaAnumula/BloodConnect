@@ -57,6 +57,24 @@ class AlertTests(InventoryFixture, TestCase):
         self.assertFalse(InventoryAlert.objects.exists())
         self.assertFalse(OutboxIntent.objects.exists())
 
+    def test_recipient_must_be_active_non_superuser_staff(self):
+        from django.contrib.auth import get_user_model
+        recipient = get_user_model().objects.create_user(email='recipient@inventory.test',role='STAFF')
+        for role, active, superuser in [('ADMIN',True,False), ('DONOR',True,False),
+                ('REQUESTER',True,False), ('STAFF',False,False), ('STAFF',True,True)]:
+            with self.subTest(role=role,active=active,superuser=superuser):
+                recipient.role, recipient.is_active, recipient.is_superuser = role,active,superuser
+                recipient.save(update_fields=['role','is_active','is_superuser'])
+                with override_settings(INVENTORY_ALERT_RECIPIENT_ID=str(recipient.pk)):
+                    with self.assertRaises(InventoryUnavailable):
+                        evaluate_alerts(actor=self.staff,now=timezone.now())
+                self.assertFalse(InventoryAlert.objects.exists())
+                self.assertFalse(OutboxIntent.objects.exists())
+        recipient.role, recipient.is_active, recipient.is_superuser = 'STAFF',True,False
+        recipient.save(update_fields=['role','is_active','is_superuser'])
+        with override_settings(INVENTORY_ALERT_RECIPIENT_ID=str(recipient.pk)):
+            self.assertEqual(evaluate_alerts(actor=self.staff,now=timezone.now())['created'],32)
+
     def test_provider_failure_rolls_back_alerts_and_previous_intents(self):
         from notification_adapter.services.intents import enqueue_intent
         calls = 0

@@ -54,7 +54,7 @@ def alert_policy():
         recipient = UUID(str(getattr(settings, 'INVENTORY_ALERT_RECIPIENT_ID',
                                     os.environ.get('INVENTORY_ALERT_RECIPIENT_ID', ''))))
         user = get_user_model().objects.get(pk=recipient)
-        if not user.is_active or user.is_superuser or user.role not in ('STAFF', 'ADMIN'):
+        if not user.is_active or user.is_superuser or user.role != 'STAFF':
             raise ValueError('Invalid operational recipient')
         canonical = policy | {'recipient_id': str(recipient)}
         fingerprint = hashlib.sha256(json.dumps(canonical, sort_keys=True).encode()).hexdigest()
