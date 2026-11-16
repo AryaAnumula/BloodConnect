@@ -1,4 +1,6 @@
-# Sprint 2 decisions — no invented approvals
+# Sprint 2 decisions — historical proposals and scoped approvals
+
+**Current scoped decisions:** [shared rules v1.1](shared-rules.md) and [decision provenance](decision-provenance.md). The proposals below are historical and superseded wherever they conflict with the shared rules. Parent statuses and runtime gates remain unchanged; policy decisions do not establish implementation. Clinical/retention decisions explicitly remain unresolved.
 
 Existing Sprint 1 approvals remain in `docs/decisions.md`; its old bootstrap rows are history, not permission to undo later approvals. This new register adds S2-prefixed engineering decision labels, **not SRS requirement IDs**. All ten start PROPOSED. Arya records actual agreement in config/sprint2-decisions.json and this document before incompatible model/endpoint implementation. Approval is not supplied by the assistant.
 
@@ -8,7 +10,7 @@ PROPOSED: whole-unit demo: BloodUnit.quantity=1; request quantity positive integ
 
 Driver: Yashwitha + Arnav + Arya. Affects: BB-13/14/16/17/24.
 
-Status: **PROPOSED — approval required**. Record approved wording, approver/date, affected files and PR.
+Parent status: **PROPOSED**. See the scoped decisions in [shared rules](shared-rules.md); unrelated open matters and runtime gates remain separate.
 
 ## S2-02 — Expiry and stock states
 
@@ -16,7 +18,7 @@ PROPOSED: collection_date local Asia/Kolkata date, never future; expiry_date=col
 
 Driver: Yashwitha + Arnav. Affects: BB-13/14/15/16.
 
-Status: **PROPOSED — approval required**. Record approved wording, approver/date, affected files and PR.
+Parent status: **PROPOSED**. See the scoped decisions in [shared rules](shared-rules.md); unrelated open matters and runtime gates remain separate.
 
 ## S2-03 — Request lifecycle and provisioning
 
@@ -24,7 +26,7 @@ PROPOSED: REQUESTER accounts seeded/provisioned by restricted management command
 
 Driver: Arnav + Ankitha + Arya. Affects: BB-16/17/18/19.
 
-Status: **PROPOSED — approval required**. Record approved wording, approver/date, affected files and PR.
+Parent status: **PROPOSED**. See the scoped decisions in [shared rules](shared-rules.md); unrelated open matters and runtime gates remain separate.
 
 ## S2-04 — Operational staff and camp role matrix
 
@@ -32,7 +34,7 @@ PROPOSED: active non-superuser STAFF for inventory/request review/issue; ADMIN o
 
 Driver: Ankitha + Arya. Affects: BB-13–24.
 
-Status: **PROPOSED — approval required**. Record approved wording, approver/date, affected files and PR.
+Parent status: **PROPOSED**. See the scoped decisions in [shared rules](shared-rules.md); unrelated open matters and runtime gates remain separate.
 
 ## S2-05 — Slot and camp capacity/cancellation
 
@@ -40,7 +42,7 @@ PROPOSED: aware start/end times; positive slot capacity; optional camp FK permit
 
 Driver: Ankitha + Arnav + Arya. Affects: BB-20/21/22.
 
-Status: **PROPOSED — approval required**. Record approved wording, approver/date, affected files and PR.
+Parent status: **PROPOSED**. See the scoped decisions in [shared rules](shared-rules.md); unrelated open matters and runtime gates remain separate.
 
 ## S2-06 — Alerts and mocked delivery
 
@@ -48,7 +50,7 @@ PROPOSED: configured near-expiry days and per group/component minimums; equality
 
 Driver: Yashwitha + Arya + Arnav. Affects: BB-15/22.
 
-Status: **PROPOSED — approval required**. Record approved wording, approver/date, affected files and PR.
+Parent status: **PROPOSED**. See the scoped decisions in [shared rules](shared-rules.md); unrelated open matters and runtime gates remain separate.
 
 ## S2-07 — Reminder due time and late bookings
 
@@ -56,7 +58,7 @@ PROPOSED: due_at=slot.starts_at−24h; approved scheduler cadence must make norm
 
 Driver: Arya + Ankitha (scheduling owner). Affects: BB-22.
 
-Status: **PROPOSED — approval required**. Record approved wording, approver/date, affected files and PR.
+Parent status: **PROPOSED**. See the scoped decisions in [shared rules](shared-rules.md); unrelated open matters and runtime gates remain separate.
 
 ## S2-08 — Reporting sources and dates
 
@@ -64,7 +66,7 @@ PROPOSED: Asia/Kolkata local from/to dates inclusive, translated to UTC half-ope
 
 Driver: Arya + Yashwitha + Arnav. Affects: BB-23/24.
 
-Status: **PROPOSED — approval required**. Record approved wording, approver/date, affected files and PR.
+Parent status: **PROPOSED**. See the scoped decisions in [shared rules](shared-rules.md); unrelated open matters and runtime gates remain separate.
 
 ## S2-09 — Performance and availability evidence
 
@@ -72,7 +74,7 @@ PROPOSED for approval: synthetic college demo workload 500 donor profiles/500 un
 
 Driver: Arya + Yashwitha + Arnav. Affects: BB-03/09/14.
 
-Status: **PROPOSED — approval required**. Record approved wording, approver/date, affected files and PR.
+Parent status: **PROPOSED**. See the scoped decisions in [shared rules](shared-rules.md); unrelated open matters and runtime gates remain separate.
 
 ## S2-10 — Inventory collection and donor history
 
@@ -80,7 +82,7 @@ PROPOSED: recording a unit requires current ELIGIBLE donor, group derived/checke
 
 Driver: Yashwitha + Ankitha + Arya. Affects: BB-13/21/24.
 
-Status: **PROPOSED — approval required**. Record approved wording, approver/date, affected files and PR.
+Parent status: **PROPOSED**. See the scoped decisions in [shared rules](shared-rules.md); unrelated open matters and runtime gates remain separate.
 
 ## Scoped approval record — BB-17 request submission (S2-01 and S2-03, partial)
 
@@ -96,7 +98,7 @@ Approved clauses:
 6. **Shared files:** minimal app registration, API include, form route `/requests/new` and test-runner additions ship in the BB-17 PR. Existing routes and checks are preserved. No separate integration PR.
 7. **Endpoint:** `POST /api/v1/requests` → 201 `BloodRequest`, no trailing slash. Input-contract amendments are the fourth component and the maximum quantity. API urgency values stay CRITICAL, URGENT, ROUTINE; the older document's "Emergency" corresponds to CRITICAL.
 
-Still unresolved (not approved by this record): shelf-life values, urgency ordering and tie-break for review, review/issue/closure transitions and fulfilment semantics, notification policies, and the remainder of S2-01 and S2-03. No merge approval is implied.
+This historical BB-17 record did not approve shelf-life values or later request policies; subsequent scoped decisions are recorded in [shared rules](shared-rules.md). No merge approval is implied.
 
 ## Scoped approval record — BB-18 staff review (BC-D029)
 
