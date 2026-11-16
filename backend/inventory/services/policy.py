@@ -1,4 +1,4 @@
-﻿
+
 """Fail-closed inventory policy validation and expiry calculations."""
 
 from datetime import date, datetime, timedelta
