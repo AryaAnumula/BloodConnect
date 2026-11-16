@@ -2,6 +2,8 @@ from django.urls import include, path
 from django.views.generic import TemplateView
 from core.health import live, ready
 urlpatterns = [
+    path('api/v1/', include(('reporting.activity_urls', 'reporting-activity'))),
+    path('reports', TemplateView.as_view(template_name='activity_report.html'), name='activity-page'),
     path('api/v1/health/live', live, name='live'),
     path('api/v1/health/ready', ready, name='ready'),
     path('api/v1/auth/', include(('accounts.urls', 'accounts'))),

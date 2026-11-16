@@ -1865,16 +1865,14 @@ paths:
       - SEC-002
       - SEC-003
       x-contract-status: PROPOSED_APPROVAL_REQUIRED
-      x-implementation-status: not_implemented
+      x-implementation-status: checkpoint_real_source_integration_pending
       x-allowed-roles:
       - ADMIN
       x-decision-gates:
       - S2-08
-      description: 'Design contract only. No route is added by this pack. All superusers
-        denied under proposed operational matrix. Missing/expired sessions keep existing
-        DRF 403 authentication_required, not a new JWT/401 architecture. For owner-restricted
-        records use identical 404 for other owner and missing record. Dates/times
-        and validation follow conventions.md. '
+      description: BB-24 independent API/UI checkpoint; active non-superuser ADMIN.
+        Missing real providers return503 reporting_unavailable; available empty sources
+        may return zero. Full source reconciliation and acceptance remain pending.
       security:
       - sessionCookie: []
       parameters:
@@ -1892,7 +1890,7 @@ paths:
         schema: *id007
       responses:
         '200':
-          description: Successful real implementation response; not currently implemented
+          description: Success only with available validated real source providers
           content:
             application/json:
               schema:
@@ -1928,7 +1926,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '503':
-          description: Redacted storage/service unavailability
+          description: reporting_unavailable; source missing, failed or malformed; no fabricated totals
           content:
             application/json:
               schema:
