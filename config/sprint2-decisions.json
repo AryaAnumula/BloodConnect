@@ -245,6 +245,17 @@
           "applies_to": [
             "BB-19"
           ]
+        },
+        {
+          "id": "BC-D039",
+          "status": "APPROVED",
+          "clause": "BB19 dataset verification uses real submit/review/own tracking APIs for supported source rows; no fixture issue-linked status writes, competing model or fake BB16 completion. Existing lifecycle/schema/DTO/permissions remain unchanged. Keep separate PR53; only Arya merges.",
+          "approved_by": "Arya, explicit16November2026 dataset integration instruction",
+          "approved_at": "2026-11-16",
+          "evidence": "docs/sprint2/bb19-dataset-integration.md; central BC-D039",
+          "applies_to": [
+            "BB-19"
+          ]
         }
       ],
       "scoped_approval_note": "Scoped approvals only (BB-17 clauses and BB-18 BC-D029). Partial/complete issue, fulfilment and closure (BB-16/19) remain PROPOSED. BB19 BC-D035 scoped clauses also apply; unresolved parent policy remains PROPOSED."
