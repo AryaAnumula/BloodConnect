@@ -87,6 +87,8 @@ class IntakeTests(InventoryFixture, TestCase):
 
     def test_duplicate_identity_rolls_back_history_and_event(self):
         first = self.intake()
+        with self.assertRaises(UnitConflict):
+            self.intake()
         # A different donor can have a valid assessment but cannot reuse unit_code.
         BloodUnit.objects.filter(pk=first['id']).update(unit_code='taken')
         self.payload['unit_code'] = 'taken'
