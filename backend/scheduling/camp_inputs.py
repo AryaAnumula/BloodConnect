@@ -66,3 +66,8 @@ class CampListInputSerializer(StrictInputSerializer):
     status = StrictChoiceField(choices=('ACTIVE', 'CANCELLED'), required=False)
     page = QueryIntegerField(min_value=1, default=1)
     page_size = QueryIntegerField(min_value=1, max_value=100, default=20)
+
+
+class CampCancelInputSerializer(StrictInputSerializer):
+    """POST /camps/{id}/cancel: exactly one non-empty `reason` (1-240 after trimming)."""
+    reason = StrictStringField(min_length=1, max_length=240)

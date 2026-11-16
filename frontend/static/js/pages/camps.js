@@ -1,10 +1,11 @@
-// BB-20, Ankitha. Camp list, create and update page. Cancel is NOT built (waits on S2-05/S2-06).
+// BB-20, Ankitha. Camp list, create, update and cancel page (S2-05/S2-06).
 // Page access grants nothing: the server decides every action by role.
 import { apiFetch, showStatus } from '../api/client.js';
 
 const filterForm = document.querySelector('#camp-filter-form');
 const createForm = document.querySelector('#camp-create-form');
 const updateForm = document.querySelector('#camp-update-form');
+const cancelForm = document.querySelector('#camp-cancel-form');
 const resultsSection = document.querySelector('#camp-results');
 const resultsBody = document.querySelector('#camp-results-body');
 const resultCount = document.querySelector('#camp-count');
@@ -62,6 +63,19 @@ function renderResults(data) {
     addCell(row, camp.ends_at);
     addCell(row, camp.capacity);
     addCell(row, camp.status);
+    const actionCell = document.createElement('td');
+    if (camp.status === 'ACTIVE') {
+      const pick = document.createElement('button');
+      pick.type = 'button';
+      pick.textContent = 'Cancel this camp';
+      pick.addEventListener('click', () => {
+        cancelForm.elements.camp_id.value = camp.id;
+        cancelForm.elements.reason.focus();
+        showStatus('Enter a reason and confirm below to cancel this camp.');
+      });
+      actionCell.appendChild(pick);
+    }
+    row.appendChild(actionCell);
     resultsBody.appendChild(row);
   }
   currentPage = data.page;
@@ -227,6 +241,37 @@ updateForm.addEventListener('submit', async event => {
     return;
   }
   loadCamps(currentPage, appliedFilters, 'Camp updated.');
+});
+
+function readCancel() {
+  const formData = new FormData(cancelForm);
+  const campId = String(formData.get('camp_id') ?? '').trim();
+  if (!UUID_PATTERN.test(campId)) throw new Error('Enter a valid camp ID.');
+  const reason = String(formData.get('reason') ?? '').trim();
+  if (!reason) throw new Error('Reason is required.');
+  if (reason.length > 240) throw new Error('Reason must be 240 characters or fewer.');
+  if (formData.get('confirm') !== 'on') throw new Error('Confirm that you understand before cancelling.');
+  return { campId, body: { reason } };
+}
+
+cancelForm.addEventListener('submit', async event => {
+  event.preventDefault();
+  let request;
+  try {
+    request = readCancel();
+  } catch (error) {
+    showStatus(error.message);
+    return;
+  }
+  showStatus('Cancelling camp…');
+  try {
+    await apiFetch(`/api/v1/camps/${request.campId}/cancel`, { method: 'POST', body: request.body });
+  } catch (error) {
+    showStatus(describeError(error, 'Could not cancel the camp.'));
+    return;
+  }
+  cancelForm.reset();
+  loadCamps(currentPage, appliedFilters, 'Camp cancelled. Its confirmed appointments were cancelled and donors will be notified.');
 });
 
 previousButton.addEventListener('click', () => {

@@ -9,7 +9,9 @@
 <p class="notice">
   Anyone signed in as a donor, staff or admin account can view camps. Only active staff and
   admin accounts can create or change them; the server checks this on every request.
-  Cancelling a camp is not available yet. Donors do not see cancelled camps in the default list.
+  Cancelling a camp cancels every confirmed appointment in it and queues one notification per
+  donor (mock delivery only in this demo; a message already being sent cannot be recalled).
+  Donors never see cancelled camps, even if they filter for them.
 </p>
 
 <form id="camp-filter-form">
@@ -45,6 +47,7 @@
           <th scope="col">Ends (UTC)</th>
           <th scope="col">Capacity</th>
           <th scope="col">Status</th>
+          <th scope="col">Action</th>
         </tr>
       </thead>
       <tbody id="camp-results-body"></tbody>
@@ -99,6 +102,26 @@
   <input id="update-capacity" name="capacity" type="number" min="1" step="1">
 
   <button type="submit">Update camp</button>
+</form>
+
+<h2>Cancel a camp</h2>
+<p>
+  Staff and admin only. This cancels the camp and <strong>all</strong> its confirmed appointments
+  and cannot be undone. Repeating it on an already cancelled camp changes nothing.
+</p>
+<form id="camp-cancel-form">
+  <label for="cancel-id">Camp ID</label>
+  <input id="cancel-id" name="camp_id" type="text" required>
+
+  <label for="cancel-reason">Reason (1 to 240 characters)</label>
+  <input id="cancel-reason" name="reason" type="text" maxlength="240" required>
+
+  <label for="cancel-confirm">
+    <input id="cancel-confirm" name="confirm" type="checkbox" required>
+    I understand every confirmed appointment in this camp will be cancelled.
+  </label>
+
+  <button type="submit">Cancel camp</button>
 </form>
 {% endblock %}
 

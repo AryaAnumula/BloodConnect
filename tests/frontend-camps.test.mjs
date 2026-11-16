@@ -14,6 +14,7 @@ function element() {
     addEventListener(name, fn) { this.events[name] = fn; },
     appendChild(child) { this.children.push(child); },
     replaceChildren(...children) { this.children = children; },
+    reset() { this.values = {}; },
   };
 }
 
@@ -36,7 +37,7 @@ function setup() {
   form('#camp-filter-form').values = { status: '', page_size: '20' };
   return {
     nodes, calls, status,
-    filter: form('#camp-filter-form'), create: form('#camp-create-form'), update: form('#camp-update-form'),
+    filter: form('#camp-filter-form'), create: form('#camp-create-form'), update: form('#camp-update-form'), cancel: form('#camp-cancel-form'),
     submit(f) { return f.events.submit({ preventDefault() {} }); },
     click(id) { form(id).events.click(); },
   };
@@ -235,5 +236,44 @@ test('BB20 update errors: cancelled camp (422), unknown camp (404), denied (403)
     await pending;
     assert.match(h.status.value, pattern);
     assert.equal(h.calls.length, 2);
+  }
+});
+
+test('BB20 cancel posts the trimmed reason to the cancel endpoint, then reloads real server state', async () => {
+  const h = setup();
+  h.cancel.values = { camp_id: CAMP_ID, reason: '  Venue closed  ', confirm: 'on' };
+  const pending = h.submit(h.cancel);
+  const call = h.calls[1];
+  assert.equal(call.path, `/api/v1/camps/${CAMP_ID}/cancel`);
+  assert.equal(call.options.method, 'POST');
+  assert.deepEqual(plain(call.options.body), { reason: 'Venue closed' });
+  call.resolve(camp({ status: 'CANCELLED' }));
+  await tick();
+  assert.equal(h.calls.length, 3);
+  assert.ok(h.calls[2].path.startsWith('/api/v1/camps?'));
+  h.calls[2].resolve(page([camp({ status: 'CANCELLED' })]));
+  await pending;
+});
+
+test('BB20 invalid cancel input is blocked before any request', async () => {
+  const h = setup();
+  const good = { camp_id: CAMP_ID, reason: 'Closed', confirm: 'on' };
+  for (const values of [{ ...good, camp_id: 'nope' }, { ...good, reason: '   ' },
+                        { ...good, reason: 'x'.repeat(241) }, { ...good, confirm: null }]) {
+    h.cancel.values = values;
+    await h.submit(h.cancel);
+  }
+  assert.equal(h.calls.length, 1);  // only the initial list load
+});
+
+test('BB20 cancel shows safe messages for denied (403), unknown (404) and unavailable (503)', async () => {
+  for (const [status, text] of [[403, /Access denied/], [404, /not found/i], [503, /temporarily unavailable/i]]) {
+    const h = setup();
+    h.cancel.values = { camp_id: CAMP_ID, reason: 'Closed', confirm: 'on' };
+    const pending = h.submit(h.cancel);
+    h.calls[1].reject(err(status, 'raw server text'));
+    await pending;
+    assert.match(h.status.value, text);
+    assert.equal(h.calls.length, 2);  // no reload after a failure
   }
 });
