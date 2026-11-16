@@ -8,6 +8,7 @@ from inventory.serializers import StockQuery
 from inventory.selectors.units import unit_list, unit_detail
 from inventory.selectors.stock import stock_summary
 from inventory.services.dispositions import record_disposition
+from inventory.selectors.alerts import alert_list
 from inventory.services.units import record_unit
 
 
@@ -46,3 +47,10 @@ class StockView(APIView):
         values = dict(query.validated_data)
         page, size = values.pop('page'), values.pop('page_size')
         return Response(stock_summary(actor=request.user, filters=values, page=page, page_size=size))
+
+
+class AlertView(APIView):
+    permission_classes = [IsAuthenticated, IsInventoryStaff]
+
+    def get(self, request):
+        return Response(alert_list(actor=request.user, filters=request.query_params))

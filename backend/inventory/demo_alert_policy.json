@@ -1,0 +1,169 @@
+{
+  "version": "bloodconnect-demo-v1-alerts",
+  "minimums": [
+    {
+      "blood_group": "A+",
+      "component_type": "WHOLE_BLOOD",
+      "minimum": 2
+    },
+    {
+      "blood_group": "A+",
+      "component_type": "RBC",
+      "minimum": 2
+    },
+    {
+      "blood_group": "A+",
+      "component_type": "PLASMA",
+      "minimum": 2
+    },
+    {
+      "blood_group": "A+",
+      "component_type": "PLATELETS",
+      "minimum": 2
+    },
+    {
+      "blood_group": "A-",
+      "component_type": "WHOLE_BLOOD",
+      "minimum": 2
+    },
+    {
+      "blood_group": "A-",
+      "component_type": "RBC",
+      "minimum": 2
+    },
+    {
+      "blood_group": "A-",
+      "component_type": "PLASMA",
+      "minimum": 2
+    },
+    {
+      "blood_group": "A-",
+      "component_type": "PLATELETS",
+      "minimum": 2
+    },
+    {
+      "blood_group": "B+",
+      "component_type": "WHOLE_BLOOD",
+      "minimum": 2
+    },
+    {
+      "blood_group": "B+",
+      "component_type": "RBC",
+      "minimum": 2
+    },
+    {
+      "blood_group": "B+",
+      "component_type": "PLASMA",
+      "minimum": 2
+    },
+    {
+      "blood_group": "B+",
+      "component_type": "PLATELETS",
+      "minimum": 2
+    },
+    {
+      "blood_group": "B-",
+      "component_type": "WHOLE_BLOOD",
+      "minimum": 2
+    },
+    {
+      "blood_group": "B-",
+      "component_type": "RBC",
+      "minimum": 2
+    },
+    {
+      "blood_group": "B-",
+      "component_type": "PLASMA",
+      "minimum": 2
+    },
+    {
+      "blood_group": "B-",
+      "component_type": "PLATELETS",
+      "minimum": 2
+    },
+    {
+      "blood_group": "AB+",
+      "component_type": "WHOLE_BLOOD",
+      "minimum": 2
+    },
+    {
+      "blood_group": "AB+",
+      "component_type": "RBC",
+      "minimum": 2
+    },
+    {
+      "blood_group": "AB+",
+      "component_type": "PLASMA",
+      "minimum": 2
+    },
+    {
+      "blood_group": "AB+",
+      "component_type": "PLATELETS",
+      "minimum": 2
+    },
+    {
+      "blood_group": "AB-",
+      "component_type": "WHOLE_BLOOD",
+      "minimum": 2
+    },
+    {
+      "blood_group": "AB-",
+      "component_type": "RBC",
+      "minimum": 2
+    },
+    {
+      "blood_group": "AB-",
+      "component_type": "PLASMA",
+      "minimum": 2
+    },
+    {
+      "blood_group": "AB-",
+      "component_type": "PLATELETS",
+      "minimum": 2
+    },
+    {
+      "blood_group": "O+",
+      "component_type": "WHOLE_BLOOD",
+      "minimum": 2
+    },
+    {
+      "blood_group": "O+",
+      "component_type": "RBC",
+      "minimum": 2
+    },
+    {
+      "blood_group": "O+",
+      "component_type": "PLASMA",
+      "minimum": 2
+    },
+    {
+      "blood_group": "O+",
+      "component_type": "PLATELETS",
+      "minimum": 2
+    },
+    {
+      "blood_group": "O-",
+      "component_type": "WHOLE_BLOOD",
+      "minimum": 2
+    },
+    {
+      "blood_group": "O-",
+      "component_type": "RBC",
+      "minimum": 2
+    },
+    {
+      "blood_group": "O-",
+      "component_type": "PLASMA",
+      "minimum": 2
+    },
+    {
+      "blood_group": "O-",
+      "component_type": "PLATELETS",
+      "minimum": 2
+    }
+  ],
+  "near_expiry_days": 3,
+  "channels": [
+    "IN_APP"
+  ]
+}
