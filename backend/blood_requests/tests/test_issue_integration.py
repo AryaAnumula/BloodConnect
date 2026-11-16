@@ -249,6 +249,74 @@ class RealIssueTotalsTests(TestCase):
         self.assertEqual(issue_totals(start=self.start, end=self.end), {'issued_unit_count': 1})
 
 
+@unittest.skipUnless(find_spec('blood_requests.services.closure') and find_spec('blood_requests.api.tracking'),
+                     "BB-19 tracking/close source (Arya) is not on this base")
+class RealIssueToCloseHttpFlowTests(TestCase):
+    """Actual HTTP flow with BB-17/18/19 and real units: submit -> approve -> owner tracks ->
+    close denied while partial -> issue rest -> close -> replay unchanged; history preserved."""
+
+    def test_owner_tracks_partial_issue_then_closes_only_when_fully_issued(self):
+        from blood_requests.tests.helpers import URL, patch_json, post_json, review_url
+        owner, other, staff = make_user('REQUESTER'), make_user('REQUESTER'), make_user('STAFF')
+        units = UnitFactory(staff)
+        u1, u2 = units.unit(group='O-', component='PLATELETS'), units.unit(group='O-', component='PLATELETS')
+        owner_client, owner_token = signed_in(owner)
+        staff_client, staff_token = signed_in(staff)
+        other_client, _ = signed_in(other)
+
+        created = post_json(owner_client, {'blood_group': 'O-', 'component_type': 'PLATELETS', 'quantity': 2,
+                                           'urgency_level': 'URGENT'}, owner_token)
+        self.assertEqual(created.status_code, 201, created.content)
+        request_id = created.json()['id']
+        detail, close = f'{URL}/{request_id}', f'{URL}/{request_id}/close'
+        self.assertEqual(patch_json(staff_client, review_url(request_id), {'status': 'APPROVED'},
+                                    staff_token).status_code, 200)
+
+        def track():
+            listed = owner_client.get(URL).json()['results']
+            shown = owner_client.get(detail).json()
+            self.assertEqual([r['id'] for r in listed], [request_id])
+            return shown['status'], shown['fulfilled_quantity']
+
+        def owner_close():
+            return owner_client.post(close, data=b'', content_type='application/json',
+                                     HTTP_X_CSRFTOKEN=owner_token)
+
+        def issue(unit):
+            return staff_client.post(issue_url(request_id), json.dumps({'unit_ids': [str(unit.id)]}),
+                                     content_type='application/json', HTTP_X_CSRFTOKEN=staff_token)
+
+        self.assertEqual(track(), ('APPROVED', 0))
+        self.assertEqual(other_client.get(detail).status_code, 404)  # not the owner: hidden
+
+        self.assertEqual(issue(u1).status_code, 201)
+        self.assertEqual(track(), ('APPROVED', 1))
+        denied = owner_close()
+        self.assertEqual((denied.status_code, denied.json()['error']['code']), (422, 'invalid_transition'))
+        self.assertEqual(track(), ('APPROVED', 1))
+
+        self.assertEqual(issue(u2).status_code, 201)
+        self.assertEqual(track(), ('ISSUED', 2))
+        totals = request_issue_totals()
+        closed = owner_close()
+        self.assertEqual((closed.status_code, closed.json()['status']), (200, 'CLOSED'))
+        updated_at = BloodRequest.objects.get(pk=request_id).updated_at
+        replay = owner_close()
+        self.assertEqual((replay.status_code, replay.json()), (200, closed.json()))
+        self.assertEqual(BloodRequest.objects.get(pk=request_id).updated_at, updated_at)
+        self.assertEqual(track(), ('CLOSED', 2))
+
+        # History and stock are untouched by closing; no further issue is possible.
+        after = issue(units.unit(group='O-', component='PLATELETS'))
+        self.assertEqual((after.status_code, after.json()['error']['code']), (422, 'invalid_transition'))
+        self.assertEqual(sorted(IssueRecord.objects.filter(request_id=request_id).values_list('unit_id', flat=True)),
+                         sorted([u1.id, u2.id]))
+        self.assertEqual(request_issue_totals(), totals)
+        self.assertEqual(set(BloodUnit.objects.filter(pk__in=[u1.id, u2.id]).values_list('status', flat=True)),
+                         {'ISSUED'})
+        self.assertEqual(usable(staff, group='O-', component='PLATELETS'), 1)
+
+
 @unittest.skipUnless(connection.vendor == 'postgresql', 'needs PostgreSQL row locks; SQLite is not evidence')
 class RealSameUnitRaceTests(TransactionTestCase):
     """Separate connections: two staff issue the SAME real unit to two approved requests."""
