@@ -57,6 +57,33 @@ class DomainConsumerTests(InventoryFixture, TestCase):
                 dashboard_for_admin(actor=admin,now=timezone.now())
             self.assertEqual(client.get('/api/v1/dashboard').status_code,503)
 
+    def test_actual_dashboard_uses_real_stock_request_and_camp_sources(self):
+        if find_spec('scheduling.selectors.summary') is None:
+            self.skipTest('Actual camp summary provider is not composed; explicit503 coverage remains')
+        from blood_requests.services.submission import submit_request
+        from scheduling.services.camps import create_camp
+        from reporting.selectors.dashboard import dashboard_for_admin
+        admin = get_user_model().objects.create_user(email='admin-dashboard-real@inventory.test',role='ADMIN')
+        requester = get_user_model().objects.create_user(email='requester-dashboard-real@inventory.test',role='REQUESTER')
+        empty = dashboard_for_admin(actor=admin,now=timezone.now())
+        self.assertEqual((empty['stock'],empty['pending_requests'],empty['upcoming_camps']),([],0,0))
+        unit = self.make_unit('dashboard-all-real')
+        submit_request(actor=requester,data={'blood_group':'A+','component_type':'RBC',
+            'quantity':1,'urgency_level':'ROUTINE'})
+        start = timezone.now()+timedelta(days=3)
+        create_camp(actor=self.staff,data={'name':'Synthetic dashboard camp','location':'Synthetic hall',
+            'starts_at':start,'ends_at':start+timedelta(hours=2),'capacity':2})
+        live = dashboard_for_admin(actor=admin,now=timezone.now())
+        self.assertEqual((live['pending_requests'],live['upcoming_camps']),(1,1))
+        self.assertEqual(live['stock'],[{'blood_group':'A+','component_type':'RBC','available_quantity':1}])
+        record_disposition(actor=self.staff,unit_id=unit.pk,data={'status':'DISCARDED','reason':'Synthetic dashboard change'})
+        client = APIClient()
+        client.force_authenticate(admin)
+        response = client.get('/api/v1/dashboard')
+        self.assertEqual(response.status_code,200,response.data)
+        self.assertEqual((response.data['stock'],response.data['pending_requests'],
+            response.data['upcoming_camps']),([],1,1))
+
     def test_real_inventory_report_boundary(self):
         from reporting.providers.activity import collection_wastage
         unit = self.make_unit('report')
