@@ -1,5 +1,20 @@
 # Sprint 2 integration and conflict log
 
+## 16 November 2026 — Arya pending-work execution
+
+The amendments here supersede corresponding pending notes in the historical15 November snapshot below. Follow [BC-D036 and provider contracts](arya-work-2026-11-16.md) and [remaining team actions](team-next-actions-2026-11-16.md). This is still the shared **draft PR59**, not a merge or final acceptance of every included story.
+
+- PR45/46/51 now target testing. Their heads950b5fe/d3f2dd3/faf570e and draft status were preserved; no PR was merged or closed.
+- Commit94c7fa2 exposes real appointment reminder states, rolls booking/cancellation back if response projection fails, adds real PostgreSQL dispatcher race tests and checks actual Node receipts for23-hour late and exactly25-hour on-time bookings. This completes the public-state mapping previously pending for Ankitha.
+- Commitd3faf28 adds ADMIN dashboard/report APIs and pages, strict dates/roles, real request/camp counts and fail-closed inventory/issue provider boundaries. No competing inventory/issue models or fake zero counts were added. Full BB23/24 data integration remains pending the providers in BC-D036.
+- Manual PostgreSQL16 run [43828870029](https://github.com/AryaAnumula/BloodConnect/actions/runs/43828870029) passed exact sourced3faf281f2703636b4c71d7b7ea091dcdecf1f2b:655 Django tests in152.558s,118 Node/frontend tests,29 availability tests, zero skips, clean migrations/system/repository checks. Dispatcher races and real local mock receipt integration executed. Test doubles used in report orchestration do not prove actual inventory/issue integration.
+- Commite1bedee fixes the older microsecond receipt-fingerprint limitation with version2 and meaningful restart/conflict/offset/legacy-preservation tests. Unversioned/unknown records fail closed503 unchanged; no unverifiable migration or deletion. Local Node service tests:11 pass,1 POSIX-permissions check skipped on Windows; the manual Linux run is recorded separately below.
+- Final exact implementation heade1bedee169a57bc1bb29d8463ba744bca2559021 passed existing manual PostgreSQL16 run [43830110568](https://github.com/AryaAnumula/BloodConnect/actions/runs/43830110568):655 Django tests in157.744s,121 Node/frontend tests,29 availability tests, all zero skips. Clean migrations/system/repository checks. Local general and Sprint2 validators passed; the Windows general validator requires Python -X utf8 to avoid its inherited cp1252 default. Subsequent evidence-only documentation changes do not alter runtime/test/config source relative to this tested head.
+
+Remaining dependencies: Yashwitha's actual inventory models/migration, stock/allocation and collection/wastage selectors; Arnav's BB16 issue model/service/report selector; BB19 actual issue-to-tracking-to-close acceptance; Ankitha's camp-cancellation service and coordinated donor-history evaluator/projection initialization. Independent review and a permitted functional browser walkthrough remain separate acceptance work. No browser walkthrough or real carrier delivery is claimed.
+
+Only Arya merges. Main/testing source, collaborator access, Git identity and manual-only workflow configuration were not changed by this execution. Commits use Arya's existing author identity without assistant coauthor trailers. The original Arya checkout's10 ownership edits were preserved.
+
 ## 15 November 2026 — common draft and conflict decisions
 
 Scope: synthetic university demo. `testing` at `97614c8` remains the shared baseline. PR #59 (`team/arya-scheduling-provider-integration`) is the single **unmerged** integration draft. It is not the same tree as `testing` and is not final acceptance. Teammates whose work needs its changes may fetch and integrate the exact current #59 head into their own branches, preserve their changes, resolve conflicts with the affected owner, and test the result. Communicate the integrated commit to Arya; no new PR is needed unless he asks. Only Arya merges; no existing PR has been closed or merged by this reconciliation.
