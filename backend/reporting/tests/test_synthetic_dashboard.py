@@ -1,11 +1,13 @@
 from copy import deepcopy
 from pathlib import Path
 import tempfile
+from unittest.mock import patch
 
 from django.test import TestCase, override_settings
 
 from blood_requests.tests.helpers import make_user, signed_in
 from reporting.tests.synthetic_fixture import fixture, write_snapshot
+from reporting.exceptions import ReportingUnavailable
 
 
 @override_settings(DEBUG=True, BLOODCONNECT_REPORT_SOURCE='synthetic')
@@ -61,9 +63,31 @@ class SyntheticDashboardTests(TestCase):
             self.assertEqual(self.client.get('/api/v1/dashboard').status_code, 503)
 
     def test_source_mode_needs_explicit_local_setting_and_keeps_domain_failure(self):
-        for settings in ({'DEBUG': False}, {'BLOODCONNECT_REPORT_SOURCE': 'unknown'}, {'BLOODCONNECT_REPORT_SOURCE': 'domain'}):
+        for settings in ({'DEBUG': False}, {'BLOODCONNECT_REPORT_SOURCE': 'unknown'}):
             with override_settings(**settings):
                 self.assertEqual(self.client.get('/api/v1/dashboard').status_code, 503)
+
+    def test_domain_failure_is_explicit_and_never_falls_back_to_snapshot(self):
+        with override_settings(BLOODCONNECT_REPORT_SOURCE='domain'), patch(
+            'reporting.providers.dashboard.current_stock', side_effect=ReportingUnavailable,
+        ):
+            response = self.client.get('/api/v1/dashboard')
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(response.json()['error']['code'], 'reporting_unavailable')
+
+    def test_domain_mode_uses_its_providers_when_a_valid_snapshot_also_exists(self):
+        # Orchestration boundary test; real providers are reconciled in explicit acceptance.
+        with override_settings(BLOODCONNECT_REPORT_SOURCE='domain'), patch(
+            'reporting.providers.dashboard.current_stock', return_value={'count': 0, 'results': []},
+        ), patch('reporting.providers.dashboard.pending_requests', return_value=7), patch(
+            'reporting.providers.dashboard.upcoming_camps', return_value=4,
+        ):
+            response = self.client.get('/api/v1/dashboard')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['X-BloodConnect-Data-Source'], 'domain')
+        self.assertEqual(response['Cache-Control'], 'no-store')
+        self.assertEqual((response.json()['stock'], response.json()['pending_requests'],
+                          response.json()['upcoming_camps']), ([], 7, 4))
 
     def test_invalid_collection_links_status_and_dates_fail_closed(self):
         mutations = (

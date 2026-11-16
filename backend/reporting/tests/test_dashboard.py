@@ -78,7 +78,7 @@ class BB23Tests(TestCase):
 
     def test_missing_real_provider_is_redacted503(self):
         client, _ = signed_in(self.admin)
-        with patch('reporting.providers.import_module', side_effect=ModuleNotFoundError):
+        with patch('reporting.providers.import_module', side_effect=ModuleNotFoundError(name='inventory')):
             response = client.get('/api/v1/dashboard')
         self.assertEqual(response.status_code, 503)
         self.assertEqual(response.json()['error']['code'], 'reporting_unavailable')

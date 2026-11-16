@@ -12,9 +12,17 @@ from reporting.exceptions import ReportingUnavailable
 
 def invoke(module, function, **kwargs):
     try:
-        provider = getattr(import_module(module), function)
-    except (ImportError, AttributeError):
-        raise ReportingUnavailable() from None
+        source = import_module(module)
+    except ModuleNotFoundError as error:
+        # An absent agreed provider (or parent package) is an integration gap.
+        # A missing dependency INSIDE an installed provider is a programming error.
+        missing = error.name
+        if missing and (module == missing or module.startswith(missing + '.')):
+            raise ReportingUnavailable() from None
+        raise
+    provider = getattr(source, function, None)
+    if not callable(provider):
+        raise ReportingUnavailable()
     try:
         return provider(**kwargs)
     except (DatabaseError, DecisionRequired):
