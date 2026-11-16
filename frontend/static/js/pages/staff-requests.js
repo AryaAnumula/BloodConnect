@@ -96,7 +96,81 @@ function renderRow(item) {
   if (item?.status === 'SUBMITTED' && typeof item.id === 'string' && UUID.test(item.id)) {
     addDecisionControls(actions, item.id);
   }
+  if (item?.status === 'APPROVED' && typeof item.id === 'string' && UUID.test(item.id)
+      && Number.isInteger(item.quantity) && Number.isInteger(item.fulfilled_quantity)) {
+    addIssueControls(actions, item.id, item.quantity, item.fulfilled_quantity);
+  }
   return row;
+}
+
+// BB-16: issue matching units against an APPROVED request. The server (and inventory) decide
+// which units are usable; nothing is shown as issued until the server confirms it.
+const ISSUE_MESSAGES = {
+  inventory_unavailable: 'Issuing is not connected to inventory yet. Nothing was issued.',
+  unit_conflict: 'A selected unit has already been issued. Nothing was issued; the queue has been refreshed.',
+  oversupply: 'More units were selected than the request still needs. Nothing was issued.',
+  invalid_transition: 'This request can no longer be issued. The queue has been refreshed.',
+};
+
+function addIssueControls(container, id, quantity, fulfilled) {
+  const remaining = quantity - fulfilled;
+  const progress = document.createElement('p');
+  progress.textContent = `Issued ${fulfilled} of ${quantity} unit${quantity === 1 ? '' : 's'}.`;
+  const unitsLabel = document.createElement('label');
+  unitsLabel.htmlFor = `units-${id}`;
+  unitsLabel.textContent = `Unit IDs to issue (one per line, up to ${remaining})`;
+  const units = document.createElement('textarea');
+  units.id = `units-${id}`;
+  const issue = document.createElement('button');
+  issue.type = 'button';
+  issue.textContent = 'Issue units';
+  issue.setAttribute('aria-label', `Issue units for request ${id}`);
+  const error = document.createElement('p');
+  error.setAttribute('role', 'alert');
+  issue.addEventListener('click', () => {
+    const raw = typeof units.value === 'string' ? units.value : '';
+    const ids = raw.split(/[\s,]+/).filter(Boolean).map(value => value.toLowerCase());
+    if (!ids.length || ids.some(value => !UUID.test(value))) {
+      error.textContent = 'Enter one or more unit IDs (UUIDs), one per line.';
+      return;
+    }
+    if (new Set(ids).size !== ids.length) {
+      error.textContent = 'Each unit may be listed only once.';
+      return;
+    }
+    if (ids.length > remaining) {
+      error.textContent = `This request needs only ${remaining} more unit${remaining === 1 ? '' : 's'}.`;
+      return;
+    }
+    issueUnits(id, ids, { issue, error });
+  });
+  for (const node of [progress, unitsLabel, units, issue, error]) container.appendChild(node);
+}
+
+async function issueUnits(id, ids, controls) {
+  if (controls.issue.disabled) return;
+  controls.error.textContent = '';
+  controls.issue.disabled = true;
+  showStatus('Issuing units…');
+  try {
+    const saved = await apiFetch(`/api/v1/requests/${id}/issues`, { method: 'POST', body: { unit_ids: ids } });
+    const count = Array.isArray(saved?.issues) ? saved.issues.length : 0;
+    showStatus(`Issued ${count} unit${count === 1 ? '' : 's'}. Request ${id} is now ${label(saved?.request_status).toLowerCase()} (${text(saved?.fulfilled_quantity)} issued).`);
+    await load();
+  } catch (error) {
+    const code = typeof error?.code === 'string' ? error.code : '';
+    if (code === 'unit_conflict' || code === 'invalid_transition') {
+      showStatus(ISSUE_MESSAGES[code]);
+      await load();
+      return;
+    }
+    const fields = error?.fields && typeof error.fields === 'object' ? error.fields : {};
+    const messages = [fields.unit_ids, fields.non_field_errors].flat().filter(message => typeof message === 'string');
+    if (messages.length) controls.error.textContent = messages.join(' ');
+    showStatus(Object.hasOwn(ISSUE_MESSAGES, code) ? ISSUE_MESSAGES[code]
+      : failureMessage(error, messages.length ? 'Please correct the unit list.' : 'Could not issue the units. Nothing was issued.'));
+    controls.issue.disabled = false;
+  }
 }
 
 function addDecisionControls(container, id) {
