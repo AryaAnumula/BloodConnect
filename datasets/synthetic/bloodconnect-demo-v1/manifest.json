@@ -1,0 +1,23 @@
+{
+  "algorithm": "sha256",
+  "files": {
+    "csv/accounts.csv": "e7a87b7cc1f254c42b6088a425c774408d1abfcf80c03360d0be2edb4f048f2c",
+    "csv/appointments.csv": "861718787c61526c70db9bd9cf197d0c816c2e5812f5284006b2b37d618a2d87",
+    "csv/blood_requests.csv": "9b3fe532425a6603180ddb886b8c96bf688ca08256c27672738f1afad75c2f97",
+    "csv/blood_units.csv": "4db132d0e473028b2dcd52b792a5a3dc9635916a5eb419523586640c6db67efc",
+    "csv/camps.csv": "27f58fffc9f987c7c01a20fabba4563fd4adcd2823ec36132b17338ebc83edae",
+    "csv/collection_events.csv": "94db354ca0ff955a94ab8c70190dbf2bc13c5f3682fc7117d96db143fc8dedbd",
+    "csv/delivery_attempts.csv": "d62c67c8a705cf9e59f66addc303ce957c73066979808526b1ade3b03f3b1844",
+    "csv/donors.csv": "ef55f372810f921adc5f74b23bbd6064a1545482ea7ae8af440655372eea30eb",
+    "csv/inventory_dispositions.csv": "2ba3eb6ef611ef0c75cad22ccf23fae2ba110f77eef2e7c0a6511ff1b78ec1e0",
+    "csv/issue_records.csv": "1152ef0f8676a32855706e024c40a5c32eb0130bb4538ad875545c36491882f9",
+    "csv/mock_receipts.csv": "47bbc2aaea94b91e93da4c92d9d45c359e687e3c36bf637d19442f0b2de7e657",
+    "csv/outbox_intents.csv": "3d66c53138a8d0dd641a4b81c828f3cb81316a97095df18debc3b7bbcc76f21d",
+    "csv/screenings.csv": "64e7eecb994df76bb170839f43cf0084feedce2807f3703ca017b83e9011cef5",
+    "csv/slots.csv": "241fdf6122c4d32d09b475b36d333b897d7f50968b0c7b5ab08d3074189b473a",
+    "csv/stock_alerts.csv": "0122dd7280359ff06372c5aa749277a72b271f807836c33f237dce287de08e3d",
+    "data_dictionary.json": "472d4725b0889ab1384911e9bfb78e4f27fd61b5faf06bb722091f81b17b224c",
+    "dataset.json": "70e0b80e87b53e1ea7b264f1469d62b6a3539d35b45bbdcead99db7c4ba35268",
+    "expected.json": "d8fac169a1cd300a5fadd282d9ab26c70cd1aa70105fd640dd1f2aa15b4f4a51"
+  }
+}
