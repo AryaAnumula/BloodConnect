@@ -28,3 +28,7 @@ Exact shapes and validations are in openapi.proposed.yaml, conventions.md and de
 | GET `/api/v1/appointments` | BB-21 | Ankitha Lakshmmi Mohan | DONOR | none → 200 AppointmentPage | S2-05 |
 | GET `/api/v1/dashboard` | BB-23 | Anumula Arya | ADMIN | none → 200 Dashboard | S2-04, S2-08 |
 | GET `/api/v1/reports` | BB-24 | Anumula Arya | ADMIN | none → 200 ActivityReport | S2-08 |
+
+## Current16November2026 checkpoint
+
+GET dashboard/reports and their ADMIN pages are wired with real orchestration, strict dates and fail-closed503 until inventory/issue source providers exist. A503 does not mean a valid empty dataset; only a successful source query can return zero. Appointment responses now include actual projected reminder_state under BC-D036; missing intent is503. No fake200/201 or real-delivery claim. See arya-work-2026-11-16.md for scope.

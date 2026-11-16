@@ -315,6 +315,20 @@
           "applies_to": [
             "BB-19"
           ]
+        },
+        {
+          "id": "BC-D036",
+          "status": "APPROVED",
+          "clause": "Apply existing shared admin/reporting/date/source definitions. Appointment reminder projection uses actual provider state: PENDING/BLOCKED/LEASED -> public PENDING; DELIVERED/FAILED/CANCELLED retained; missing intent/policy/storage is redacted503, not invented success. Reporting orchestration/UI is fail-closed503 until real inventory/issue providers exist; no fabricated totals/model. Exact scope and interfaces in docs/sprint2/arya-work-2026-11-16.md. No whole-story acceptance or merge approval.",
+          "approved_by": "Arya's 2026-11-16 implementation instruction, applying existing delegated project decisions",
+          "approved_at": "2026-11-16",
+          "evidence": "docs/sprint2/arya-work-2026-11-16.md; central PROJECT_DECISION_LOG.md BC-D036",
+          "applies_to": [
+            "BB-22",
+            "BB-23",
+            "BB-24",
+            "shared reminder integration"
+          ]
         }
       ]
     },
@@ -371,6 +385,20 @@
           "applies_to": [
             "Sprint 2 scoped policy"
           ]
+        },
+        {
+          "id": "BC-D036",
+          "status": "APPROVED",
+          "clause": "Apply existing shared admin/reporting/date/source definitions. Appointment reminder projection uses actual provider state: PENDING/BLOCKED/LEASED -> public PENDING; DELIVERED/FAILED/CANCELLED retained; missing intent/policy/storage is redacted503, not invented success. Reporting orchestration/UI is fail-closed503 until real inventory/issue providers exist; no fabricated totals/model. Exact scope and interfaces in docs/sprint2/arya-work-2026-11-16.md. No whole-story acceptance or merge approval.",
+          "approved_by": "Arya's 2026-11-16 implementation instruction, applying existing delegated project decisions",
+          "approved_at": "2026-11-16",
+          "evidence": "docs/sprint2/arya-work-2026-11-16.md; central PROJECT_DECISION_LOG.md BC-D036",
+          "applies_to": [
+            "BB-22",
+            "BB-23",
+            "BB-24",
+            "shared reminder integration"
+          ]
         }
       ],
       "scoped_approval_note": "See shared-rules.md for approved scope and unresolved matters; parent status and runtime gates are unchanged.",
@@ -401,6 +429,20 @@
           "applies_to": [
             "Sprint 2 scoped policy"
           ]
+        },
+        {
+          "id": "BC-D036",
+          "status": "APPROVED",
+          "clause": "Apply existing shared admin/reporting/date/source definitions. Appointment reminder projection uses actual provider state: PENDING/BLOCKED/LEASED -> public PENDING; DELIVERED/FAILED/CANCELLED retained; missing intent/policy/storage is redacted503, not invented success. Reporting orchestration/UI is fail-closed503 until real inventory/issue providers exist; no fabricated totals/model. Exact scope and interfaces in docs/sprint2/arya-work-2026-11-16.md. No whole-story acceptance or merge approval.",
+          "approved_by": "Arya's 2026-11-16 implementation instruction, applying existing delegated project decisions",
+          "approved_at": "2026-11-16",
+          "evidence": "docs/sprint2/arya-work-2026-11-16.md; central PROJECT_DECISION_LOG.md BC-D036",
+          "applies_to": [
+            "BB-22",
+            "BB-23",
+            "BB-24",
+            "shared reminder integration"
+          ]
         }
       ],
       "scoped_approval_note": "See shared-rules.md for approved scope and unresolved matters; parent status and runtime gates are unchanged.",
@@ -430,6 +472,20 @@
           "evidence": "docs/sprint2/shared-rules.md v1.1 and docs/sprint2/decision-provenance.md; approved scope and unresolved items are stated in the clause",
           "applies_to": [
             "Sprint 2 scoped policy"
+          ]
+        },
+        {
+          "id": "BC-D036",
+          "status": "APPROVED",
+          "clause": "Apply existing shared admin/reporting/date/source definitions. Appointment reminder projection uses actual provider state: PENDING/BLOCKED/LEASED -> public PENDING; DELIVERED/FAILED/CANCELLED retained; missing intent/policy/storage is redacted503, not invented success. Reporting orchestration/UI is fail-closed503 until real inventory/issue providers exist; no fabricated totals/model. Exact scope and interfaces in docs/sprint2/arya-work-2026-11-16.md. No whole-story acceptance or merge approval.",
+          "approved_by": "Arya's 2026-11-16 implementation instruction, applying existing delegated project decisions",
+          "approved_at": "2026-11-16",
+          "evidence": "docs/sprint2/arya-work-2026-11-16.md; central PROJECT_DECISION_LOG.md BC-D036",
+          "applies_to": [
+            "BB-22",
+            "BB-23",
+            "BB-24",
+            "shared reminder integration"
           ]
         }
       ],

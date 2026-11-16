@@ -1,0 +1,18 @@
+{% extends 'base.html' %}{% load static %}
+{% block title %}Activity report — BloodConnect{% endblock %}
+{% block content %}
+<h1>Activity report</h1>
+<p><a href="/dashboard">Administrator dashboard</a></p>
+<p>Choose inclusive dates in Asia/Kolkata. Donations count collection events; units are listed separately.
+  Wastage counts recorded discards. Expiry alone is not counted as a discard.</p>
+<section id="reporting-page" data-view="activity">
+  <form id="reporting-form" novalidate>
+    <label for="reporting-from">From</label><input id="reporting-from" type="date" required>
+    <label for="reporting-to">To</label><input id="reporting-to" type="date" required>
+    <button type="submit" id="reporting-generate">Generate report</button>
+  </form>
+  <p id="reporting-summary" aria-live="polite"></p>
+  <div id="reporting-results"></div>
+</section>
+{% endblock %}
+{% block scripts %}<script type="module" src="{% static 'js/pages/reporting.js' %}"></script>{% endblock %}

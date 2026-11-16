@@ -107,3 +107,7 @@ Date: 15 November 2026. Authority: Codex assistant acting under Arya's explicitl
 ## BB19 scoped approval —15November2026
 
 BC-D023 assigns BB19 to Arya; BC-D035 adopts own-list/detail/close rules and minimal wiring. See [exact scoped clauses](bb19-decisions.md) and config/sprint2-decisions.json. Existing parent statuses remain PROPOSED for unresolved clauses. Manual workflow stays unchanged; only Arya merges. Real BB16 issue integration remains an acceptance dependency.
+
+## 16November2026 — BC-D036 implementation scope
+
+See [exact Arya work scope](arya-work-2026-11-16.md) and appended scoped approvals. Preserve earlier shared rules/parent proposals. Reminder mapping is actual-provider derived; reporting missing-source failure is503, not zeros. Tests and merge authority remain separate.

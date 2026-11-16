@@ -298,3 +298,9 @@ close_request(*, actor, request_id) -> dict  # BloodRequest
 ```
 
 Reads are owner-scoped for requester; STAFF may read minimized detail. Closure requires owning requester, owns atomic request lock, full ISSUED->CLOSED, CLOSED replay read-only. No new schema/notification/stock writer. Reuse DRF NotFound/PermissionDenied/ValidationError and feature CloseInvalidTransition/StorageUnavailable through the existing error handler. See [BB19 decisions](bb19-decisions.md).
+
+## 16November2026 implemented reporting/reminder boundaries
+
+`notification_adapter.services.reminders.public_reminder_state(*,appointment_id)` maps real PENDING/BLOCKED/LEASED to publicPENDING and preserves terminal states; missing raisesLookupError and scheduling maps to503. Raw reminder_state remains unchanged.
+
+`reporting.selectors.dashboard.dashboard_for_admin(*,actor,now)` and `reporting.selectors.activity.activity_report(*,actor,from_date,to_date)` are implemented. Missing inventory/issue public providers yieldReportingUnavailable503; no fake totals. Existing pending_request_count and upcoming_camp_count read real domain rows. Exact stock/event DTO requirements and real-source acceptance limitations are in [BC-D036](arya-work-2026-11-16.md). No new model/migration or domain->reporting import.

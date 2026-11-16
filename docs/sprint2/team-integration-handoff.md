@@ -25,3 +25,7 @@ This is the team-lead decision and integration reference for the synthetic colle
 ## Common completion criteria
 
 Use synthetic data. Keep PRs as drafts until code review, contract alignment, clean migrations, access/negative checks and real PostgreSQL concurrency evidence are complete. No automatic promotion or merge is authorized by this handoff. The notification provider currently offers simulated delivery only; its in-flight cancellation limitation remains explicit. Independent review of Arya-owned changes is still required.
+
+## 16November2026 amendment — current Arya work
+
+PR45/46/51 now target testing, heads preserved. Reminder-state mapping is implemented on this draft, superseding the pending-mapping instruction above; use the actual provider projection and503 for missing intents. Reporting API/UI and date/admin orchestration are implemented but real inventory/issue aggregates remain missing. Exact provider contracts, boundaries and remaining owner tasks are in [Arya work decisions](arya-work-2026-11-16.md). Do not create duplicate providers or silently reapply older drafts. Only Arya merges.
