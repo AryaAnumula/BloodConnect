@@ -18,13 +18,17 @@ from django.utils import timezone
 from inventory.models import InventoryAlert
 from inventory.services.alerts import evaluate_alerts
 from inventory.tests.test_intake import InventoryFixture
+from inventory.tests import test_stock_orm as stock_fixtures
 from notification_adapter.models import DeliveryAttempt, OutboxIntent
 from notification_adapter.services.dispatch import dispatch_due
 
 
 @skipUnless(shutil.which('node'), 'Node is required for actual private mock HTTP receipt evidence')
 class InventoryAlertHTTPTests(InventoryFixture, TransactionTestCase):
+    make_unit = stock_fixtures.StockORMTests.make_unit
+
     def test_alert_to_actual_node_receipt_and_failure_retry(self):
+        self.make_unit('near-expiry-http', component='PLATELETS')
         token = secrets.token_urlsafe(40)
         server = (Path(settings.BASE_DIR) / 'notification-service/src/server.mjs').as_uri()
         with socket.socket() as candidate:
@@ -56,7 +60,7 @@ class InventoryAlertHTTPTests(InventoryFixture, TransactionTestCase):
                 with override_settings(INVENTORY_ALERT_RECIPIENT_ID=str(self.staff.pk),
                                        NOTIFICATION_INTERNAL_TOKEN=token):
                     summary = evaluate_alerts(actor=self.staff, now=timezone.now())
-                    self.assertEqual(summary['created'], 32)
+                    self.assertEqual(summary['created'], 33)
                     with override_settings(NOTIFICATION_BASE_URL='http://127.0.0.1:1'):
                         failed = dispatch_due(now=timezone.now(), limit=1)
                     self.assertEqual(failed['retry'], 1)
@@ -65,10 +69,11 @@ class InventoryAlertHTTPTests(InventoryFixture, TransactionTestCase):
                     OutboxIntent.objects.update(next_attempt_at=timezone.now())
                     with override_settings(NOTIFICATION_BASE_URL=base):
                         delivered = dispatch_due(now=timezone.now(), limit=100)
-                    self.assertEqual(delivered['delivered'],32)
-                    self.assertEqual(OutboxIntent.objects.filter(state='DELIVERED').count(),32)
-                    self.assertEqual(DeliveryAttempt.objects.filter(outcome='DELIVERED',receipt_key__isnull=False).count(),32)
-                    self.assertEqual(len(list(Path(directory).glob('*.json'))),32)
+                    self.assertEqual(delivered['delivered'],33)
+                    self.assertEqual(OutboxIntent.objects.filter(state='DELIVERED').count(),33)
+                    self.assertEqual(DeliveryAttempt.objects.filter(outcome='DELIVERED',receipt_key__isnull=False).count(),33)
+                    self.assertEqual(len(list(Path(directory).glob('*.json'))),33)
+                    self.assertEqual(set(OutboxIntent.objects.filter(state='DELIVERED').values_list('event_type',flat=True)), {'LOW_STOCK','NEAR_EXPIRY'})
                     row = InventoryAlert.objects.select_related('intent').first()
                     receipt = json.loads((Path(directory)/(str(row.intent.event_id)+'.json')).read_text())
                     self.assertEqual(receipt['fingerprint_version'],2)
