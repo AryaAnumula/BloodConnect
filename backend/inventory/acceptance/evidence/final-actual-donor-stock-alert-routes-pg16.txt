@@ -1,0 +1,57 @@
+Creating test database for alias 'default' ('test_inventory_final_actual')...
+
+Found 9 test(s).
+Operations to perform:
+  Synchronize unmigrated apps: core, reporting, rest_framework, staticfiles
+  Apply all migrations: accounts, audit, auth, blood_requests, contenttypes, donors, inventory, notification_adapter, scheduling, sessions
+Synchronizing apps without migrations:
+  Creating tables...
+    Running deferred SQL...
+Running migrations:
+  Applying contenttypes.0001_initial... OK
+  Applying contenttypes.0002_remove_content_type_name... OK
+  Applying auth.0001_initial... OK
+  Applying auth.0002_alter_permission_name_max_length... OK
+  Applying auth.0003_alter_user_email_max_length... OK
+  Applying auth.0004_alter_user_username_opts... OK
+  Applying auth.0005_alter_user_last_login_null... OK
+  Applying auth.0006_require_contenttypes_0002... OK
+  Applying auth.0007_alter_validators_add_error_messages... OK
+  Applying auth.0008_alter_user_username_max_length... OK
+  Applying auth.0009_alter_user_last_name_max_length... OK
+  Applying auth.0010_alter_group_name_max_length... OK
+  Applying auth.0011_update_proxy_permissions... OK
+  Applying auth.0012_alter_user_first_name_max_length... OK
+  Applying accounts.0001_initial... OK
+  Applying audit.0001_initial... OK
+  Applying donors.0001_initial... OK
+  Applying donors.0002_eligibilityresult... OK
+  Applying donors.0003_donorprofile_last_confirmed_collection_date_and_more... OK
+  Applying inventory.0001_initial... OK
+  Applying blood_requests.0001_initial... OK
+  Applying blood_requests.0002_bloodrequest_reviewed_at_bloodrequest_reviewed_by... OK
+  Applying blood_requests.0003_issuerecord... OK
+  Applying notification_adapter.0001_initial... OK
+  Applying notification_adapter.0002_deliveryattempt_channel_deliveryattempt_receipt_key... OK
+  Applying inventory.0002_inventorydisposition... OK
+  Applying inventory.0003_alertsweep_inventoryalert... OK
+  Applying scheduling.0001_initial... OK
+  Applying scheduling.0002_slot_appointment_slot_scheduling__status_9f1ae0_idx_and_more... OK
+test_actual_route_permissions_csrf_and_strict_shape (inventory.acceptance.intake_routes.SharedIntakeRouteChecks.test_actual_route_permissions_csrf_and_strict_shape) ... ok
+test_shared_routes_resolve_to_real_intake_views (inventory.acceptance.intake_routes.SharedIntakeRouteChecks.test_shared_routes_resolve_to_real_intake_views) ... ok
+test_actual_fresh_intake_reconciles_stock_disposition_and_report (inventory.acceptance.stock_routes.SharedStockRouteChecks.test_actual_fresh_intake_reconciles_stock_disposition_and_report) ... ok
+test_actual_issue_route_changes_units_stock_and_report_once (inventory.acceptance.stock_routes.SharedStockRouteChecks.test_actual_issue_route_changes_units_stock_and_report_once) ... ok
+test_admin_real_route_read_access_does_not_grant_management (inventory.acceptance.stock_routes.SharedStockRouteChecks.test_admin_real_route_read_access_does_not_grant_management) ... ok
+test_stock_disposition_and_report_reconcile_on_real_routes (inventory.acceptance.stock_routes.SharedStockRouteChecks.test_stock_disposition_and_report_reconcile_on_real_routes) ... ok
+test_actual_alert_route_retains_deduplication_and_resolution_history (inventory.acceptance.alert_routes.SharedAlertRouteChecks.test_actual_alert_route_retains_deduplication_and_resolution_history) ... ok
+test_actual_fresh_intakes_resolve_low_stock_without_duplicate_intents (inventory.acceptance.alert_routes.SharedAlertRouteChecks.test_actual_fresh_intakes_resolve_low_stock_without_duplicate_intents) ... ok
+test_actual_shared_composition_preserves_reader_and_recipient_gates (inventory.acceptance.alert_routes.SharedAlertRouteChecks.test_actual_shared_composition_preserves_reader_and_recipient_gates) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 2.015s
+
+OK
+Destroying test database for alias 'default' ('test_inventory_final_actual')...
+
+  Applying sessions.0001_initial... OK
+System check identified no issues (0 silenced).
