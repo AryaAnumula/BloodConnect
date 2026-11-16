@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 
 from core.validation import ISODateField, StrictInputSerializer
 from reporting.permissions import IsReportingAdmin
+from reporting.dataset import response_headers
 from reporting.selectors.activity import activity_report
 
 
@@ -20,4 +21,4 @@ class ActivityReportView(APIView):
         query = ReportQuery(data=request.query_params)
         query.is_valid(raise_exception=True)
         return Response(activity_report(actor=request.user, from_date=query.validated_data['from'],
-                                        to_date=query.validated_data['to']))
+                                        to_date=query.validated_data['to']), headers=response_headers())

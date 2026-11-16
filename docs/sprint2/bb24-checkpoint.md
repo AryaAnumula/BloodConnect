@@ -13,3 +13,7 @@ Provider boundaries: inventory.selectors.reporting.collection_wastage_totals(*,s
 ## Independent verification
 
 Draft [PR61](https://github.com/AryaAnumula/BloodConnect/pull/61). Exact code5875a88bc8f5294bf353df070758843bbfbe5750 passed existing manual PostgreSQL16 [run43832274733](https://github.com/AryaAnumula/BloodConnect/actions/runs/43832274733):403 Django tests in73.438s,80 Node/frontend,29 availability, zero skips; clean migrations/system/repository checks. Local11 reporting Django/4 report frontend tests and both contract validators pass. Subsequent documentation-only changes preserve runtime/test/config source. Merge-base is exactly testing97614c8; BB23 implementation files are absent and common reporting infrastructure matches its separate PR byte-for-byte. This verifies independent startup/orchestration, not real collection/issue integration or browser acceptance.
+
+## Dataset integration amendment — BC-D039
+
+The canonical synthetic path now computes working API/page responses with an explicit local source setting. Default domain behavior remains unchanged. See [dataset integration](bb24-synthetic-integration.md) for commands/verification and actual scope.

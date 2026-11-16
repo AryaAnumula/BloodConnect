@@ -361,6 +361,17 @@
           "applies_to": [
             "BB-24"
           ]
+        },
+        {
+          "id": "BC-D039",
+          "status": "APPROVED",
+          "clause": "BB-24: user authorizes dataset integration. Explicit DEBUG-only read-only canonical source with verified manifest; compute all aggregates from same snapshot and label source. Default domain selectors stay separate and fail closed; no expected.json totals at runtime, no silent fallback/model duplication/whole-story or merge approval.",
+          "approved_by": "Arya, explicit16November2026 dataset integration instruction",
+          "approved_at": "2026-11-16",
+          "evidence": "docs/sprint2/bb24-synthetic-integration.md; central BC-D039",
+          "applies_to": [
+            "BB-24"
+          ]
         }
       ],
       "scoped_approval_note": "See shared-rules.md for approved scope and unresolved matters; parent status and runtime gates are unchanged."

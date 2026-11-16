@@ -7,6 +7,8 @@ from reporting.providers import activity as providers
 from reporting.exceptions import ReportingUnavailable
 from reporting.permissions import require_admin
 from reporting.selectors.common import nonnegative
+from reporting.dataset import read_snapshot, source_mode
+from reporting.providers.synthetic_activity import activity_snapshot
 
 DEFINITIONS_VERSION = 'college-demo-events-v1'
 
@@ -26,6 +28,10 @@ def report_interval(*, from_date, to_date):
 def activity_report(*, actor, from_date, to_date) -> dict:
     require_admin(actor=actor)
     start, end = report_interval(from_date=from_date, to_date=to_date)
+    if source_mode() == 'synthetic':
+        counts = activity_snapshot(read_snapshot(), start=start, end=end)
+        return {'from': from_date.isoformat(), 'to': to_date.isoformat(), 'timezone': 'Asia/Kolkata',
+                **counts, 'definitions_version': DEFINITIONS_VERSION}
     inventory = providers.collection_wastage(start=start, end=end)
     issues = providers.issue_totals(start=start, end=end)
     if not isinstance(inventory, dict) or not isinstance(issues, dict):
