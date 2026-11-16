@@ -22,4 +22,4 @@ All required data entities now exist in the shared dataset. The application stil
 
 The existing testing schema can immediately import515 ordinary accounts,500 profiles,100 uncollected-donor assessments and80 non-issued requests with seed_project_demo. Remaining full history is available as neutral JSON/CSV with target model ownership in the dictionary. Deferred rows do not become fabricated successful imports. No schema/migration, public route, permissions, clinical/default config or automatic CI is changed by the dataset work.
 
-Validation evidence for the actual published branch is recorded in its PR body and verification document. Generated mock history is not observed network-delivery evidence. Only Arya merges; authorship remains his existing Git identity.
+[Verification evidence](synthetic-dataset-verification.md): actual PostgreSQL16 regression399 Django/76 Node/29 availability plus14 dataset tests passed, with independent SQL/CSV/checksum reconciliation. Generated mock history is not observed network-delivery evidence. Only Arya merges; authorship remains his existing Git identity.
