@@ -4,7 +4,7 @@ from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
 from django.db import transaction
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.utils import timezone
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.test import APIClient
@@ -18,6 +18,7 @@ from inventory.services.dispositions import record_disposition
 from inventory.tests.test_intake import InventoryFixture
 
 
+@override_settings(ROOT_URLCONF='inventory.tests.urls')
 class StockORMTests(InventoryFixture, TestCase):
     def make_unit(self, code, component='RBC', status='AVAILABLE', expiry=None):
         # Historical model fixture, not evidence of new collection integration.
