@@ -1,0 +1,321 @@
+{
+  "dashboard": {
+    "as_of": "2026-11-16T06:30:00.000000+00:00",
+    "pending_requests": 40,
+    "stock": [
+      {
+        "available_quantity": 7,
+        "blood_group": "A+",
+        "component_type": "PLASMA"
+      },
+      {
+        "available_quantity": 9,
+        "blood_group": "A+",
+        "component_type": "PLATELETS"
+      },
+      {
+        "available_quantity": 12,
+        "blood_group": "A+",
+        "component_type": "RBC"
+      },
+      {
+        "available_quantity": 5,
+        "blood_group": "A+",
+        "component_type": "WHOLE_BLOOD"
+      },
+      {
+        "available_quantity": 15,
+        "blood_group": "A-",
+        "component_type": "PLASMA"
+      },
+      {
+        "available_quantity": 3,
+        "blood_group": "A-",
+        "component_type": "PLATELETS"
+      },
+      {
+        "available_quantity": 14,
+        "blood_group": "A-",
+        "component_type": "RBC"
+      },
+      {
+        "available_quantity": 5,
+        "blood_group": "A-",
+        "component_type": "WHOLE_BLOOD"
+      },
+      {
+        "available_quantity": 6,
+        "blood_group": "AB+",
+        "component_type": "PLASMA"
+      },
+      {
+        "available_quantity": 10,
+        "blood_group": "AB+",
+        "component_type": "PLATELETS"
+      },
+      {
+        "available_quantity": 13,
+        "blood_group": "AB+",
+        "component_type": "RBC"
+      },
+      {
+        "available_quantity": 7,
+        "blood_group": "AB+",
+        "component_type": "WHOLE_BLOOD"
+      },
+      {
+        "available_quantity": 14,
+        "blood_group": "AB-",
+        "component_type": "PLASMA"
+      },
+      {
+        "available_quantity": 3,
+        "blood_group": "AB-",
+        "component_type": "PLATELETS"
+      },
+      {
+        "available_quantity": 14,
+        "blood_group": "AB-",
+        "component_type": "RBC"
+      },
+      {
+        "available_quantity": 7,
+        "blood_group": "AB-",
+        "component_type": "WHOLE_BLOOD"
+      },
+      {
+        "available_quantity": 8,
+        "blood_group": "B+",
+        "component_type": "PLASMA"
+      },
+      {
+        "available_quantity": 11,
+        "blood_group": "B+",
+        "component_type": "PLATELETS"
+      },
+      {
+        "available_quantity": 15,
+        "blood_group": "B+",
+        "component_type": "RBC"
+      },
+      {
+        "available_quantity": 7,
+        "blood_group": "B+",
+        "component_type": "WHOLE_BLOOD"
+      },
+      {
+        "available_quantity": 17,
+        "blood_group": "B-",
+        "component_type": "PLASMA"
+      },
+      {
+        "available_quantity": 4,
+        "blood_group": "B-",
+        "component_type": "PLATELETS"
+      },
+      {
+        "available_quantity": 17,
+        "blood_group": "B-",
+        "component_type": "RBC"
+      },
+      {
+        "available_quantity": 7,
+        "blood_group": "B-",
+        "component_type": "WHOLE_BLOOD"
+      },
+      {
+        "available_quantity": 8,
+        "blood_group": "O+",
+        "component_type": "PLASMA"
+      },
+      {
+        "available_quantity": 11,
+        "blood_group": "O+",
+        "component_type": "PLATELETS"
+      },
+      {
+        "available_quantity": 15,
+        "blood_group": "O+",
+        "component_type": "RBC"
+      },
+      {
+        "available_quantity": 8,
+        "blood_group": "O+",
+        "component_type": "WHOLE_BLOOD"
+      },
+      {
+        "available_quantity": 16,
+        "blood_group": "O-",
+        "component_type": "PLASMA"
+      },
+      {
+        "available_quantity": 4,
+        "blood_group": "O-",
+        "component_type": "PLATELETS"
+      },
+      {
+        "available_quantity": 16,
+        "blood_group": "O-",
+        "component_type": "RBC"
+      },
+      {
+        "available_quantity": 8,
+        "blood_group": "O-",
+        "component_type": "WHOLE_BLOOD"
+      }
+    ],
+    "upcoming_camps": 6
+  },
+  "expired_available_unit_codes": [
+    "DEMO-UNIT-00253",
+    "DEMO-UNIT-00254",
+    "DEMO-UNIT-00255",
+    "DEMO-UNIT-00256",
+    "DEMO-UNIT-00257",
+    "DEMO-UNIT-00258",
+    "DEMO-UNIT-00259",
+    "DEMO-UNIT-00260",
+    "DEMO-UNIT-00285",
+    "DEMO-UNIT-00286",
+    "DEMO-UNIT-00287",
+    "DEMO-UNIT-00288",
+    "DEMO-UNIT-00289",
+    "DEMO-UNIT-00290",
+    "DEMO-UNIT-00291",
+    "DEMO-UNIT-00292",
+    "DEMO-UNIT-00317",
+    "DEMO-UNIT-00318",
+    "DEMO-UNIT-00319",
+    "DEMO-UNIT-00320",
+    "DEMO-UNIT-00323",
+    "DEMO-UNIT-00324",
+    "DEMO-UNIT-00325",
+    "DEMO-UNIT-00326",
+    "DEMO-UNIT-00327",
+    "DEMO-UNIT-00328",
+    "DEMO-UNIT-00329",
+    "DEMO-UNIT-00330",
+    "DEMO-UNIT-00331",
+    "DEMO-UNIT-00332",
+    "DEMO-UNIT-00333",
+    "DEMO-UNIT-00334",
+    "DEMO-UNIT-00335",
+    "DEMO-UNIT-00336",
+    "DEMO-UNIT-00337",
+    "DEMO-UNIT-00338",
+    "DEMO-UNIT-00339",
+    "DEMO-UNIT-00340",
+    "DEMO-UNIT-00349",
+    "DEMO-UNIT-00350",
+    "DEMO-UNIT-00351",
+    "DEMO-UNIT-00352",
+    "DEMO-UNIT-00353",
+    "DEMO-UNIT-00354",
+    "DEMO-UNIT-00355",
+    "DEMO-UNIT-00356",
+    "DEMO-UNIT-00357",
+    "DEMO-UNIT-00358",
+    "DEMO-UNIT-00359",
+    "DEMO-UNIT-00360",
+    "DEMO-UNIT-00363",
+    "DEMO-UNIT-00364",
+    "DEMO-UNIT-00365",
+    "DEMO-UNIT-00366",
+    "DEMO-UNIT-00367",
+    "DEMO-UNIT-00368",
+    "DEMO-UNIT-00369",
+    "DEMO-UNIT-00370",
+    "DEMO-UNIT-00371",
+    "DEMO-UNIT-00372",
+    "DEMO-UNIT-00373",
+    "DEMO-UNIT-00374",
+    "DEMO-UNIT-00375",
+    "DEMO-UNIT-00376",
+    "DEMO-UNIT-00377",
+    "DEMO-UNIT-00378",
+    "DEMO-UNIT-00379",
+    "DEMO-UNIT-00380",
+    "DEMO-UNIT-00383",
+    "DEMO-UNIT-00384",
+    "DEMO-UNIT-00385",
+    "DEMO-UNIT-00386",
+    "DEMO-UNIT-00387",
+    "DEMO-UNIT-00388"
+  ],
+  "low_stock_alert_count": 0,
+  "near_expiry_alert_count": 47,
+  "reports": [
+    {
+      "collected_unit_count": 0,
+      "definitions_version": "college-demo-events-v1",
+      "donation_event_count": 0,
+      "from": "2026-11-16",
+      "issued_unit_count": 59,
+      "name": "today",
+      "timezone": "Asia/Kolkata",
+      "to": "2026-11-16",
+      "wasted_unit_count": 0
+    },
+    {
+      "collected_unit_count": 96,
+      "definitions_version": "college-demo-events-v1",
+      "donation_event_count": 64,
+      "from": "2026-11-15",
+      "issued_unit_count": 1,
+      "name": "yesterday",
+      "timezone": "Asia/Kolkata",
+      "to": "2026-11-15",
+      "wasted_unit_count": 5
+    },
+    {
+      "collected_unit_count": 436,
+      "definitions_version": "college-demo-events-v1",
+      "donation_event_count": 336,
+      "from": "2026-10-18",
+      "issued_unit_count": 60,
+      "name": "last_30_days",
+      "timezone": "Asia/Kolkata",
+      "to": "2026-11-16",
+      "wasted_unit_count": 22
+    },
+    {
+      "collected_unit_count": 500,
+      "definitions_version": "college-demo-events-v1",
+      "donation_event_count": 400,
+      "from": "2025-07-04",
+      "issued_unit_count": 60,
+      "name": "full_history",
+      "timezone": "Asia/Kolkata",
+      "to": "2026-11-16",
+      "wasted_unit_count": 25
+    },
+    {
+      "collected_unit_count": 0,
+      "definitions_version": "college-demo-events-v1",
+      "donation_event_count": 0,
+      "from": "2024-02-20",
+      "issued_unit_count": 0,
+      "name": "empty_range",
+      "timezone": "Asia/Kolkata",
+      "to": "2024-02-21",
+      "wasted_unit_count": 0
+    }
+  ],
+  "row_counts": {
+    "accounts": 516,
+    "appointments": 56,
+    "blood_requests": 140,
+    "blood_units": 500,
+    "camps": 12,
+    "collection_events": 400,
+    "delivery_attempts": 15,
+    "donors": 500,
+    "inventory_dispositions": 50,
+    "issue_records": 60,
+    "mock_receipts": 12,
+    "outbox_intents": 68,
+    "screenings": 956,
+    "slots": 56,
+    "stock_alerts": 47
+  }
+}

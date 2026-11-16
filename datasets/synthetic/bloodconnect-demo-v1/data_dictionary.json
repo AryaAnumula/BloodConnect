@@ -1,0 +1,1028 @@
+{
+  "accounts": {
+    "fields": {
+      "demo_login": {
+        "nullable": false,
+        "types": [
+          "bool"
+        ]
+      },
+      "email": {
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "id": {
+        "format": "UUID",
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "is_active": {
+        "nullable": false,
+        "types": [
+          "bool"
+        ]
+      },
+      "is_staff": {
+        "nullable": false,
+        "types": [
+          "bool"
+        ]
+      },
+      "is_superuser": {
+        "nullable": false,
+        "types": [
+          "bool"
+        ]
+      },
+      "role": {
+        "nullable": false,
+        "observed_values": [
+          "ADMIN",
+          "DONOR",
+          "REQUESTER",
+          "STAFF"
+        ],
+        "types": [
+          "str"
+        ]
+      }
+    },
+    "owner": "All owners",
+    "target_model": "accounts.User"
+  },
+  "appointments": {
+    "fields": {
+      "cancelled_at": {
+        "format": "aware ISO8601 UTC timestamp",
+        "nullable": true,
+        "types": [
+          "str"
+        ]
+      },
+      "created_at": {
+        "format": "aware ISO8601 UTC timestamp",
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "donor_id": {
+        "format": "UUID",
+        "nullable": false,
+        "references": "donors.id",
+        "types": [
+          "str"
+        ]
+      },
+      "id": {
+        "format": "UUID",
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "slot_id": {
+        "format": "UUID",
+        "nullable": false,
+        "references": "slots.id",
+        "types": [
+          "str"
+        ]
+      },
+      "status": {
+        "nullable": false,
+        "observed_values": [
+          "CANCELLED",
+          "CONFIRMED"
+        ],
+        "types": [
+          "str"
+        ]
+      }
+    },
+    "owner": "Ankitha21",
+    "target_model": "scheduling.Appointment"
+  },
+  "blood_requests": {
+    "fields": {
+      "blood_group": {
+        "nullable": false,
+        "observed_values": [
+          "A+",
+          "A-",
+          "AB+",
+          "AB-",
+          "B+",
+          "B-",
+          "O+",
+          "O-"
+        ],
+        "types": [
+          "str"
+        ]
+      },
+      "component_type": {
+        "nullable": false,
+        "observed_values": [
+          "PLASMA",
+          "PLATELETS",
+          "RBC",
+          "WHOLE_BLOOD"
+        ],
+        "types": [
+          "str"
+        ]
+      },
+      "created_at": {
+        "format": "aware ISO8601 UTC timestamp",
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "fulfilled_quantity": {
+        "nullable": false,
+        "types": [
+          "int"
+        ]
+      },
+      "id": {
+        "format": "UUID",
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "quantity": {
+        "nullable": false,
+        "types": [
+          "int"
+        ]
+      },
+      "rejection_reason": {
+        "nullable": true,
+        "types": [
+          "str"
+        ]
+      },
+      "requester_id": {
+        "format": "UUID",
+        "nullable": false,
+        "references": "accounts.id",
+        "types": [
+          "str"
+        ]
+      },
+      "reviewed_at": {
+        "format": "aware ISO8601 UTC timestamp",
+        "nullable": true,
+        "types": [
+          "str"
+        ]
+      },
+      "reviewed_by_id": {
+        "format": "UUID",
+        "nullable": true,
+        "references": "accounts.id",
+        "types": [
+          "str"
+        ]
+      },
+      "status": {
+        "nullable": false,
+        "observed_values": [
+          "APPROVED",
+          "CLOSED",
+          "ISSUED",
+          "REJECTED",
+          "SUBMITTED"
+        ],
+        "types": [
+          "str"
+        ]
+      },
+      "updated_at": {
+        "format": "aware ISO8601 UTC timestamp",
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "urgency_level": {
+        "nullable": false,
+        "observed_values": [
+          "CRITICAL",
+          "ROUTINE",
+          "URGENT"
+        ],
+        "types": [
+          "str"
+        ]
+      }
+    },
+    "owner": "Arnav17/18; Arya19",
+    "target_model": "blood_requests.BloodRequest"
+  },
+  "blood_units": {
+    "fields": {
+      "blood_group": {
+        "nullable": false,
+        "observed_values": [
+          "A+",
+          "A-",
+          "AB+",
+          "AB-",
+          "B+",
+          "B-",
+          "O+",
+          "O-"
+        ],
+        "types": [
+          "str"
+        ]
+      },
+      "collection_date": {
+        "format": "ISO8601 calendar date",
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "collection_event_id": {
+        "format": "UUID",
+        "nullable": false,
+        "references": "collection_events.id",
+        "types": [
+          "str"
+        ]
+      },
+      "component_type": {
+        "nullable": false,
+        "observed_values": [
+          "PLASMA",
+          "PLATELETS",
+          "RBC",
+          "WHOLE_BLOOD"
+        ],
+        "types": [
+          "str"
+        ]
+      },
+      "donor_id": {
+        "format": "UUID",
+        "nullable": false,
+        "references": "donors.id",
+        "types": [
+          "str"
+        ]
+      },
+      "expiry_date": {
+        "format": "ISO8601 calendar date",
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "id": {
+        "format": "UUID",
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "quantity": {
+        "nullable": false,
+        "types": [
+          "int"
+        ]
+      },
+      "status": {
+        "nullable": false,
+        "observed_values": [
+          "AVAILABLE",
+          "DISCARDED",
+          "ISSUED",
+          "QUARANTINED"
+        ],
+        "types": [
+          "str"
+        ]
+      },
+      "unit_code": {
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      }
+    },
+    "owner": "Yashwitha",
+    "target_model": "inventory.BloodUnit"
+  },
+  "camps": {
+    "fields": {
+      "cancel_reason": {
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "cancelled_at": {
+        "format": "aware ISO8601 UTC timestamp",
+        "nullable": true,
+        "types": [
+          "str"
+        ]
+      },
+      "capacity": {
+        "nullable": false,
+        "types": [
+          "int"
+        ]
+      },
+      "ends_at": {
+        "format": "aware ISO8601 UTC timestamp",
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "id": {
+        "format": "UUID",
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "location": {
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "name": {
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "starts_at": {
+        "format": "aware ISO8601 UTC timestamp",
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "status": {
+        "nullable": false,
+        "observed_values": [
+          "ACTIVE",
+          "CANCELLED"
+        ],
+        "types": [
+          "str"
+        ]
+      }
+    },
+    "owner": "Ankitha20",
+    "target_model": "scheduling.Camp"
+  },
+  "collection_events": {
+    "fields": {
+      "collection_date": {
+        "format": "ISO8601 calendar date",
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "confirmed_at": {
+        "format": "aware ISO8601 UTC timestamp",
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "donor_id": {
+        "format": "UUID",
+        "nullable": false,
+        "references": "donors.id",
+        "types": [
+          "str"
+        ]
+      },
+      "id": {
+        "format": "UUID",
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "recorded_by_id": {
+        "format": "UUID",
+        "nullable": false,
+        "references": "accounts.id",
+        "types": [
+          "str"
+        ]
+      },
+      "status": {
+        "nullable": false,
+        "observed_values": [
+          "CONFIRMED"
+        ],
+        "types": [
+          "str"
+        ]
+      }
+    },
+    "owner": "Yashwitha",
+    "target_model": "inventory.CollectionEvent"
+  },
+  "delivery_attempts": {
+    "fields": {
+      "attempted_at": {
+        "format": "aware ISO8601 UTC timestamp",
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "channel": {
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "error_code": {
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "id": {
+        "format": "UUID",
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "intent_id": {
+        "format": "UUID",
+        "nullable": false,
+        "references": "outbox_intents.id",
+        "types": [
+          "str"
+        ]
+      },
+      "outcome": {
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "receipt_key": {
+        "nullable": true,
+        "types": [
+          "str"
+        ]
+      }
+    },
+    "owner": "Arya22",
+    "target_model": "notification_adapter.DeliveryAttempt"
+  },
+  "donors": {
+    "fields": {
+      "blood_group": {
+        "nullable": false,
+        "observed_values": [
+          "A+",
+          "A-",
+          "AB+",
+          "AB-",
+          "B+",
+          "B-",
+          "O+",
+          "O-"
+        ],
+        "types": [
+          "str"
+        ]
+      },
+      "full_name": {
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "id": {
+        "format": "UUID",
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "last_confirmed_collection_date": {
+        "format": "ISO8601 calendar date",
+        "nullable": true,
+        "types": [
+          "str"
+        ]
+      },
+      "location": {
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "mobile": {
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "user_id": {
+        "format": "UUID",
+        "nullable": false,
+        "references": "accounts.id",
+        "types": [
+          "str"
+        ]
+      }
+    },
+    "owner": "Ankitha",
+    "target_model": "donors.DonorProfile"
+  },
+  "inventory_dispositions": {
+    "fields": {
+      "actor_id": {
+        "format": "UUID",
+        "nullable": false,
+        "references": "accounts.id",
+        "types": [
+          "str"
+        ]
+      },
+      "from_status": {
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "id": {
+        "format": "UUID",
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "occurred_at": {
+        "format": "aware ISO8601 UTC timestamp",
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "reason_code": {
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "to_status": {
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "unit_id": {
+        "format": "UUID",
+        "nullable": false,
+        "references": "blood_units.id",
+        "types": [
+          "str"
+        ]
+      }
+    },
+    "owner": "Yashwitha",
+    "target_model": "inventory.InventoryDisposition"
+  },
+  "issue_records": {
+    "fields": {
+      "id": {
+        "format": "UUID",
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "issued_at": {
+        "format": "aware ISO8601 UTC timestamp",
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "issued_by_id": {
+        "format": "UUID",
+        "nullable": false,
+        "references": "accounts.id",
+        "types": [
+          "str"
+        ]
+      },
+      "quantity": {
+        "nullable": false,
+        "types": [
+          "int"
+        ]
+      },
+      "request_id": {
+        "format": "UUID",
+        "nullable": false,
+        "references": "blood_requests.id",
+        "types": [
+          "str"
+        ]
+      },
+      "unit_id": {
+        "format": "UUID",
+        "nullable": false,
+        "references": "blood_units.id",
+        "types": [
+          "str"
+        ]
+      }
+    },
+    "owner": "Arnav16",
+    "target_model": "blood_requests.IssueRecord"
+  },
+  "mock_receipts": {
+    "fields": {
+      "channel": {
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "event_id": {
+        "format": "UUID",
+        "nullable": false,
+        "references": "outbox_intents.event_id",
+        "types": [
+          "str"
+        ]
+      },
+      "evidence_kind": {
+        "nullable": false,
+        "observed_values": [
+          "SYNTHETIC_FIXTURE_NOT_OBSERVED_DELIVERY"
+        ],
+        "types": [
+          "str"
+        ]
+      },
+      "id": {
+        "format": "UUID",
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "recorded_at": {
+        "format": "aware ISO8601 UTC timestamp",
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "status": {
+        "nullable": false,
+        "observed_values": [
+          "DELIVERED"
+        ],
+        "types": [
+          "str"
+        ]
+      }
+    },
+    "owner": "Arya22",
+    "target_model": "Fictional reference history only; never seed Node receipt store"
+  },
+  "outbox_intents": {
+    "fields": {
+      "channels": {
+        "nullable": false,
+        "types": [
+          "list"
+        ]
+      },
+      "delivered_at": {
+        "format": "aware ISO8601 UTC timestamp",
+        "nullable": true,
+        "types": [
+          "str"
+        ]
+      },
+      "due_at": {
+        "format": "aware ISO8601 UTC timestamp",
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "event_id": {
+        "format": "UUID",
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "event_type": {
+        "nullable": false,
+        "observed_values": [
+          "APPOINTMENT_CANCELLED",
+          "APPOINTMENT_REMINDER"
+        ],
+        "types": [
+          "str"
+        ]
+      },
+      "evidence_kind": {
+        "nullable": false,
+        "observed_values": [
+          "SYNTHETIC_FIXTURE_NOT_OBSERVED_DELIVERY"
+        ],
+        "types": [
+          "str"
+        ]
+      },
+      "id": {
+        "format": "UUID",
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "late_booking": {
+        "nullable": false,
+        "types": [
+          "bool"
+        ]
+      },
+      "recipient_id": {
+        "format": "UUID",
+        "nullable": false,
+        "references": "accounts.id",
+        "types": [
+          "str"
+        ]
+      },
+      "record_id": {
+        "format": "UUID",
+        "nullable": false,
+        "references": "appointments.id",
+        "types": [
+          "str"
+        ]
+      },
+      "scheduled_for": {
+        "format": "aware ISO8601 UTC timestamp",
+        "nullable": true,
+        "types": [
+          "str"
+        ]
+      },
+      "state": {
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "timing_met": {
+        "nullable": true,
+        "types": [
+          "bool"
+        ]
+      }
+    },
+    "owner": "Arya22",
+    "target_model": "notification_adapter.OutboxIntent"
+  },
+  "screenings": {
+    "fields": {
+      "age_years": {
+        "nullable": false,
+        "types": [
+          "int"
+        ]
+      },
+      "assessed_at": {
+        "format": "aware ISO8601 UTC timestamp",
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "confirmed_collection_date": {
+        "format": "ISO8601 calendar date",
+        "nullable": true,
+        "types": [
+          "str"
+        ]
+      },
+      "donor_id": {
+        "format": "UUID",
+        "nullable": false,
+        "references": "donors.id",
+        "types": [
+          "str"
+        ]
+      },
+      "id": {
+        "format": "UUID",
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "last_donation_date": {
+        "format": "ISO8601 calendar date",
+        "nullable": true,
+        "types": [
+          "str"
+        ]
+      },
+      "reason_codes": {
+        "nullable": false,
+        "types": [
+          "list"
+        ]
+      },
+      "reasons": {
+        "nullable": false,
+        "types": [
+          "list"
+        ]
+      },
+      "rules_version": {
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "status": {
+        "nullable": false,
+        "observed_values": [
+          "ELIGIBLE",
+          "INELIGIBLE"
+        ],
+        "types": [
+          "str"
+        ]
+      },
+      "weight_kg": {
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      }
+    },
+    "owner": "Ankitha",
+    "target_model": "donors.EligibilityResult"
+  },
+  "slots": {
+    "fields": {
+      "camp_id": {
+        "format": "UUID",
+        "nullable": true,
+        "references": "camps.id",
+        "types": [
+          "str"
+        ]
+      },
+      "capacity": {
+        "nullable": false,
+        "types": [
+          "int"
+        ]
+      },
+      "ends_at": {
+        "format": "aware ISO8601 UTC timestamp",
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "id": {
+        "format": "UUID",
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "location": {
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "starts_at": {
+        "format": "aware ISO8601 UTC timestamp",
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "status": {
+        "nullable": false,
+        "observed_values": [
+          "CANCELLED",
+          "OPEN"
+        ],
+        "types": [
+          "str"
+        ]
+      }
+    },
+    "owner": "Ankitha21",
+    "target_model": "scheduling.Slot"
+  },
+  "stock_alerts": {
+    "fields": {
+      "alert_type": {
+        "nullable": false,
+        "observed_values": [
+          "NEAR_EXPIRY"
+        ],
+        "types": [
+          "str"
+        ]
+      },
+      "blood_group": {
+        "nullable": false,
+        "observed_values": [
+          "A+",
+          "A-",
+          "AB+",
+          "AB-",
+          "B+",
+          "B-",
+          "O+",
+          "O-"
+        ],
+        "types": [
+          "str"
+        ]
+      },
+      "component_type": {
+        "nullable": false,
+        "observed_values": [
+          "PLATELETS"
+        ],
+        "types": [
+          "str"
+        ]
+      },
+      "id": {
+        "format": "UUID",
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "observed_at": {
+        "format": "aware ISO8601 UTC timestamp",
+        "nullable": false,
+        "types": [
+          "str"
+        ]
+      },
+      "quantity": {
+        "nullable": false,
+        "types": [
+          "int"
+        ]
+      },
+      "threshold": {
+        "nullable": false,
+        "types": [
+          "int"
+        ]
+      },
+      "unit_id": {
+        "format": "UUID",
+        "nullable": false,
+        "references": "blood_units.id",
+        "types": [
+          "str"
+        ]
+      }
+    },
+    "owner": "Yashwitha15",
+    "target_model": "inventory.StockAlert source-condition examples"
+  }
+}
