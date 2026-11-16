@@ -288,3 +288,103 @@ class CancelCampRaceTests(TransactionTestCase):
         self.assertEqual(set(error_codes(results)) - {'invalid_transition'}, set())
         self.assertEqual(Camp.objects.get(pk=self.camp.pk).status, 'CANCELLED')
         self.assertEqual(Appointment.objects.filter(status='CONFIRMED').count(), 0)
+
+
+class CancelCampDeliveryTests(TransactionTestCase):
+    """Camp cancellation through the REAL private Node mock transport (mock delivery only).
+
+    Skipped, and so NOT evidence, where Node is unavailable. A send already in flight when a
+    camp is cancelled cannot be recalled; these tests cover the before-send and after-send cases.
+    """
+
+    TOKEN = 'synthetic-test-only-dedicated-internal-token'
+
+    def setUp(self):
+        import shutil
+        if not shutil.which('node'):
+            self.skipTest('Node unavailable; real mock delivery after camp cancel NOT verified')
+        self.staff = make_user('STAFF')
+        self.now = timezone.now()
+        self.camp = make_camp(starts_at=self.now + timedelta(hours=23),
+                              ends_at=self.now + timedelta(hours=30), capacity=10)
+        self.slot = make_slot(self.camp, capacity=5, starts_at=self.now + timedelta(hours=23),
+                              ends_at=self.now + timedelta(hours=24))
+        self.donors = [make_donor()[0] for _ in range(2)]
+        for donor in self.donors:  # lead < 25h, so each reminder is queued as due immediately
+            book_appointment(actor=donor, slot_id=self.slot.pk, now=self.now)
+
+    def run_dispatch(self, directory, port):
+        from django.test import override_settings
+        from notification_adapter.services.dispatch import dispatch_due
+        with override_settings(NOTIFICATION_BASE_URL='http://127.0.0.1:' + port,
+                               NOTIFICATION_INTERNAL_TOKEN=self.TOKEN):
+            return dispatch_due(now=timezone.now())
+
+    def with_node(self, scenario):
+        import os
+        import queue
+        import subprocess
+        import tempfile
+        import threading
+        from django.conf import settings
+        script = ("import {createNotificationServer} from './notification-service/src/server.mjs';"
+                  "const s=createNotificationServer({token:process.env.BB22_TEST_TOKEN,"
+                  "mockEnabled:true,receiptDir:process.env.BB22_TEST_DIR});"
+                  "s.listen(0,'127.0.0.1',()=>console.log(s.address().port));")
+        with tempfile.TemporaryDirectory() as directory:
+            process = subprocess.Popen(
+                ['node', '--input-type=module', '-e', script], cwd=settings.BASE_DIR,
+                env={**os.environ, 'BB22_TEST_TOKEN': self.TOKEN, 'BB22_TEST_DIR': directory},
+                stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True,
+                creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+            try:
+                output = queue.Queue()
+                threading.Thread(target=lambda: output.put(process.stdout.readline()),
+                                 daemon=True).start()
+                port = output.get(timeout=15).strip()
+                self.assertTrue(port.isdigit())
+                scenario(directory, port)
+            finally:
+                process.terminate()
+                try:
+                    process.wait(timeout=10)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    process.wait(timeout=10)
+                process.stdout.close()
+
+    def test_cancelled_before_dispatch_sends_only_cancellation_receipts(self):
+        from pathlib import Path
+
+        def scenario(directory, port):
+            cancel_camp(actor=self.staff, camp_id=self.camp.pk, reason='Venue closed')
+            result = self.run_dispatch(directory, port)
+            self.assertEqual(result['delivered'], 2, result)  # one cancellation per donor
+            reminders = OutboxIntent.objects.filter(event_type='APPOINTMENT_REMINDER')
+            self.assertEqual(set(reminders.values_list('state', flat=True)), {'CANCELLED'})
+            self.assertFalse(reminders.filter(delivery_attempts__outcome='DELIVERED').exists())
+            cancellations = OutboxIntent.objects.filter(event_type='APPOINTMENT_CANCELLED')
+            self.assertEqual(set(cancellations.values_list('state', flat=True)), {'DELIVERED'})
+            self.assertEqual(len(list(Path(directory).glob('*.json'))), 2)  # no reminder receipt
+
+        self.with_node(scenario)
+
+    def test_reminder_already_delivered_stays_historical_and_replay_adds_nothing(self):
+        from pathlib import Path
+
+        def scenario(directory, port):
+            first = self.run_dispatch(directory, port)  # reminders are due now and deliver
+            self.assertEqual(first['delivered'], 2, first)
+            cancel_camp(actor=self.staff, camp_id=self.camp.pk, reason='Venue closed')
+            second = self.run_dispatch(directory, port)
+            self.assertEqual(second['delivered'], 2, second)
+            reminders = OutboxIntent.objects.filter(event_type='APPOINTMENT_REMINDER')
+            self.assertEqual(set(reminders.values_list('state', flat=True)), {'DELIVERED'})
+            self.assertEqual(len(list(Path(directory).glob('*.json'))), 4)
+            # Replaying the cancel and dispatching again creates no new receipt.
+            cancel_camp(actor=self.staff, camp_id=self.camp.pk, reason='Different reason')
+            third = self.run_dispatch(directory, port)
+            self.assertEqual(third['delivered'], 0, third)
+            self.assertEqual(len(list(Path(directory).glob('*.json'))), 4)
+
+        self.with_node(scenario)
