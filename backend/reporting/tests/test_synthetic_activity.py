@@ -1,11 +1,13 @@
 from copy import deepcopy
 from pathlib import Path
 import tempfile
+from unittest.mock import patch
 
 from django.test import TestCase, override_settings
 
 from blood_requests.tests.helpers import make_user, signed_in
 from reporting.tests.synthetic_fixture import fixture, write_snapshot
+from reporting.exceptions import ReportingUnavailable
 
 
 @override_settings(DEBUG=True, BLOODCONNECT_REPORT_SOURCE='synthetic')
@@ -70,11 +72,34 @@ class SyntheticActivityTests(TestCase):
         self.assertEqual(self.client.get('/api/v1/reports?from=bad&to=bad').status_code, 400)
 
     def test_non_local_unknown_mode_and_wrong_role_stay_denied(self):
-        for settings in ({'DEBUG': False}, {'BLOODCONNECT_REPORT_SOURCE': 'unknown'}, {'BLOODCONNECT_REPORT_SOURCE': 'domain'}):
+        for settings in ({'DEBUG': False}, {'BLOODCONNECT_REPORT_SOURCE': 'unknown'}):
             with override_settings(**settings):
                 self.assertEqual(self.client.get(self.path).status_code, 503)
         client, _ = signed_in(make_user('REQUESTER'))
         self.assertEqual(client.get(self.path).status_code, 403)
+
+    def test_domain_source_failure_never_falls_back_to_the_synthetic_snapshot(self):
+        # Explicitly unavailable source: this stays valid after real providers land.
+        with override_settings(BLOODCONNECT_REPORT_SOURCE='domain'), patch(
+            'reporting.providers.activity.collection_wastage', side_effect=ReportingUnavailable,
+        ):
+            response = self.client.get(self.path)
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(response.json()['error']['code'], 'reporting_unavailable')
+
+    def test_domain_source_uses_provider_values_even_when_a_valid_snapshot_exists(self):
+        # Boundary orchestration test; actual database reconciliation has its own acceptance.
+        counts = dict(donation_event_count=7, collected_unit_count=9, wasted_unit_count=2)
+        with override_settings(BLOODCONNECT_REPORT_SOURCE='domain'), patch(
+            'reporting.providers.activity.collection_wastage', return_value=counts,
+        ), patch('reporting.providers.activity.issue_totals', return_value={'issued_unit_count': 4}):
+            response = self.client.get(self.path)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['X-BloodConnect-Data-Source'], 'domain')
+        self.assertEqual(response['Cache-Control'], 'no-store')
+        self.assertEqual(response.json()['issued_unit_count'], 4)
+        for key, value in counts.items():
+            self.assertEqual(response.json()[key], value)
 
     def test_report_page_labels_the_snapshot_without_raw_records(self):
         response = self.client.get('/reports')
