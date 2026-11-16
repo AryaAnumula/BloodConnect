@@ -1,3 +1,13 @@
+## Latest published owner-provider reconciliation
+
+The former dashboard/report-source dependency is now resolved in the isolated lane using actual Arya PR60 `42afc198b70fd9d3821580fbbd25d4ee2fda4653` and PR61 `8b1349f295170525b6d668e3fb55e48586950d58`, with Arnav request/issue source `b5f72bee8ab16022154599c9a5354a9f6da69272`. Only exact owner-file deltas were composed; overlapping files were required to be byte-identical. No Git merge or owner-source edit occurred.
+
+Inventory test source `1ea040fbbcae26b939d60b10f115f42891a88e8f`: PostgreSQL16.16,12focused tests PASS,0fail/0skip,1.699s. Includes actual empty/full dashboard stock/request/camp reads and API200 refresh after a real discard, actual issue-service/IssueRecord/report200, explicit missing-camp/missing-issue503, provider-loader failure/programming-error behavior, and Arya's formerly stale domain-report test. That reporting-owner conflict now passes at the new exact PR61 SHA; the older recorded failure remains historical evidence only.
+
+PR51 remains `faf570e12eaff5ef412905d24e2027e7765d3482`; its actual donor tranche is still absent. Seven adapter-free donor checks remain PENDING. No fresh-intake/history-v2/stale-booking acceptance is claimed. Keep all three stories WIP until required real donor integration, shared wiring/baseline and final review pass.
+
+---
+
 ## 16 November 2026 continuation - read/UI/performance evidence
 
 Arnav's exact issue source b5f72bee8ab16022154599c9a5354a9f6da69272 was consumed in an isolated composition only; no merge or request-source edit. Inventory tests now retain explicit missing-provider503 coverage and verify real IssueRecord/issue-service/report200 when the provider exists. Route-dependent classes explicitly declare the isolated test URLconf; Arya still owns production wiring.
