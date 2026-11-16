@@ -19,6 +19,7 @@ from core.input_schemas import BLOOD_GROUPS
 from inventory.exceptions import InventoryUnavailable
 from inventory.models import AlertSweep, BloodUnit, InventoryAlert
 from inventory.permissions import require_staff
+from inventory.selectors.stock import usable_units
 from inventory.services.policy import SUPPORTED_COMPONENTS
 from notification_adapter.services.intents import enqueue_intent
 
@@ -75,7 +76,7 @@ def evaluate_alerts(*, actor, now) -> dict:
             policy, pairs, recipient, fingerprint = alert_policy()
             today = timezone.localdate(now, ZoneInfo('Asia/Kolkata'))
             # One source snapshot for both conditions; no separately maintained counter.
-            usable = list(BloodUnit.objects.filter(status='AVAILABLE', expiry_date__gt=today).order_by('id'))
+            usable = list(usable_units(today=today).order_by('id'))
             totals = Counter((unit.blood_group, unit.component_type) for unit in usable)
             conditions = {}
             for (group, component), minimum in sorted(pairs.items()):
