@@ -255,6 +255,17 @@
           "applies_to": [
             "Sprint 2 scoped policy"
           ]
+        },
+        {
+          "id": "BC-D037",
+          "status": "APPROVED",
+          "clause": "BB-23 independent story PR per Arya latest correction; preserve existing active non-superuser ADMIN, source/date/aggregate rules. Missing source returns503, never fake totals. Does not approve merge or full acceptance.",
+          "approved_by": "Arya, explicit16 November2026 separate-story PR instruction",
+          "approved_at": "2026-11-16",
+          "evidence": "docs/sprint2/bb23-checkpoint.md; central BC-D037",
+          "applies_to": [
+            "BB-23"
+          ]
         }
       ]
     },
@@ -349,6 +360,17 @@
           "evidence": "docs/sprint2/shared-rules.md v1.1 and docs/sprint2/decision-provenance.md; approved scope and unresolved items are stated in the clause",
           "applies_to": [
             "Sprint 2 scoped policy"
+          ]
+        },
+        {
+          "id": "BC-D037",
+          "status": "APPROVED",
+          "clause": "BB-23 independent story PR per Arya latest correction; preserve existing active non-superuser ADMIN, source/date/aggregate rules. Missing source returns503, never fake totals. Does not approve merge or full acceptance.",
+          "approved_by": "Arya, explicit16 November2026 separate-story PR instruction",
+          "approved_at": "2026-11-16",
+          "evidence": "docs/sprint2/bb23-checkpoint.md; central BC-D037",
+          "applies_to": [
+            "BB-23"
           ]
         }
       ],
