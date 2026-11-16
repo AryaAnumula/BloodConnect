@@ -260,15 +260,21 @@ test('BB16 client checks unit ids, duplicates and remaining count before sending
   }
 });
 
-test('BB16 inventory not connected (503) is reported honestly and nothing is claimed', async () => {
-  const h = await loaded([approved(A)]);
-  issueInput(rows(h)[0]).value = U1;
-  findButton(rows(h)[0], 'Issue units').events.click();
-  h.calls[1].reject(Object.assign(new Error(HOSTILE), { status: 503, code: 'inventory_unavailable', fields: {} }));
-  await tick();
-  assert.match(h.status.at(-1), /not connected to inventory yet\. Nothing was issued/);
-  assert.equal(findButton(rows(h)[0], 'Issue units').disabled, false);
-  assert.equal(h.calls.length, 2);
+test('BB16 unavailable, unsafe and unknown units are reported honestly and nothing is claimed', async () => {
+  for (const [status, code, message] of [
+    [503, 'inventory_unavailable', /Inventory is unavailable right now\. Nothing was issued/],
+    [422, 'unsafe_unit', /cannot be issued for this request .*Nothing was issued/],
+    [404, 'not_found', /was not found\. Nothing was issued/]]) {
+    const h = await loaded([approved(A)]);
+    issueInput(rows(h)[0]).value = U1;
+    findButton(rows(h)[0], 'Issue units').events.click();
+    h.calls[1].reject(Object.assign(new Error(HOSTILE), { status, code, fields: {} }));
+    await tick();
+    assert.match(h.status.at(-1), message, code);
+    assert.ok(!h.status.some(text => text.includes(HOSTILE)), code);
+    assert.equal(findButton(rows(h)[0], 'Issue units').disabled, false, code);
+    assert.equal(h.calls.length, 2, code);
+  }
 });
 
 test('BB16 unit conflict and stale state reload; field errors render as text', async () => {

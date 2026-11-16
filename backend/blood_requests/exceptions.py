@@ -37,10 +37,10 @@ class UnitConflict(APIException):
 
 
 class InventoryUnavailable(APIException):
-    """Fail-closed while the real inventory provider / issue-record model is not integrated."""
+    """Fail-closed when the inventory provider module is absent."""
     status_code = 503
     default_code = 'inventory_unavailable'
-    default_detail = 'Issuing is not available: inventory is not connected. Nothing was issued.'
+    default_detail = 'Issuing is not available: inventory is unavailable. Nothing was issued.'
 
 
 class UnsafeUnit(APIException):

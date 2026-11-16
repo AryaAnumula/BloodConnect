@@ -106,7 +106,9 @@ function renderRow(item) {
 // BB-16: issue matching units against an APPROVED request. The server (and inventory) decide
 // which units are usable; nothing is shown as issued until the server confirms it.
 const ISSUE_MESSAGES = {
-  inventory_unavailable: 'Issuing is not connected to inventory yet. Nothing was issued.',
+  inventory_unavailable: 'Inventory is unavailable right now. Nothing was issued.',
+  unsafe_unit: 'A selected unit cannot be issued for this request (expired, quarantined, discarded or not matching). Nothing was issued.',
+  not_found: 'A selected unit was not found. Nothing was issued.',
   unit_conflict: 'A selected unit has already been issued. Nothing was issued; the queue has been refreshed.',
   oversupply: 'More units were selected than the request still needs. Nothing was issued.',
   invalid_transition: 'This request can no longer be issued. The queue has been refreshed.',

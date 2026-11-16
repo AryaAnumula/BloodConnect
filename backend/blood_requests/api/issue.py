@@ -1,7 +1,7 @@
 """BB-16 POST /api/v1/requests/{request_id}/issues -> 201 IssueResponse (BC-D026).
 
 Active non-superuser STAFF only; session + CSRF; StrictJSONParser; body exactly
-{"unit_ids": [...]}. While the inventory provider is not integrated, this returns
+{"unit_ids": [...]}. If the inventory provider module is absent this returns
 503 inventory_unavailable and changes nothing.
 """
 from django.utils.decorators import method_decorator
