@@ -1,5 +1,8 @@
 # Team next actions —16 November2026
 
+> **BC-D037 supersedes combined packaging:** Arya requires one story per feature PR. BB22 changes stay in existing PR59. BB23/dashboard and BB24/activity reporting have moved to separate team/arya-bb23 and team/arya-bb24 PRs based directly on testing. Their code/routes/tests are removed from this PR with an additive commit; the earlier combined checkpoint and655/121 test evidence below are historical, not current-head validation. Prior integrated teammate work is preserved. Only Arya merges. See [story separation](story-pr-separation-2026-11-16.md).
+
+
 Use current shared `testing` as the released integration baseline. New work on PR59 is **not merged** there. For dependent development, coordinate the exact current `team/arya-scheduling-provider-integration` head with Arya before incorporating its code; retain your own changes and test the resulting tree. Do not open duplicate providers/models or silently apply older overlapping PR diffs. Only Arya performs merges.
 
 ## Completed Arya-controlled changes in the current PR59 draft

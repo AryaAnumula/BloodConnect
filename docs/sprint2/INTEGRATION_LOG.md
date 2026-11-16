@@ -1,5 +1,8 @@
 # Sprint 2 integration and conflict log
 
+> **BC-D037 supersedes combined packaging:** Arya requires one story per feature PR. BB22 changes stay in existing PR59. BB23/dashboard and BB24/activity reporting have moved to separate team/arya-bb23 and team/arya-bb24 PRs based directly on testing. Their code/routes/tests are removed from this PR with an additive commit; the earlier combined checkpoint and655/121 test evidence below are historical, not current-head validation. Prior integrated teammate work is preserved. Only Arya merges. See [story separation](story-pr-separation-2026-11-16.md).
+
+
 ## 16 November 2026 — Arya pending-work execution
 
 The amendments here supersede corresponding pending notes in the historical15 November snapshot below. Follow [BC-D036 and provider contracts](arya-work-2026-11-16.md) and [remaining team actions](team-next-actions-2026-11-16.md). This is still the shared **draft PR59**, not a merge or final acceptance of every included story.

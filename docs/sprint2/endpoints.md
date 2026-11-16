@@ -31,4 +31,4 @@ Exact shapes and validations are in openapi.proposed.yaml, conventions.md and de
 
 ## Current16November2026 checkpoint
 
-GET dashboard/reports and their ADMIN pages are wired with real orchestration, strict dates and fail-closed503 until inventory/issue source providers exist. A503 does not mean a valid empty dataset; only a successful source query can return zero. Appointment responses now include actual projected reminder_state under BC-D036; missing intent is503. No fake200/201 or real-delivery claim. See arya-work-2026-11-16.md for scope.
+BB23 dashboard and BB24 report implementations/pages have moved out of this PR to independent team/arya-bb23 and team/arya-bb24 story branches directly from testing (BC-D037). Their proposed endpoints above remain contracts, not routes supplied by this PR. Appointment responses now include actual projected reminder_state under BC-D036; missing intent is503. No fake200/201 or real-delivery claim. See arya-work-2026-11-16.md for scope.
