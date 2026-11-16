@@ -3,8 +3,6 @@ from django.views.generic import TemplateView
 from core.health import live, ready
 from reporting.pages import ReportingPage
 urlpatterns = [
-    path('api/v1/', include(('reporting.activity_urls', 'reporting-activity'))),
-    path('reports', ReportingPage.as_view(template_name='activity_report.html'), name='activity-page'),
     path('api/v1/health/live', live, name='live'),
     path('api/v1/health/ready', ready, name='ready'),
     path('api/v1/auth/', include(('accounts.urls', 'accounts'))),
@@ -18,4 +16,6 @@ urlpatterns = [
     path('staff/donors', TemplateView.as_view(template_name='search.html'), name='search-page'),
     path('requests/new', TemplateView.as_view(template_name='request_create.html'), name='request-create-page'),
     path('staff/requests', TemplateView.as_view(template_name='staff_requests.html'), name='staff-requests-page'),
+    path('api/v1/', include(('reporting.activity_urls', 'reporting-activity'))),
+    path('reports', ReportingPage.as_view(template_name='activity_report.html'), name='activity-page'),
 ]
