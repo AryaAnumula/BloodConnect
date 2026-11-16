@@ -1,0 +1,17 @@
+{
+  "inventory_published": "93f8e8cacdebe1b27eca6ad7d7609ee40ada09a5",
+  "donor_pr51": "a93f01cccfe2a242f0a91f3f3646775ff4282297",
+  "donor_files": [
+    "backend/donors/services/collection_history.py",
+    "backend/donors/services/evaluation.py",
+    "backend/donors/services/screening.py",
+    "backend/donors/tests/test_confirmed_collection.py",
+    "backend/donors/tests/test_evaluation.py"
+  ],
+  "inventory": "exact published BB13 foundation only; no BB14/15 inventory files",
+  "seed_patch": "a93f01cccfe2a242f0a91f3f3646775ff4282297:docs/sprint2/bb21-seeder-history-guard.patch",
+  "seed_patch_sha256": "35002e284562447292ba3948db9ce4d65a810daba077ca9ebffbcd6e3d9bcc12",
+  "seeder_owner": "Arya carries integrated backend/core seeder change; source patch supplied by Ankitha; not in BB13 commit",
+  "routes": "actual config.urls with Arya739ff48 inventory-routes patch",
+  "other_owners": "pinned shared composition and actual request b5f72bee; no source edits or merges"
+}
