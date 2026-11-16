@@ -92,8 +92,11 @@ class Command(BaseCommand):
                                     last_donation_date=last_date, status=status, reason_codes=codes, reasons=reasons,
                                     rules_version=rules['rules_version'])
                     row, fresh = save_new(EligibilityResult, uid('foundation-screening', donor_id), defaults)
+                    assessed_at = datetime.fromisoformat(source['assessed_at'])
                     if fresh:
-                        EligibilityResult.objects.filter(pk=row.pk).update(assessed_at=source['assessed_at'])
+                        EligibilityResult.objects.filter(pk=row.pk).update(assessed_at=assessed_at)
+                    elif row.assessed_at != assessed_at:
+                        raise CommandError('Existing demo record differs; preserved. Use a separate fresh demo database.')
                     created['screenings'] += fresh
                 for source in requests:
                     defaults = {k: source[k] for k in ('requester_id', 'blood_group', 'component_type', 'quantity',

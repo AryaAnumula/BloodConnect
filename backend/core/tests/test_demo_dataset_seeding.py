@@ -4,6 +4,7 @@ import json
 import os
 from pathlib import Path
 import tempfile
+from datetime import timedelta
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
@@ -77,6 +78,24 @@ class DemoSeederTests(TestCase):
             self.seed()
         row.refresh_from_db()
         self.assertEqual(row.quantity, 99)
+
+    def test_modified_assessment_timestamp_rejects_replay_and_rolls_back_new_records(self):
+        self.seed()
+        row = EligibilityResult.objects.order_by('id').first()
+        changed = row.assessed_at + timedelta(microseconds=1)
+        EligibilityResult.objects.filter(pk=row.pk).update(assessed_at=changed)
+        # The next import recreates this missing account before reaching the mismatch.
+        User = get_user_model()
+        victim = User.objects.filter(role='ADMIN').first()
+        victim_id = victim.pk
+        victim.delete()
+        before = (User.objects.count(), DonorProfile.objects.count(), EligibilityResult.objects.count(), BloodRequest.objects.count())
+        with self.assertRaisesRegex(CommandError, 'preserved'):
+            self.seed()
+        self.assertFalse(User.objects.filter(pk=victim_id).exists())
+        self.assertEqual(before, (User.objects.count(), DonorProfile.objects.count(), EligibilityResult.objects.count(), BloodRequest.objects.count()))
+        row.refresh_from_db()
+        self.assertEqual(row.assessed_at, changed)
 
     def test_explicit_password_enables_only_four_demo_logins_and_is_never_printed(self):
         secret = 'synthetic-test-credential-only'
