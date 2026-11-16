@@ -81,6 +81,14 @@ def summarize_usable_stock(
     ]
 
 
+def usable_units(*, today):
+    """Single ORM inclusion rule shared by stock and alert evaluation."""
+    from inventory.models import BloodUnit
+    if not isinstance(today, date) or isinstance(today, datetime):
+        raise ValueError('A local date is required.')
+    return BloodUnit.objects.filter(status='AVAILABLE', expiry_date__gt=today)
+
+
 def stock_summary(*, actor, filters: dict, page=1, page_size=20) -> dict:
     from zoneinfo import ZoneInfo
     from django.db import DatabaseError
@@ -102,8 +110,7 @@ def stock_summary(*, actor, filters: dict, page=1, page_size=20) -> dict:
     page, size = values.pop('page'), values.pop('page_size')
     today = timezone.localdate(timezone=ZoneInfo('Asia/Kolkata'))
     try:
-        rows = list(BloodUnit.objects.filter(status='AVAILABLE', expiry_date__gt=today,
-            **values).values('blood_group', 'component_type').annotate(
+        rows = list(usable_units(today=today).filter(**values).values('blood_group', 'component_type').annotate(
                 available_quantity=Count('id')).order_by('blood_group', 'component_type'))
         return {'count': len(rows), 'page': page, 'page_size': size,
                 'results': rows[(page-1)*size:page*size]}
