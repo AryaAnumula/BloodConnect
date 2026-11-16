@@ -10,34 +10,28 @@ One caller-owned transaction, all or nothing:
      exactly fulfilled (a partial batch stays APPROVED).
 No network call and no independent commit inside the transaction. No notification.
 
-BLOCKED (awaiting Yashwitha): the real allocation provider and BloodUnit model. Until they
-exist this service fails closed with 503 inventory_unavailable before writing anything.
-The IssueRecord model (blood_requests, Arnav) needs a FK to her BloodUnit, so it is added
-with its migration only once her model and migration are real; until then
-_write_issue_records also fails closed.
+Provider: Yashwitha's inventory.services.allocation.allocate_units (contract v1.1), imported
+at call time; if the inventory module is absent the service fails closed with 503
+inventory_unavailable before writing anything. IssueRecord (OneToOne PROTECT unit FK)
+is the durable issue history.
 """
 import uuid
 
-from django.apps import apps
 from django.db import DatabaseError, IntegrityError, transaction
 from django.utils import timezone
 from rest_framework.exceptions import NotFound, PermissionDenied
 
-from blood_requests.exceptions import (InventoryUnavailable, IssueInvalidTransition, Oversupply,
+from blood_requests.exceptions import (IssueInvalidTransition, Oversupply,
                                        StorageUnavailable, UnitConflict)
 from blood_requests.integrations.inventory import (checked_allocation, load_allocate_units,
                                                    translate_provider_error)
-from blood_requests.models import BloodRequest
+from blood_requests.models import BloodRequest, IssueRecord
 from blood_requests.permissions import may_issue_requests
 from blood_requests.serializers.issue import clean_unit_ids
 
 
 def _write_issue_records(*, blood_request, unit_ids, actor, issued_at) -> list[dict]:
     """One protected, unique issue record per unit (issued_quantity fixed at 1)."""
-    try:
-        IssueRecord = apps.get_model('blood_requests', 'IssueRecord')
-    except LookupError:
-        raise InventoryUnavailable() from None  # model lands with Yashwitha's BloodUnit
     records = [IssueRecord.objects.create(request=blood_request, unit_id=unit_id, issued_by=actor,
                                           issued_at=issued_at, issued_quantity=1)
                for unit_id in unit_ids]

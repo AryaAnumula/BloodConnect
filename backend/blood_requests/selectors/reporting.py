@@ -5,12 +5,10 @@ request_issue_totals: BB-16 issue history for BB-24 reports (contract v1.1 / BC-
 """
 from datetime import datetime
 
-from django.apps import apps
 from django.db.models import Sum
 from rest_framework.exceptions import ValidationError
 
-from blood_requests.models import BloodRequest
-from core.errors import DecisionRequired
+from blood_requests.models import BloodRequest, IssueRecord
 
 
 def pending_request_count() -> int:
@@ -26,8 +24,8 @@ def request_issue_totals(*, start=None, end=None) -> dict:
 
     Both None: all history. Otherwise both must be aware datetimes with start < end; the
     half-open interval [start, end) filters issued_at. Invalid bounds raise ValidationError
-    (no all-time fallback). While IssueRecord is not integrated this raises DecisionRequired,
-    which reporting shows as "unavailable", never a fabricated 0.
+    (no all-time fallback). Storage errors propagate, so reports show "unavailable", never a
+    fabricated 0.
     """
     if (start is None) != (end is None):
         raise ValidationError({'non_field_errors': ['Provide both start and end, or neither.']})
@@ -38,10 +36,6 @@ def request_issue_totals(*, start=None, end=None) -> dict:
             raise ValidationError(errors)
         if not start < end:
             raise ValidationError({'end': ['End must be after start.']})
-    try:
-        IssueRecord = apps.get_model('blood_requests', 'IssueRecord')
-    except LookupError:
-        raise DecisionRequired('Issue history is unavailable until IssueRecord is integrated.') from None
     rows = IssueRecord.objects.all()
     if start is not None:
         rows = rows.filter(issued_at__gte=start, issued_at__lt=end)

@@ -127,26 +127,26 @@ class IssueServiceTests(TestCase):
                 self.assertEqual(self.snapshot(), ('APPROVED', 0))
 
 
-class FailClosedWithoutRealInventoryTests(TestCase):
-    """No doubles: the actual runtime state of this branch."""
+def missing_module(name):
+    """Simulate an absent inventory module at the provider boundary (TEST-ONLY)."""
+    from blood_requests.integrations import inventory
+    error = ModuleNotFoundError(f"No module named '{name}'", name=name)
+    return mock.patch.object(inventory.importlib, 'import_module', side_effect=error)
 
+
+class FailClosedWhenProviderIsAbsentTests(TestCase):
     def setUp(self):
         self.staff = make_user('STAFF')
         self.row = make_request(make_user('REQUESTER'), status='APPROVED', quantity=2)
 
-    def test_missing_provider_fails_closed(self):
-        with self.assertRaises(InventoryUnavailable):
-            issue_request(actor=self.staff, request_id=self.row.id, unit_ids=unit_ids(1))
-        self.row.refresh_from_db()
-        self.assertEqual((self.row.status, self.row.fulfilled_quantity), ('APPROVED', 0))
-
-    def test_missing_issue_record_model_fails_closed_even_with_a_provider(self):
-        allocator = FakeAllocator()
-        with mock.patch('blood_requests.services.issue.load_allocate_units', return_value=allocator):
-            with self.assertRaises(InventoryUnavailable):
+    def test_absent_inventory_module_fails_closed_without_writes(self):
+        from blood_requests.models import IssueRecord
+        for name in ('inventory', 'inventory.services', 'inventory.services.allocation'):
+            with self.subTest(name=name), missing_module(name), self.assertRaises(InventoryUnavailable):
                 issue_request(actor=self.staff, request_id=self.row.id, unit_ids=unit_ids(1))
         self.row.refresh_from_db()
         self.assertEqual((self.row.status, self.row.fulfilled_quantity), ('APPROVED', 0))
+        self.assertFalse(IssueRecord.objects.exists())
 
     def test_real_import_errors_inside_a_provider_are_not_hidden(self):
         from blood_requests.integrations import inventory

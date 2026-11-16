@@ -2,8 +2,8 @@
 
 FakeAllocator mimics the agreed allocate_units contract (one {"unit_id", "quantity": 1} per
 selected unit in UUID order) without touching any database or unit rows. fake_issue_writer
-returns issue-record-shaped dicts without a database table. Real integration needs
-Yashwitha's provider, BloodUnit model and the IssueRecord migration.
+returns issue-record-shaped dicts without a database table. Real-unit evidence (Yashwitha's
+provider, BloodUnit rows and IssueRecord) is in test_issue_integration.py.
 """
 import threading
 import uuid

@@ -1,5 +1,5 @@
 """BB-16 POST /api/v1/requests/{id}/issues through the full stack. Inventory is a TEST-ONLY
-double where noted; the no-double test shows the real branch fails closed (503)."""
+double where noted; real-unit API evidence is in test_issue_integration.py."""
 import json
 import uuid
 
@@ -37,8 +37,10 @@ class IssueApiTests(TestCase):
         with doubles():
             self.assertEqual(post(client, issue_url(self.row.id), {'unit_ids': unit_ids(1)}, token).status_code, 201)
 
-    def test_without_real_inventory_the_endpoint_fails_closed(self):
-        response = post(self.client, issue_url(self.row.id), {'unit_ids': unit_ids(1)}, self.token)
+    def test_absent_inventory_module_fails_closed_with_503(self):
+        from blood_requests.tests.test_issue_service import missing_module
+        with missing_module('inventory'):
+            response = post(self.client, issue_url(self.row.id), {'unit_ids': unit_ids(1)}, self.token)
         self.assertEqual(response.status_code, 503)
         self.assertEqual(response.json()['error']['code'], 'inventory_unavailable')
         self.row.refresh_from_db()

@@ -927,11 +927,12 @@ paths:
       - DATA-01
       x-contract-status: PROPOSED_APPROVAL_REQUIRED
       x-implementation-status: not_implemented
-      x-implementation-note: 'BB-16 request side implemented on team/arnav-bb16 (route, STAFF
-        gate, strict input, request lock, APPROVED/remaining checks, provider DTO verification,
-        all-or-nothing rollback). BLOCKED: inventory allocate_units, BloodUnit model and the
-        IssueRecord model/migration (awaiting Yashwitha). Until then the route returns 503
-        inventory_unavailable and changes nothing.'
+      x-implementation-note: 'BB-16 WIP on team/arnav-bb16-story (PR #64): route, STAFF gate,
+        strict input, request lock, APPROVED/remaining checks, provider DTO verification,
+        IssueRecord (migration 0003 depends on inventory 0001_initial) and all-or-nothing
+        rollback, verified against the real BB-13 allocate_units in an isolated integration
+        lane. Status stays not_implemented until inventory 0001 is on testing and acceptance
+        passes.'
       x-allowed-roles:
       - STAFF
       x-decision-gates:
