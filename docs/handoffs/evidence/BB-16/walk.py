@@ -23,7 +23,7 @@ def log(step, text):
     line = f'{len(LOG) + 1:02d}. {step}: {text}'
     LOG.append(line)
     print(line, flush=True)
-    (WALK / 'walkthrough.log').write_text(chr(10).join(LOG) + chr(10), encoding='utf-8')
+    (WALK / 'walkthrough.txt').write_text(chr(10).join(LOG) + chr(10), encoding='utf-8')
 
 
 def shot(page, name):
@@ -162,4 +162,4 @@ with sync_playwright() as p:
     stock(staff, 'after-close')
     browser.close()
 
-(WALK / 'walkthrough.log').write_text('\n'.join(LOG) + '\n', encoding='utf-8')
+(WALK / 'walkthrough.txt').write_text('\n'.join(LOG) + '\n', encoding='utf-8')
