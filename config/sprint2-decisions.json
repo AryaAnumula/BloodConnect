@@ -259,12 +259,13 @@
         {
           "id": "BC-D037",
           "status": "APPROVED",
-          "clause": "BB-23 independent story PR per Arya latest correction; preserve existing active non-superuser ADMIN, source/date/aggregate rules. Missing source returns503, never fake totals. Does not approve merge or full acceptance.",
+          "clause": "BB-23 and BB-24 keep separate story PRs; preserve active non-superuser ADMIN access and approved source/date/aggregate rules. Missing or malformed sources return503, never fake totals. No merge or whole-story acceptance approval.",
           "approved_by": "Arya, explicit16 November2026 separate-story PR instruction",
           "approved_at": "2026-11-16",
-          "evidence": "docs/sprint2/bb23-checkpoint.md; central BC-D037",
+          "evidence": "docs/sprint2/reporting-source-decisions.md; central BC-D037",
           "applies_to": [
-            "BB-23"
+            "BB-23",
+            "BB-24"
           ]
         }
       ]
@@ -365,23 +366,25 @@
         {
           "id": "BC-D037",
           "status": "APPROVED",
-          "clause": "BB-23 independent story PR per Arya latest correction; preserve existing active non-superuser ADMIN, source/date/aggregate rules. Missing source returns503, never fake totals. Does not approve merge or full acceptance.",
+          "clause": "BB-23 and BB-24 keep separate story PRs; preserve active non-superuser ADMIN access and approved source/date/aggregate rules. Missing or malformed sources return503, never fake totals. No merge or whole-story acceptance approval.",
           "approved_by": "Arya, explicit16 November2026 separate-story PR instruction",
           "approved_at": "2026-11-16",
-          "evidence": "docs/sprint2/bb23-checkpoint.md; central BC-D037",
+          "evidence": "docs/sprint2/reporting-source-decisions.md; central BC-D037",
           "applies_to": [
-            "BB-23"
+            "BB-23",
+            "BB-24"
           ]
         },
         {
           "id": "BC-D039",
           "status": "APPROVED",
-          "clause": "BB-23: user authorizes dataset integration. Explicit DEBUG-only read-only canonical source with verified manifest; compute all aggregates from same snapshot and label source. Default domain selectors stay separate and fail closed; no expected.json totals at runtime, no silent fallback/model duplication/whole-story or merge approval.",
+          "clause": "BB-23 and BB-24: user authorizes dataset integration. Explicit DEBUG-only read-only canonical source with verified manifest; compute all aggregates from one snapshot and label source. Default domain selectors stay separate and fail closed; no expected.json totals at runtime, silent fallback, duplicate models, whole-story or merge approval.",
           "approved_by": "Arya, explicit16November2026 dataset integration instruction",
           "approved_at": "2026-11-16",
-          "evidence": "docs/sprint2/bb23-synthetic-integration.md; central BC-D039",
+          "evidence": "docs/sprint2/reporting-source-decisions.md; central BC-D039",
           "applies_to": [
-            "BB-23"
+            "BB-23",
+            "BB-24"
           ]
         }
       ],
