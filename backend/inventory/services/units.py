@@ -45,10 +45,13 @@ def _authorize_collection(donor, collection_date, today):
         raise IneligibleDonor()
     if 'confirmed_collection_date' not in signature(evaluate).parameters:
         raise InventoryUnavailable()
-    status, _, _ = evaluate(age_years=result.age_years, weight_kg=result.weight_kg,
-                            last_donation_date=result.last_donation_date,
-                            confirmed_collection_date=latest,
-                            today=collection_date, rules=rules)
+    try:
+        status, _, _ = evaluate(age_years=result.age_years, weight_kg=result.weight_kg,
+                                last_donation_date=result.last_donation_date,
+                                confirmed_collection_date=latest,
+                                today=collection_date, rules=rules)
+    except ValueError as exc:
+        raise InventoryUnavailable() from exc
     if status != 'ELIGIBLE':
         raise IneligibleDonor()
 
@@ -73,6 +76,8 @@ def record_unit(*, actor, data: dict) -> dict:
                 raise ValidationError({'donor_id': ['An active donor is required.']})
             if values['blood_group'] != donor.blood_group:
                 raise ValidationError({'blood_group': ['Group does not match donor.']})
+            if BloodUnit.objects.filter(unit_code=values['unit_code']).exists():
+                raise UnitConflict()
             expiry = calculate_expiry_date(collection_date=values['collection_date'],
                                           component_type=values['component_type'], policy=policy, today=today)
             if event_id is None:
