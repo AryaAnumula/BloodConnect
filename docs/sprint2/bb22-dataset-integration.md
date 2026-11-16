@@ -24,3 +24,7 @@ Requires Node on PATH (or --node absolute executable). Creates only its own disp
 Local canonical dataset verifier passed with those outcomes, zero imported receipts, correct account recipients and actual domain reader/transport. Nine new targeted tests passed: source-to-booking/cancel, duplicate-demo refusal, bad source, local guard, rollback on second booking failure, default dispatch, bounded/fresh-clock polling, bad watch options and unresolved-policy failure. PostgreSQL regression/evidence is separately recorded for the exact committed source.
 
 Remaining team scope: Ankitha's actual camp-wide cancellation service and coordinated history initialization; independent review/permitted walkthrough. This command demonstrates donor cancellation and does not pretend to implement the camp service. Old mock receipt compatibility limitations remain documented. Only Arya merges; his identity/manual CI remain unchanged.
+
+## Exact committed-source regression
+
+Sourceceaa5388aad0c096aa7e731f17d9c6ccb1671829 passed [manual PostgreSQL16 run43843352760](https://github.com/AryaAnumula/BloodConnect/actions/runs/43843352760):651 Django/112 Node/29 availability, zero skips, clean migration/system/repository checks. [Cross-story evidence and limits](arya-dataset-integration-verification.md) distinguish actual canonical file/API/private transport verification from PostgreSQL and browser scope. Later documentation-only commits retain tested runtime/test/config source.
