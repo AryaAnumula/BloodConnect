@@ -29,3 +29,47 @@ test('existing receipt directory is restricted on POSIX', {skip:process.platform
 test('content type is case insensitive',async()=>{
  const dir=mkdtempSync(join(tmpdir(),'bb22-'));try{await serve(dir,async b=>{const r=await fetch(b+'/internal/notifications',{method:'POST',headers:{'content-type':'Application/JSON','Authorization':'Bearer '+token},body:JSON.stringify(event())});assert.equal(r.status,202);});}finally{rmSync(dir,{recursive:true,force:true});}
 });
+
+test('microsecond replay survives restart and a one-microsecond change conflicts',async()=>{
+ const dir=mkdtempSync(join(tmpdir(),'bb22-'));
+ try {
+  const body={...event(),due_at:'2026-11-16T12:00:00.123456+05:30'};
+  let receipt;
+  await serve(dir,async b=>{const response=await post(b,body);assert.equal(response.status,202);receipt=await response.json();});
+  await serve(dir,async b=>{
+   const equivalent=await post(b,{...body,due_at:'2026-11-16T06:30:00.123456Z',channels:[...body.channels].reverse()});
+   assert.equal(equivalent.status,202);assert.deepEqual(await equivalent.json(),receipt);
+   assert.equal((await post(b,{...body,due_at:'2026-11-16T06:30:00.123457Z'})).status,409);
+   assert.equal((await post(b,{...body,due_at:'2026-11-16T06:30:00.123Z'})).status,409);
+  });
+ } finally {rmSync(dir,{recursive:true,force:true});}
+});
+
+test('equivalent fractional padding and UTC date rollover replay exactly',async()=>{
+ const dir=mkdtempSync(join(tmpdir(),'bb22-'));
+ try {await serve(dir,async b=>{
+  const body={...event(),due_at:'2026-11-16T00:30:00.1+05:30'};
+  const response=await post(b,body);assert.equal(response.status,202);
+  const replay=await post(b,{...body,due_at:'2026-11-15T19:00:00.100000Z'});
+  assert.equal(replay.status,202);assert.deepEqual(await replay.json(),await response.json());
+ });} finally {rmSync(dir,{recursive:true,force:true});}
+});
+
+test('legacy or unknown receipt versions fail closed without modifying durable history',async()=>{
+ const dir=mkdtempSync(join(tmpdir(),'bb22-'));
+ try {
+  const body=event();
+  await serve(dir,async b=>{assert.equal((await post(b,body)).status,202);});
+  const file=join(dir,body.event_id+'.json');const original=JSON.parse(readFileSync(file,'utf8'));
+  for (const version of [undefined,1,999]) {
+   const stored={...original,fingerprint_version:version};
+   const contents=JSON.stringify(stored);writeFileSync(file,contents);
+   await serve(dir,async b=>{
+    const response=await post(b,body);assert.equal(response.status,503);
+    const error=await response.json();assert.equal(error.error.code,'receipt_store_unavailable');
+    assert.ok(!JSON.stringify(error).includes(dir));
+   });
+   assert.equal(readFileSync(file,'utf8'),contents);
+  }
+ } finally {rmSync(dir,{recursive:true,force:true});}
+});

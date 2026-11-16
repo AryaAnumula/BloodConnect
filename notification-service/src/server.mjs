@@ -24,19 +24,29 @@ function validTimestamp(value) {
   const canonical = new Date(epoch).toISOString();
   return /^\d{4}-/.test(canonical) && !canonical.startsWith('0000-');
 }
+function canonicalTimestamp(value) {
+  // Date preserves only milliseconds. Retain the remaining microseconds while
+  // using Date solely for the validated calendar/UTC-offset conversion.
+  const fraction = /\.(\d{1,6})(?:Z|[+-]\d{2}:\d{2})$/.exec(value)?.[1] || '';
+  const microseconds = fraction.padEnd(6, '0');
+  return new Date(value).toISOString().replace(/\.\d{3}Z$/, `.${microseconds}Z`);
+}
 function normalize(event) {
   const keys = ['event_id','recipient_id','type','record_id','due_at','channels'];
   if (!event || typeof event !== 'object' || Array.isArray(event) || Object.keys(event).sort().join() !== [...keys].sort().join()) throw new Error('invalid');
   if (![event.event_id,event.recipient_id,event.record_id].every(x => typeof x === 'string' && uuid.test(x))) throw new Error('invalid');
   if (!types.has(event.type) || !validTimestamp(event.due_at)) throw new Error('invalid');
   if (!Array.isArray(event.channels) || !event.channels.length || event.channels.length > 3 || new Set(event.channels).size !== event.channels.length || !event.channels.every(c => channels.has(c))) throw new Error('invalid');
-  return { event_id:event.event_id.toLowerCase(), recipient_id:event.recipient_id.toLowerCase(), type:event.type, record_id:event.record_id.toLowerCase(), due_at:new Date(event.due_at).toISOString(), channels:[...event.channels].sort() };
+  return { event_id:event.event_id.toLowerCase(), recipient_id:event.recipient_id.toLowerCase(), type:event.type, record_id:event.record_id.toLowerCase(), due_at:canonicalTimestamp(event.due_at), channels:[...event.channels].sort() };
 }
 function recordReceipt(dir, event) {
   const fingerprint=createHash('sha256').update(JSON.stringify(event)).digest('hex');
   const destination=path.join(dir,event.event_id+'.json');
   if (existsSync(destination)) {
     const old=JSON.parse(readFileSync(destination,'utf8'));
+    // Legacy hashes discarded sub-millisecond data: they cannot establish an
+    // exact replay. Preserve the record and fail closed pending reconciliation.
+    if (old.fingerprint_version !== 2) throw new Error('unverified receipt version');
     if (old.fingerprint!==fingerprint) return { conflict:true };
     if (!old.receipt || old.receipt.event_id!==event.event_id || old.receipt.delivery_mode!=='mock' || !Array.isArray(old.receipt.receipts) || old.receipt.receipts.length!==event.channels.length || old.receipt.receipts.some((r,i)=>!r || r.channel!==event.channels[i] || r.status!=='DELIVERED')) throw new Error('invalid receipt store');
     return { receipt:old.receipt };
@@ -46,7 +56,7 @@ function recordReceipt(dir, event) {
   let fd;
   try {
     fd=openSync(temporary,'wx',0o600);
-    writeFileSync(fd,JSON.stringify({fingerprint,receipt}),'utf8');fsyncSync(fd);closeSync(fd);fd=undefined;
+    writeFileSync(fd,JSON.stringify({fingerprint_version:2,fingerprint,receipt}),'utf8');fsyncSync(fd);closeSync(fd);fd=undefined;
     // One Node process, synchronous writes: no interleaving between existence check and rename.
     renameSync(temporary,destination);
     try { const directory=openSync(dir,'r');try { fsyncSync(directory); } finally { closeSync(directory); } } catch { /* Windows lacks directory fsync; no production/power-loss guarantee. */ }
