@@ -11,16 +11,23 @@ def dashboard_snapshot(data):
     try:
         now = timestamp(data['metadata']['as_of'])
         today = now.astimezone(ZoneInfo('Asia/Kolkata')).date()
+        events = {event['id']: event for event in rows(data, 'collection_events')}
+        for event in events.values():
+            check(event['status'] == 'CONFIRMED')
+            calendar_date(event['collection_date'])
         stock = Counter()
         for unit in rows(data, 'blood_units'):
             check(unit['blood_group'] in BLOOD_GROUPS and unit['component_type'] in ('WHOLE_BLOOD', 'RBC', 'PLASMA', 'PLATELETS'))
             check(whole(unit['quantity'], 1) == 1 and unit['status'] in ('AVAILABLE', 'ISSUED', 'DISCARDED', 'QUARANTINED'))
             expiry = calendar_date(unit['expiry_date'])
+            check(unit['collection_event_id'] in events)
+            check(unit['collection_date'] == events[unit['collection_event_id']]['collection_date'])
             check(calendar_date(unit['collection_date']) < expiry)
             if unit['status'] == 'AVAILABLE' and today < expiry:
                 stock[(unit['blood_group'], unit['component_type'])] += unit['quantity']
         pending = 0
         for request in rows(data, 'blood_requests'):
+            check(request['blood_group'] in BLOOD_GROUPS and request['component_type'] in ('WHOLE_BLOOD', 'RBC', 'PLASMA', 'PLATELETS'))
             check(request['status'] in ('SUBMITTED', 'APPROVED', 'REJECTED', 'ISSUED', 'CLOSED'))
             check(whole(request['fulfilled_quantity']) <= whole(request['quantity'], 1) <= 100)
             pending += request['status'] == 'SUBMITTED'

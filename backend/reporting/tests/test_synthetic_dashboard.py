@@ -65,6 +65,33 @@ class SyntheticDashboardTests(TestCase):
             with override_settings(**settings):
                 self.assertEqual(self.client.get('/api/v1/dashboard').status_code, 503)
 
+    def test_invalid_collection_links_status_and_dates_fail_closed(self):
+        mutations = (
+            lambda d: d['tables']['blood_units'][0].update(collection_event_id='missing'),
+            lambda d: d['tables']['collection_events'][0].update(status='UNCONFIRMED'),
+            lambda d: d['tables']['collection_events'][0].update(collection_date='2026-11-14'),
+            lambda d: d['tables']['collection_events'].append(deepcopy(d['tables']['collection_events'][0])),
+        )
+        for mutate in mutations:
+            with self.subTest(mutation=mutate):
+                changed = fixture()
+                mutate(changed)
+                write_snapshot(self.directory.name, changed)
+                response = self.client.get('/api/v1/dashboard')
+                self.assertEqual(response.status_code, 503)
+                self.assertEqual(response.json()['error']['code'], 'reporting_unavailable')
+                self.assertNotIn(self.directory.name, response.content.decode())
+
+    def test_invalid_request_group_and_component_fail_closed(self):
+        for field, value in (('blood_group', 'INVALID'), ('component_type', 'INVALID')):
+            with self.subTest(field=field):
+                changed = fixture()
+                changed['tables']['blood_requests'][0][field] = value
+                write_snapshot(self.directory.name, changed)
+                response = self.client.get('/api/v1/dashboard')
+                self.assertEqual(response.status_code, 503)
+                self.assertEqual(response.json()['error']['code'], 'reporting_unavailable')
+
     def test_permission_check_precedes_dataset_read(self):
         client, _ = signed_in(make_user('STAFF'))
         with override_settings(BLOODCONNECT_DEMO_DATASET_PATH='missing'):

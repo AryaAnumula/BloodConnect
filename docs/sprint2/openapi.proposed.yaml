@@ -1809,7 +1809,7 @@ paths:
       parameters: []
       responses:
         '200':
-          description: Success only with available validated real source providers
+          description: Success with available validated domain providers or the explicitly selected DEBUG-only validated synthetic source
           content:
             application/json:
               schema:
