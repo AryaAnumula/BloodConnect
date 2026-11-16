@@ -91,8 +91,9 @@ def book_appointment(*, actor, slot_id, now=None) -> dict:
             raise DuplicateBooking() from None
         schedule_appointment_reminder(appointment_id=appointment.pk, donor_user_id=actor.pk,
                                       starts_at=slot.starts_at, booked_at=booked_at)
-    appointment.slot = slot
-    return appointment_dto(appointment)
+        appointment.slot = slot
+        payload = appointment_dto(appointment)
+    return payload
 
 
 def cancel_appointment(*, actor, appointment_id, now=None) -> dict:
@@ -128,5 +129,6 @@ def cancel_appointment(*, actor, appointment_id, now=None) -> dict:
             appointment.cancelled_at = current
             appointment.save(update_fields=['status', 'cancelled_at', 'updated_at'])
             cancel_appointment_reminders(appointment_id=appointment.pk)
-    appointment.slot = slot
-    return appointment_dto(appointment)
+        appointment.slot = slot
+        payload = appointment_dto(appointment)
+    return payload

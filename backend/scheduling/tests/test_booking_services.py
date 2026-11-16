@@ -32,7 +32,8 @@ class BookAppointmentTests(TestCase):
 
     def test_eligible_donor_books_and_is_linked_to_their_own_profile(self):
         dto = self.book()
-        self.assertEqual(set(dto), {'id', 'donor_id', 'slot_id', 'scheduled_time', 'status', 'cancelled_at'})
+        self.assertEqual(set(dto), {'id', 'donor_id', 'slot_id', 'scheduled_time', 'status', 'cancelled_at', 'reminder_state'})
+        self.assertEqual(dto['reminder_state'], 'PENDING')
         self.assertEqual(dto['donor_id'], str(self.profile.id))
         self.assertEqual(dto['status'], 'CONFIRMED')
         self.assertIsNone(dto['cancelled_at'])

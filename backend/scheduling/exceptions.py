@@ -57,3 +57,9 @@ class AppointmentNotCancellable(APIException):
     status_code = 422
     default_code = 'invalid_transition'
     default_detail = 'An appointment cannot be cancelled once its slot has started.'
+
+
+class ReminderUnavailable(APIException):
+    status_code = 503
+    default_code = 'reminder_unavailable'
+    default_detail = 'Reminder information is temporarily unavailable.'

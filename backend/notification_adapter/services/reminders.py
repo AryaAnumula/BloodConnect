@@ -41,6 +41,20 @@ def reminder_state(*, appointment_id):
     return row.state
 
 
+def public_reminder_state(*, appointment_id):
+    """Appointment DTO projection: a real queued/blocked/leased intent is still pending.
+
+    Never invent a pending intent when none exists. Internal dispatch diagnostics retain
+    the raw BLOCKED/LEASED states; this maps to the existing four-value public contract.
+    """
+    state = reminder_state(appointment_id=appointment_id)
+    if state in {'PENDING', 'BLOCKED', 'LEASED'}:
+        return 'PENDING'
+    if state in {'DELIVERED', 'FAILED', 'CANCELLED'}:
+        return state
+    raise LookupError('Reminder state is unavailable.')
+
+
 def enqueue_camp_cancellation(*, appointment_id, donor_user_id, cancelled_at, channels=None):
     """Persist one cancellation event in the caller's atomic transaction."""
     appointment_id = _uuid(appointment_id)

@@ -27,13 +27,20 @@ def slot_dto(slot, confirmed_count: int) -> dict:
 
 
 def appointment_dto(appointment) -> dict:
-    # The provider exists in this checkpoint, but response mapping is still pending. Never
-    # fabricate a reminder state or claim that an outbox intent was delivered.
+    from django.db import DatabaseError
+    from core.errors import DecisionRequired
+    from notification_adapter.services.reminders import public_reminder_state
+    from scheduling.exceptions import ReminderUnavailable
+    try:
+        state = public_reminder_state(appointment_id=appointment.pk)
+    except (LookupError, DecisionRequired, DatabaseError):
+        raise ReminderUnavailable() from None
     return {
         'id': str(appointment.id),
         'donor_id': str(appointment.donor_id),
         'slot_id': str(appointment.slot_id),
         'scheduled_time': appointment.slot.starts_at.isoformat(),
         'status': appointment.status,
+        'reminder_state': state,
         'cancelled_at': appointment.cancelled_at.isoformat() if appointment.cancelled_at else None,
     }
