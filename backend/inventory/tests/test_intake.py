@@ -13,7 +13,7 @@ from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.db import IntegrityError, transaction
 from django.db.models.deletion import ProtectedError
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.utils import timezone
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.test import APIClient
@@ -210,6 +210,7 @@ class IntakeTests(InventoryFixture, TestCase):
             call_command('reconcile_collection_history', apply=True, stdout=StringIO())
 
 
+@override_settings(ROOT_URLCONF='inventory.tests.urls')
 class IntakeAPITests(InventoryFixture, TestCase):
     def test_permissions_csrf_and_strict_body(self):
         client = APIClient(enforce_csrf_checks=True)
