@@ -79,3 +79,33 @@ def summarize_usable_stock(
         }
         for (blood_group, component_type), count in sorted(counts.items())
     ]
+
+
+def stock_summary(*, actor, filters: dict, page=1, page_size=20) -> dict:
+    from zoneinfo import ZoneInfo
+    from django.db import DatabaseError
+    from django.db.models import Count
+    from django.utils import timezone
+    from rest_framework.exceptions import ValidationError
+    from inventory.exceptions import InventoryUnavailable
+    from inventory.models import BloodUnit
+    from inventory.permissions import require_stock_reader
+    from inventory.serializers import StockQuery
+
+    require_stock_reader(actor)
+    if (not isinstance(filters, dict) or set(filters) - {'blood_group', 'component_type'}
+            or type(page) is not int or type(page_size) is not int):
+        raise ValidationError({'non_field_errors': ['Invalid stock query.']})
+    query = StockQuery(data=filters | {'page': page, 'page_size': page_size})
+    query.is_valid(raise_exception=True)
+    values = dict(query.validated_data)
+    page, size = values.pop('page'), values.pop('page_size')
+    today = timezone.localdate(timezone=ZoneInfo('Asia/Kolkata'))
+    try:
+        rows = list(BloodUnit.objects.filter(status='AVAILABLE', expiry_date__gt=today,
+            **values).values('blood_group', 'component_type').annotate(
+                available_quantity=Count('id')).order_by('blood_group', 'component_type'))
+        return {'count': len(rows), 'page': page, 'page_size': size,
+                'results': rows[(page-1)*size:page*size]}
+    except DatabaseError as exc:
+        raise InventoryUnavailable() from exc
