@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Record blood unit · BloodConnect</title>
+<style>body{font:16px system-ui;margin:3rem auto;padding:0 1rem;max-width:38rem;color:#20242c}label{display:block;margin:1rem 0}input,select,button{font:inherit;padding:.6rem;box-sizing:border-box;width:100%}button{background:#991b36;color:white;border:0;border-radius:4px;cursor:pointer}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f2f3f5;padding:1rem}</style></head>
+<body><main><h1>Record blood unit</h1><p>Use synthetic data for this educational demonstration. Expiry is calculated by the server.</p>
+<form id="intake">{% csrf_token %}
+<label>Unit code<input name="unit_code" required maxlength="64"></label>
+<label>Donor profile UUID<input name="donor_id" required></label>
+<label>Blood group<select name="blood_group"><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option></select></label>
+<label>Component<select name="component_type"><option>WHOLE_BLOOD</option><option>RBC</option><option>PLASMA</option><option>PLATELETS</option></select></label>
+<label>Collection date<input name="collection_date" type="date" required></label>
+<label>Existing collection event UUID (optional)<input name="collection_event_id"></label>
+<p>Quantity: 1 unit</p><button type="submit">Record unit</button></form>
+<pre id="result" role="status" aria-live="polite">No unit recorded yet.</pre></main>
+<script>
+const form=document.getElementById('intake'), result=document.getElementById('result');
+form.addEventListener('submit',async event=>{
+ event.preventDefault(); const button=form.querySelector('button'); button.disabled=true;
+ const fields=new FormData(form), body={quantity:1};
+ for(const key of ['unit_code','donor_id','blood_group','component_type','collection_date']) body[key]=fields.get(key);
+ if(fields.get('collection_event_id').trim()) body.collection_event_id=fields.get('collection_event_id').trim();
+ try {
+  const response=await fetch('/api/v1/blood-units',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-CSRFToken':fields.get('csrfmiddlewaretoken')},body:JSON.stringify(body)});
+  const data=await response.json();
+  result.textContent=response.ok ? 'Unit saved.\n'+JSON.stringify(data,null,2) : 'Unable to record unit.\n'+JSON.stringify(data.error || {},null,2);
+ } catch(error) { result.textContent='Unable to reach inventory. Check the recorded result before retrying.'; }
+ finally {button.disabled=false;}
+});
+</script></body></html>

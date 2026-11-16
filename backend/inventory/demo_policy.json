@@ -1,0 +1,4 @@
+{
+  "version": "bloodconnect-demo-v1",
+  "shelf_life_days": {"WHOLE_BLOOD": 35, "RBC": 42, "PLASMA": 365, "PLATELETS": 5}
+}
