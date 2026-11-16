@@ -49,10 +49,11 @@ def create_camp(*, actor, data: dict) -> dict:
 
 
 def _check_bookings(camp, changes) -> None:
-    """Contract (PATCH /camps): do not cut capacity below active bookings or strand appointments.
+    """Contract (PATCH /camps), BC-D005/D007: runs under the camp row lock.
 
-    Runs under the camp row lock. Only slots that have CONFIRMED bookings block a time change;
-    empty slots outside the new times are not checked here (open question for Arya).
+    Capacity may not drop below the CONFIRMED appointment count (equality is allowed), and every
+    linked slot, whether open, empty, cancelled or historical, must stay inside a moved camp
+    interval (409 slot_conflict). Slots are never moved or deleted silently.
     """
     confirmed = Appointment.objects.filter(slot__camp=camp, status=Appointment.Status.CONFIRMED)
     if 'capacity' in changes and changes['capacity'] < confirmed.count():

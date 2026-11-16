@@ -1,20 +1,20 @@
-"""BB-20 interim role gate for camp actions. PENDING S2-04 approval.
+"""BB-20/21 role gate for camp and slot actions (BC-D001, BC-D002, BC-D020).
 
-INTENDED matrix (shared team context; wording NOT yet recorded in config/sprint2-decisions.json):
-active STAFF and ADMIN create/update/cancel camps, DONOR/STAFF/ADMIN list. The older ADMIN-only
-create/cancel proposal conflicts with SRS FR-021 and is not used. Only active, authenticated,
-non-superuser accounts. Replace the body with core.sprint2_permissions once that shared helper is on main;
-this is the only place scheduling checks camp roles.
+Active, authenticated, non-superuser accounts only; there is no superuser bypass. STAFF and ADMIN
+create/update/cancel camps and set up slots; DONOR, STAFF and ADMIN list; only DONOR books and
+cancels their own appointment. REQUESTER, anonymous and inactive accounts have no scheduling
+access. Replace the body with core.sprint2_permissions if that shared helper lands; this is the
+only place scheduling checks camp roles.
 """
 from rest_framework.exceptions import PermissionDenied
 
-# PENDING: S2-04 wording not yet recorded. REQUESTER never manages camps; no superuser bypass.
+# REQUESTER never manages camps; no superuser bypass.
 CAMP_ACTION_ROLES = {
     'create': frozenset({'ADMIN', 'STAFF'}),
     'update': frozenset({'ADMIN', 'STAFF'}),
     'cancel': frozenset({'ADMIN', 'STAFF'}),
     'list': frozenset({'DONOR', 'STAFF', 'ADMIN'}),
-    # BB-21 (S2-04 proposal: slots ADMIN or STAFF; booking DONOR only).
+    # BB-21: slots by ADMIN or STAFF; booking DONOR only.
     'slot_create': frozenset({'ADMIN', 'STAFF'}),
     'slot_list': frozenset({'DONOR', 'STAFF', 'ADMIN'}),
     'book': frozenset({'DONOR'}),

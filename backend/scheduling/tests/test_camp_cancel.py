@@ -388,3 +388,49 @@ class CancelCampDeliveryTests(TransactionTestCase):
             self.assertEqual(len(list(Path(directory).glob('*.json'))), 4)
 
         self.with_node(scenario)
+
+
+class CancelCampSideEffectTests(TransactionTestCase):
+    def setUp(self):
+        self.staff = make_user('STAFF')
+
+    def test_no_network_call_is_made_while_cancelling(self):
+        camp = make_camp()
+        slot = make_slot(camp, capacity=3)
+        book_appointment(actor=make_donor()[0], slot_id=slot.pk)
+        with patch('requests.sessions.Session.request',
+                   side_effect=AssertionError('network call during cancellation')) as network, \
+                patch('notification_adapter.services.dispatch.send_notification_intent',
+                      side_effect=AssertionError('dispatch during cancellation')):
+            cancel_camp(actor=self.staff, camp_id=camp.pk, reason='Closed')
+        network.assert_not_called()
+        self.assertEqual(OutboxIntent.objects.get(event_type='APPOINTMENT_CANCELLED').state,
+                         'PENDING')  # queued only; delivery is a separate step after commit
+
+    def test_upcoming_camp_count_follows_real_create_and_cancel(self):
+        from scheduling.selectors.summary import upcoming_camp_count
+        now = timezone.now()
+        before = upcoming_camp_count(now=now)
+        camp = make_camp()
+        make_camp(starts_at=now - timedelta(days=1), ends_at=now + timedelta(hours=1))  # started
+        self.assertEqual(upcoming_camp_count(now=now), before + 1)
+        cancel_camp(actor=self.staff, camp_id=camp.pk, reason='Closed')
+        self.assertEqual(upcoming_camp_count(now=now), before)
+        self.assertEqual(upcoming_camp_count(now=camp.starts_at), before)  # boundary: >= now
+
+    def test_upcoming_camp_count_requires_an_aware_datetime(self):
+        from datetime import datetime
+        from scheduling.selectors.summary import upcoming_camp_count
+        for bad in (datetime(2026, 1, 1), '2026-01-01T00:00:00Z', None):
+            with self.subTest(bad=bad), self.assertRaises(ValueError):
+                upcoming_camp_count(now=bad)
+
+    def test_reminder_context_reports_cancelled_camp_so_dispatch_blocks_nothing_new(self):
+        from scheduling.selectors.reminders import reminder_context
+        camp = make_camp()
+        slot = make_slot(camp, capacity=3)
+        booking = book_appointment(actor=make_donor()[0], slot_id=slot.pk)
+        cancel_camp(actor=self.staff, camp_id=camp.pk, reason='Closed')
+        context = reminder_context(appointment_id=booking['id'])
+        self.assertEqual((context['appointment_status'], context['camp_status']),
+                         ('CANCELLED', 'CANCELLED'))
