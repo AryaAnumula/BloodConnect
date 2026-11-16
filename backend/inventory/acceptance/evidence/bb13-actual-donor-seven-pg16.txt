@@ -1,0 +1,53 @@
+Creating test database for alias 'default' ('test_bb13_actual_donor')...
+
+Found 7 test(s).
+Operations to perform:
+  Synchronize unmigrated apps: core, reporting, rest_framework, staticfiles
+  Apply all migrations: accounts, audit, auth, blood_requests, contenttypes, donors, inventory, notification_adapter, scheduling, sessions
+Synchronizing apps without migrations:
+  Creating tables...
+    Running deferred SQL...
+Running migrations:
+  Applying contenttypes.0001_initial... OK
+  Applying contenttypes.0002_remove_content_type_name... OK
+  Applying auth.0001_initial... OK
+  Applying auth.0002_alter_permission_name_max_length... OK
+  Applying auth.0003_alter_user_email_max_length... OK
+  Applying auth.0004_alter_user_username_opts... OK
+  Applying auth.0005_alter_user_last_login_null... OK
+  Applying auth.0006_require_contenttypes_0002... OK
+  Applying auth.0007_alter_validators_add_error_messages... OK
+  Applying auth.0008_alter_user_username_max_length... OK
+  Applying auth.0009_alter_user_last_name_max_length... OK
+  Applying auth.0010_alter_group_name_max_length... OK
+  Applying auth.0011_update_proxy_permissions... OK
+  Applying auth.0012_alter_user_first_name_max_length... OK
+  Applying accounts.0001_initial... OK
+  Applying audit.0001_initial... OK
+  Applying donors.0001_initial... OK
+  Applying donors.0002_eligibilityresult... OK
+  Applying donors.0003_donorprofile_last_confirmed_collection_date_and_more... OK
+  Applying inventory.0001_initial... OK
+  Applying blood_requests.0001_initial... OK
+  Applying blood_requests.0002_bloodrequest_reviewed_at_bloodrequest_reviewed_by... OK
+  Applying blood_requests.0003_issuerecord... OK
+  Applying notification_adapter.0001_initial... OK
+  Applying notification_adapter.0002_deliveryattempt_channel_deliveryattempt_receipt_key... OK
+  Applying scheduling.0001_initial... OK
+  Applying scheduling.0002_slot_appointment_slot_scheduling__status_9f1ae0_idx_and_more... OK
+test_actual_booking_rejects_history_stale_eligibility (inventory.tests.test_real_collection_integration.RealCollectionIntegrationTests.test_actual_booking_rejects_history_stale_eligibility) ... ok
+test_actual_intake_projection_and_additional_component (inventory.tests.test_real_collection_integration.RealCollectionIntegrationTests.test_actual_intake_projection_and_additional_component) ... ok
+test_actual_reconciliation_preserves_assessment_and_resumes_intake (inventory.tests.test_real_collection_integration.RealCollectionIntegrationTests.test_actual_reconciliation_preserves_assessment_and_resumes_intake) ... ok
+test_ahead_projection_without_source_is_never_lowered (inventory.tests.test_real_collection_integration.RealCollectionIntegrationTests.test_ahead_projection_without_source_is_never_lowered) ... ok
+test_failed_authoritative_read_is_not_empty_history (inventory.tests.test_real_collection_integration.RealCollectionIntegrationTests.test_failed_authoritative_read_is_not_empty_history) ... ok
+test_later_unit_failure_rolls_back_actual_projection_event_and_unit (inventory.tests.test_real_collection_integration.RealCollectionIntegrationTests.test_later_unit_failure_rolls_back_actual_projection_event_and_unit) ... ok
+test_two_actual_collections_have_one_winner (inventory.tests.test_real_collection_integration.RealCollectionConcurrencyTests.test_two_actual_collections_have_one_winner) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 1.931s
+
+OK
+Destroying test database for alias 'default' ('test_bb13_actual_donor')...
+
+  Applying sessions.0001_initial... OK
+System check identified no issues (0 silenced).
