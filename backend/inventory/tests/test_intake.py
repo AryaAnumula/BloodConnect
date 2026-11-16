@@ -6,6 +6,7 @@ they are not application implementations or full donor integration evidence.
 from datetime import timedelta
 from decimal import Decimal
 from io import StringIO
+from inspect import signature
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
@@ -19,6 +20,7 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.test import APIClient
 
 from donors.models import DonorProfile, EligibilityResult
+from donors.configuration import approved_screening_rules
 from donors.services.collections import record_confirmed_collection as real_writer
 from donors.services.evaluation import evaluate as old_evaluate
 from inventory.exceptions import IneligibleDonor, InventoryUnavailable, UnitConflict, UnsafeUnit
@@ -30,6 +32,10 @@ from inventory.services.units import record_unit
 
 def evaluator_boundary_double(*, age_years, weight_kg, last_donation_date,
                               confirmed_collection_date, today, rules):
+    if 'confirmed_collection_date' in signature(old_evaluate).parameters:
+        return old_evaluate(age_years=age_years,weight_kg=weight_kg,
+            last_donation_date=last_donation_date,confirmed_collection_date=confirmed_collection_date,
+            today=today,rules=rules)
     effective = max((d for d in (last_donation_date, confirmed_collection_date) if d is not None), default=None)
     return old_evaluate(age_years=age_years, weight_kg=weight_kg,
                         last_donation_date=effective, today=today, rules=rules)
@@ -49,7 +55,7 @@ class InventoryFixture:
             mobile='+919999999991', blood_group='A+', location='Test')
         self.assessment = EligibilityResult.objects.create(donor=self.donor, age_years=25,
             weight_kg=Decimal('60'), last_donation_date=None, confirmed_collection_date=None,
-            status='ELIGIBLE', rules_version='demo-2026-10-v1')
+            status='ELIGIBLE', rules_version=approved_screening_rules()['rules_version'])
         self.payload = dict(unit_code='BC-TEST-1', donor_id=str(self.donor.pk),
             blood_group='A+', component_type='RBC', collection_date=self.today.isoformat(), quantity=1)
 
@@ -123,9 +129,19 @@ class IntakeTests(InventoryFixture, TestCase):
         self.assertIsNone(self.donor.last_confirmed_collection_date)
         self.assertFalse(CollectionEvent.objects.exists())
 
-    def test_absent_real_donor_contract_fails_closed(self):
-        with self.assertRaises(InventoryUnavailable):
-            record_unit(actor=self.staff, data=self.payload)
+    def test_explicit_missing_donor_facade_fails_closed(self):
+        with patch('inventory.services.units.evaluate',evaluator_boundary_double), patch(
+                'inventory.services.donor_boundary.find_spec',return_value=None):
+            with self.assertRaises(InventoryUnavailable):
+                record_unit(actor=self.staff, data=self.payload)
+        self.assertFalse(CollectionEvent.objects.exists())
+
+    def test_explicit_old_evaluator_signature_fails_closed(self):
+        def old_shape(*,age_years,weight_kg,last_donation_date,today,rules):
+            raise AssertionError('An incompatible evaluator must never run.')
+        with patch('inventory.services.units.evaluate',old_shape):
+            with self.assertRaises(InventoryUnavailable):
+                record_unit(actor=self.staff,data=self.payload)
         self.assertFalse(CollectionEvent.objects.exists())
 
     def test_stale_missing_ineligible_and_history_mismatch(self):
