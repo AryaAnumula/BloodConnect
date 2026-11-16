@@ -1,3 +1,17 @@
+# BB14 final isolated integration - WIP, ready for owner review
+
+Actual donor PR51 a93f01cccfe2a242f0a91f3f3646775ff4282297 is now composed with the actual facade/evaluator/screening and history-v2 after controlled reconciliation. BB13 acceptance is published in #56 at625c522dc937de65fa692e20286e8517a55d366a. This supersedes old missing-donor references below.
+
+BB14 checks source5f15a8b8617ff1d8c2bde54b73e375c8ec38494e; production stock/disposition/reporting is unchanged from062550b86fddd67d5ef6f69bd8d6f7160e8fb58b. Actual config.urls with Arya PR59 routepatch739ff48524fc9552fa3c92a343247b711c10e4c2, canonical PR60 42afc198b70fd9d3821580fbbd25d4ee2fda4653, reporting PR61 8b1349f295170525b6d668e3fb55e48586950d58 and actual issue PR64 b5f72bee8ab16022154599c9a5354a9f6da69272. No owner source is committed here.
+
+PostgreSQL16.16 (Visual C++1944,64-bit), command `python manage.py test inventory.acceptance.intake_routes inventory.acceptance.stock_routes inventory.acceptance.alert_routes --noinput --verbosity 2`:9pass/0fail/0skip,2.015s; BB14 owns4 of these checks. Actual fresh intake201 advanced donor history; stock1 -> disposition DISCARDED -> stock0; report exactly1event/1unit/0issues/1waste. Additional real-route checks reconcile historical components/dispositions/report, actual Arnav issue once and replay rejection, and ADMIN read-only gates. System check0issues, no migration drift, git diff --check passed. Full log in acceptance/evidence/final-actual-donor-stock-alert-routes-pg16.txt.
+
+Recorded browser/load evidence was reused because production behavior did not change:1131requests/0errors/p95=0.311102300s at748022830aac27dd1d28717255531de5b5deed06, PostgreSQL16.16,500donors/500units/5clients/10secwarmup+60measured; original acceptance scope/hardware retained in earlier evidence. Prior dashboard/report checks12pass/0fail/0skip at1ea040fbbcae26b939d60b10f115f42891a88e8f remain separate evidence. No unchanged load/browser rerun.
+
+All six owned criteria have bounded evidence and actual-source integration checks now pass. Remaining: Arya's required review and central shared-source/route integration, with core seeder patch carried by Arya and donor config carried by Ankitha/Arya after target-db reconciliation. Keep WIP; only Arya merges. No additional inventory code/test blocker in this tested composition. Parent evidence was propagated additively; no force-push, rebase, merge or shared-file changes.
+
+## Historical provenance
+
 ## Latest published owner-provider reconciliation
 
 The former dashboard/report-source dependency is now resolved in the isolated lane using actual Arya PR60 `42afc198b70fd9d3821580fbbd25d4ee2fda4653` and PR61 `8b1349f295170525b6d668e3fb55e48586950d58`, with Arnav request/issue source `b5f72bee8ab16022154599c9a5354a9f6da69272`. Only exact owner-file deltas were composed; overlapping files were required to be byte-identical. No Git merge or owner-source edit occurred.
