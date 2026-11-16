@@ -11,6 +11,7 @@ urlpatterns = [
     path('', TemplateView.as_view(template_name='index.html'), name='home'),
     path('login', TemplateView.as_view(template_name='login.html'), name='login-page'),
     path('register', TemplateView.as_view(template_name='register.html'), name='register-page'),
+    path('camps', TemplateView.as_view(template_name='camps.html'), name='camps-page'),
     path('screening', TemplateView.as_view(template_name='screening.html'), name='screening-page'),
     path('eligibility', TemplateView.as_view(template_name='eligibility.html'), name='result-page'),
     path('staff/donors', TemplateView.as_view(template_name='search.html'), name='search-page'),
@@ -18,5 +19,4 @@ urlpatterns = [
     path('requests', TemplateView.as_view(template_name='request_tracking.html'), name='request-tracking-page'),
     path('requests/<uuid:request_id>', TemplateView.as_view(template_name='request_detail.html'), name='request-detail-page'),
     path('staff/requests', TemplateView.as_view(template_name='staff_requests.html'), name='staff-requests-page'),
-    path('camps', TemplateView.as_view(template_name='camps.html'), name='camps-page'),
 ]
