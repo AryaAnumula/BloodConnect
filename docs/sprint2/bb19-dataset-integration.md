@@ -13,3 +13,7 @@ Canonical source states independently verified:40 SUBMITTED,20 APPROVED-unfulfil
 Local full canonical verifier passed:80 submissions,40 source reviews plus1 refresh review,8 requester lists/all details, source reconciliation and access/CSRF/close guards. Existing PostgreSQL regression is separately run on the actual committed branch; verification evidence and remaining acceptance limits are recorded with the PR. PR62's supported foundation seeder is also available after Arya personally integrates that shared-data PR; this verifier intentionally needs no import/merge of its code.
 
 Full BB19 issue→partial/final tracking→close acceptance still depends on Arnav16 and Yashwitha's real allocation provider. Current unblocked submit/review/tracking integration is demonstrated using the dataset. Only Arya merges; existing attribution/manual CI preserved.
+
+## Exact committed-source regression
+
+Source95efe9563f1dee1f776b076a5f43b61c5ea8db18 passed [manual PostgreSQL16 run43843864066](https://github.com/AryaAnumula/BloodConnect/actions/runs/43843864066):416 Django/91 Node/29 availability, zero skips, clean migration/system/repository checks. [Cross-story evidence and limits](arya-dataset-integration-verification.md) distinguish actual canonical file/API/private transport verification from PostgreSQL and browser scope. Later documentation-only commits retain tested runtime/test/config source.
