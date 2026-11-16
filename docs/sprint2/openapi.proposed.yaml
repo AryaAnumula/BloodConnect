@@ -1865,7 +1865,7 @@ paths:
       - SEC-002
       - SEC-003
       x-contract-status: PROPOSED_APPROVAL_REQUIRED
-      x-implementation-status: checkpoint_real_source_integration_pending
+      x-implementation-status: implemented
       x-allowed-roles:
       - ADMIN
       x-decision-gates:
