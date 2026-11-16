@@ -154,3 +154,31 @@ class FailClosedWithoutRealInventoryTests(TestCase):
         with mock.patch.object(inventory.importlib, 'import_module', side_effect=error):
             with self.assertRaises(ModuleNotFoundError):
                 inventory.load_allocate_units()
+
+
+class ProviderErrorMappingTests(TestCase):
+    """Contract v1.1 shared errors raised by the provider (TEST-ONLY stand-in classes whose
+    module path mimics inventory.exceptions)."""
+
+    def setUp(self):
+        self.staff = make_user('STAFF')
+        self.row = make_request(make_user('REQUESTER'), status='APPROVED', quantity=2)
+
+    @staticmethod
+    def provider_error(name):
+        return type(name, (Exception,), {'__module__': 'inventory.exceptions'})()
+
+    def test_unit_conflict_and_unsafe_unit_map_to_409_and_422_and_roll_back(self):
+        from blood_requests.exceptions import UnsafeUnit
+        for name, expected in (('UnitConflict', UnitConflict), ('UnsafeUnit', UnsafeUnit)):
+            with self.subTest(name=name):
+                with doubles(FakeAllocator(error=self.provider_error(name))), self.assertRaises(expected):
+                    issue_request(actor=self.staff, request_id=self.row.id, unit_ids=unit_ids(1))
+                self.row.refresh_from_db()
+                self.assertEqual((self.row.status, self.row.fulfilled_quantity), ('APPROVED', 0))
+
+    def test_other_provider_errors_are_not_swallowed(self):
+        for error in (self.provider_error('SomethingElse'), RuntimeError('programming error'), KeyError('x')):
+            with self.subTest(error=type(error).__name__):
+                with doubles(FakeAllocator(error=error)), self.assertRaises(type(error)):
+                    issue_request(actor=self.staff, request_id=self.row.id, unit_ids=unit_ids(1))

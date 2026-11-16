@@ -41,3 +41,11 @@ class InventoryUnavailable(APIException):
     status_code = 503
     default_code = 'inventory_unavailable'
     default_detail = 'Issuing is not available: inventory is not connected. Nothing was issued.'
+
+
+class UnsafeUnit(APIException):
+    """Shared contract v1.1: a selected unit is not usable (expired, quarantined, discarded,
+    already used, or not an exact group/component match)."""
+    status_code = 422
+    default_code = 'unsafe_unit'
+    default_detail = 'A selected unit cannot be issued for this request. Nothing was issued.'

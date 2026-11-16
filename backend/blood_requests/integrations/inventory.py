@@ -53,3 +53,20 @@ def checked_allocation(result, expected_unit_ids: list[str]) -> list[str]:
     if allocated != expected_unit_ids:  # same units, stable UUID order
         raise InventoryContractError()
     return allocated
+
+
+def translate_provider_error(exc):
+    """Map the provider's shared contract errors to our API errors; anything else is untouched.
+
+    Contract v1.1: inventory.exceptions.UnitConflict -> 409 unit_conflict and UnsafeUnit ->
+    422 unsafe_unit. If the provider already raises DRF APIExceptions they pass through as-is.
+    Returns the exception to raise, or None to re-raise the original (never swallowed).
+    """
+    from rest_framework.exceptions import APIException
+
+    from blood_requests.exceptions import UnitConflict, UnsafeUnit
+    if isinstance(exc, APIException):
+        return None
+    if not type(exc).__module__.startswith('inventory.'):
+        return None
+    return {'UnitConflict': UnitConflict, 'UnsafeUnit': UnsafeUnit}.get(type(exc).__name__, lambda: None)()

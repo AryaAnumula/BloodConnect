@@ -25,7 +25,8 @@ from rest_framework.exceptions import NotFound, PermissionDenied
 
 from blood_requests.exceptions import (InventoryUnavailable, IssueInvalidTransition, Oversupply,
                                        StorageUnavailable, UnitConflict)
-from blood_requests.integrations.inventory import checked_allocation, load_allocate_units
+from blood_requests.integrations.inventory import (checked_allocation, load_allocate_units,
+                                                   translate_provider_error)
 from blood_requests.models import BloodRequest
 from blood_requests.permissions import may_issue_requests
 from blood_requests.serializers.issue import clean_unit_ids
@@ -65,8 +66,14 @@ def issue_request(*, actor, request_id, unit_ids) -> dict:
             if len(selected) > row.quantity - row.fulfilled_quantity:
                 raise Oversupply()
             issued_at = timezone.now()  # after the request lock; provider refreshes after unit locks
-            result = allocate_units(actor=actor, unit_ids=list(selected), blood_group=row.blood_group,
-                                    component_type=row.component_type, issued_at=issued_at)
+            try:
+                result = allocate_units(actor=actor, unit_ids=list(selected), blood_group=row.blood_group,
+                                        component_type=row.component_type, issued_at=issued_at)
+            except Exception as exc:
+                mapped = translate_provider_error(exc)
+                if mapped is None:
+                    raise
+                raise mapped from None
             allocated = checked_allocation(result, selected)
             issues = _write_issue_records(blood_request=row, unit_ids=allocated, actor=actor,
                                           issued_at=issued_at)
