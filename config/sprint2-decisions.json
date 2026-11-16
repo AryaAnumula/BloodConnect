@@ -395,6 +395,17 @@
             "BB-22",
             "shared reminder integration"
           ]
+        },
+        {
+          "id": "BC-D039",
+          "status": "APPROVED",
+          "clause": "BB22 dataset integration: local DEBUG-only fresh bookings use approved services and actual current screenings; never import fictional DELIVERED/receipt rows. Bounded manual watch preserves existing25h target/24h receipt and at-least-hourly demo operation policy. No camp-service takeover, installed scheduler, automatic CI or merge approval.",
+          "approved_by": "Arya, explicit16November2026 dataset integration instruction",
+          "approved_at": "2026-11-16",
+          "evidence": "docs/sprint2/bb22-dataset-integration.md; central BC-D039",
+          "applies_to": [
+            "BB-22"
+          ]
         }
       ],
       "scoped_approval_note": "See shared-rules.md for approved scope and unresolved matters; parent status and runtime gates are unchanged.",
@@ -436,6 +447,17 @@
           "applies_to": [
             "BB-22",
             "shared reminder integration"
+          ]
+        },
+        {
+          "id": "BC-D039",
+          "status": "APPROVED",
+          "clause": "BB22 dataset integration: local DEBUG-only fresh bookings use approved services and actual current screenings; never import fictional DELIVERED/receipt rows. Bounded manual watch preserves existing25h target/24h receipt and at-least-hourly demo operation policy. No camp-service takeover, installed scheduler, automatic CI or merge approval.",
+          "approved_by": "Arya, explicit16November2026 dataset integration instruction",
+          "approved_at": "2026-11-16",
+          "evidence": "docs/sprint2/bb22-dataset-integration.md; central BC-D039",
+          "applies_to": [
+            "BB-22"
           ]
         }
       ],
