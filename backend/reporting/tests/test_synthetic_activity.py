@@ -54,6 +54,14 @@ class SyntheticActivityTests(TestCase):
         write_snapshot(self.directory.name, self.data)
         self.assertEqual(self.client.get(self.path).json()['wasted_unit_count'], 1)
 
+    def test_unknown_unit_status_fails_closed_even_outside_the_report_range(self):
+        self.data['tables']['blood_units'][0]['status'] = 'NOT_A_UNIT_STATE'
+        write_snapshot(self.directory.name, self.data)
+        response = self.client.get(self.path)
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(response.json()['error']['code'], 'reporting_unavailable')
+        self.assertNotIn(self.directory.name, response.content.decode())
+
     def test_source_errors_are_redacted_and_invalid_query_is_checked_first(self):
         self.source.write_text('{}', encoding='utf-8')
         response = self.client.get(self.path)

@@ -19,6 +19,7 @@ def activity_snapshot(data, *, start, end):
             when = calendar_date(event['collection_date'])
             donations += first <= when < after
         for unit in units.values():
+            check(unit['status'] in ('AVAILABLE', 'ISSUED', 'DISCARDED', 'QUARANTINED'))
             check(unit['collection_event_id'] in events and whole(unit['quantity'], 1) == 1)
             check(unit['collection_date'] == events[unit['collection_event_id']]['collection_date'])
             check(calendar_date(unit['collection_date']) < calendar_date(unit['expiry_date']))

@@ -101,4 +101,15 @@ class BB24Tests(TestCase):
         self.assertNotIn('private', str(error.exception))
 
     def test_story_page_shell_does_not_require_source_data(self):
-        self.assertEqual(Client().get('/reports').status_code, 200)
+        client, _ = signed_in(self.admin)
+        self.assertEqual(client.get('/reports').status_code, 200)
+
+    def test_reports_page_rejects_anonymous_and_non_operational_admins(self):
+        self.assertEqual(Client().get('/reports').status_code, 403)
+        for actor in (self.staff, self.requester, self.donor, self.superuser, self.inactive):
+            with self.subTest(role=actor.role, active=actor.is_active, superuser=actor.is_superuser):
+                client = Client()
+                client.force_login(actor)
+                response = client.get('/reports')
+                self.assertEqual(response.status_code, 403)
+                self.assertNotContains(response, 'Read-only synthetic snapshot', status_code=403)
