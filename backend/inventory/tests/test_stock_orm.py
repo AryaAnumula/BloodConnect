@@ -101,3 +101,17 @@ class StockORMTests(InventoryFixture, TestCase):
         result = stock_summary(actor=self.staff, filters={}, page_size=100)
         self.assertEqual(result['count'], 32)
         self.assertEqual(len(result['results']), 32)
+
+    def test_stock_page_hides_management_from_admin(self):
+        from django.test import Client
+        client = Client()
+        client.force_login(self.staff)
+        staff = client.get('/staff/inventory')
+        self.assertContains(staff, 'id="disposition"')
+        self.staff.role = 'ADMIN'
+        self.staff.save(update_fields=['role'])
+        admin = client.get('/staff/inventory')
+        self.assertEqual(admin.status_code, 200)
+        self.assertNotContains(admin, 'id="disposition"')
+        self.assertNotContains(admin, 'id="units"')
+        self.assertNotContains(admin, "read('/api/v1/blood-units")

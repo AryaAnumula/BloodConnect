@@ -20,6 +20,11 @@ class IntakePage(TemplateView):
 class StockPage(IntakePage):
     template_name = 'inventory/stock.html'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['can_manage_inventory'] = self.request.user.role == 'STAFF'
+        return context
+
     def dispatch(self, request, *args, **kwargs):
         from django.core.exceptions import PermissionDenied as PageDenied
         from rest_framework.exceptions import PermissionDenied
@@ -29,3 +34,7 @@ class StockPage(IntakePage):
         except PermissionDenied as exc:
             raise PageDenied() from exc
         return TemplateView.dispatch(self, request, *args, **kwargs)
+
+
+class AlertPage(IntakePage):
+    template_name = 'inventory/alerts.html'
