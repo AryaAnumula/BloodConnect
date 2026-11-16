@@ -10,6 +10,34 @@ from inventory.pages import StockPage
 
 
 class SharedStockRouteChecks(SharedApplicationFixture,TestCase):
+    def test_actual_fresh_intake_reconciles_stock_disposition_and_report(self):
+        from donors.services.screening import screen_donor
+        from donors.eligibility_reader import read_saved_results
+        screen_donor(actor=self.donor.user,donor_id=self.donor.pk,
+            answers={'age_years':25,'weight_kg':'60.00','last_donation_date':None})
+        staff = self.session_client(self.staff)
+        response = staff.post('/api/v1/blood-units',{'unit_code':'FRESH-SHARED-STOCK',
+            'donor_id':str(self.donor.pk),'blood_group':'A+','component_type':'RBC',
+            'collection_date':self.today.isoformat(),'quantity':1},format='json')
+        self.assertEqual(response.status_code,201,response.data)
+        self.donor.refresh_from_db()
+        self.assertEqual(self.donor.last_confirmed_collection_date,self.today)
+        self.assertTrue(read_saved_results(donor_ids=[self.donor.pk])[str(self.donor.pk)]['is_history_stale'])
+        self.assertEqual(staff.get('/api/v1/stock').data['results'],[
+            {'blood_group':'A+','component_type':'RBC','available_quantity':1}])
+        unit_id=response.data['id']
+        changed=staff.post(f'/api/v1/blood-units/{unit_id}/dispositions',
+            {'status':'DISCARDED','reason':'Synthetic fresh-intake reconciliation'},format='json')
+        self.assertEqual(changed.status_code,200,changed.data)
+        self.assertEqual(staff.get('/api/v1/stock').data['results'],[])
+        report=self.session_client(self.admin).get('/api/v1/reports',
+            {'from':self.today.isoformat(),'to':self.today.isoformat()})
+        self.assertEqual(report.status_code,200,report.data)
+        self.assertEqual([report.data[key] for key in ('donation_event_count',
+            'collected_unit_count','issued_unit_count','wasted_unit_count')],[1,1,0,1])
+        self.assertEqual(BloodUnit.objects.count(),1)
+        self.assertEqual(InventoryDisposition.objects.count(),1)
+
     def test_stock_disposition_and_report_reconcile_on_real_routes(self):
         event,units = self.historical_units()
         staff = self.session_client(self.staff)
