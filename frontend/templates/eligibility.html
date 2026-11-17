@@ -16,6 +16,7 @@
   <input
     id="donor-id"
     name="donor_id"
+    {% if request.user.is_authenticated and request.user.role == "DONOR" and request.user.donor_profile %}value="{{ request.user.donor_profile.id }}" readonly{% endif %}
     type="text"
     required
     maxlength="36"
@@ -23,7 +24,7 @@
     placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
     aria-describedby="donor-id-help"
   >
-  <p id="donor-id-help">Enter the donor profile ID, not the account ID.</p>
+  <p id="donor-id-help">{% if request.user.is_authenticated and request.user.role == "DONOR" and request.user.donor_profile %}Your donor profile ID is filled in automatically.{% else %}Enter the donor profile ID, not the account ID. Donors can sign in to fill this automatically.{% endif %}</p>
   <button type="submit">Load saved result</button>
 </form>
 

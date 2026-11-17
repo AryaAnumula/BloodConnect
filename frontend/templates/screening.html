@@ -16,6 +16,7 @@
   <input
     id="donor-id"
     name="donor_id"
+    {% if request.user.is_authenticated and request.user.role == "DONOR" and request.user.donor_profile %}value="{{ request.user.donor_profile.id }}" readonly{% endif %}
     type="text"
     required
     maxlength="36"
@@ -23,7 +24,7 @@
     placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
     aria-describedby="donor-id-help"
   >
-  <p id="donor-id-help">Enter the donor profile ID, not the account ID.</p>
+  <p id="donor-id-help">{% if request.user.is_authenticated and request.user.role == "DONOR" and request.user.donor_profile %}Your donor profile ID is filled in automatically.{% else %}Enter the donor profile ID, not the account ID. Donors can sign in to fill this automatically.{% endif %}</p>
 
   <label for="age-years">Age in years</label>
   <input id="age-years" name="age_years" type="number" required min="0" max="150" step="1" inputmode="numeric">
