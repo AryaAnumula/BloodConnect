@@ -1,0 +1,26 @@
+{
+  "database": "PostgreSQL 16.16, compiled by Visual C++ build 1944, 64-bit",
+  "reconciliation": [
+    "Successful history check: checked=2, advances=1, apply=False",
+    "Successful history check: checked=2, advances=1, apply=True",
+    "Successful history check: checked=2, advances=0, apply=True"
+  ],
+  "old_rules_version": "demo-2026-10-v1",
+  "new_rules_version": "demo-2026-11-history-v2",
+  "numeric_rules_unchanged": true,
+  "old_assessments_preserved": true,
+  "fresh_donor_id": "3772f96d-8cd7-4bdc-a210-7cd9ae575b1c",
+  "today": "2026-11-17",
+  "fresh_events_before_browser": 0,
+  "seeder_carry_owner": "Arya (core); donor configuration carry: Ankitha/Arya; no shared files in PR56",
+  "browser_fresh_intake": "PASS",
+  "projection_event_unit_agree": true,
+  "fresh_event_count": 1,
+  "fresh_unit_count": 1,
+  "duplicate_conflict": 409,
+  "actual_booking_rejected_history_stale": true,
+  "assessments_preserved_after_intake": true,
+  "unit_id": "4d871a61-be1d-4a26-a77c-56daab8e4fe9",
+  "event_id": "1bef7030-ebea-47f3-b2a2-eb9c985de2ac",
+  "expiry_date": "2026-12-29"
+}

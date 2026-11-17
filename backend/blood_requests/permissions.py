@@ -46,3 +46,15 @@ class IsRequestReader(BasePermission):
 
     def has_permission(self, request, view):
         return may_submit_request(user=request.user) or may_review_requests(user=request.user)
+
+
+def may_issue_requests(*, user) -> bool:
+    """BB-16 (BC-D026): authenticated, active, non-superuser STAFF; no clinical permission needed."""
+    return _active_non_superuser_with_role(user, 'STAFF')
+
+
+class IsIssueStaff(BasePermission):
+    """Use after IsAuthenticated so anonymous callers keep 403 authentication_required."""
+
+    def has_permission(self, request, view):
+        return may_issue_requests(user=request.user)

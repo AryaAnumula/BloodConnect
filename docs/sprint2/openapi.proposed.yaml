@@ -917,6 +917,12 @@ paths:
       - DATA-01
       x-contract-status: PROPOSED_APPROVAL_REQUIRED
       x-implementation-status: not_implemented
+      x-implementation-note: 'BB-16 WIP on team/arnav-bb16-story (PR #64): route, STAFF gate,
+        strict input, request lock, APPROVED/remaining checks, provider DTO verification,
+        IssueRecord (migration 0003 depends on inventory 0001_initial) and all-or-nothing
+        rollback, verified against the real BB-13 allocate_units (PR #56 625c522) and a browser
+        walkthrough on the real routes in an isolated integration lane. Status stays
+        not_implemented until it is integrated on testing.'
       x-allowed-roles:
       - STAFF
       x-decision-gates:
@@ -2240,6 +2246,7 @@ components:
           type: array
           minItems: 1
           uniqueItems: true
+          maxItems: 100
           items: *id001
       required:
       - unit_ids

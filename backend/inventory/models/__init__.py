@@ -1,1 +1,3 @@
-"""Inventory domain models."""
+from .inventory import BloodUnit, CollectionEvent
+
+__all__ = ["BloodUnit", "CollectionEvent"]
