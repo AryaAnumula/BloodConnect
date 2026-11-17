@@ -2,7 +2,8 @@
 
 Reuses the BB-11 strict fields. Unknown fields are rejected. Date-times must be ISO 8601 with an
 explicit timezone offset; naive values are rejected and aware values are converted to UTC.
-No past-date rule and no business maximum capacity: those are not approved yet.
+The past-start rules (BC-D003/D004) live in the services because they need the server clock;
+there is deliberately no business maximum capacity beyond the integer column bound.
 """
 import re
 from datetime import timezone as dt_timezone
@@ -66,3 +67,8 @@ class CampListInputSerializer(StrictInputSerializer):
     status = StrictChoiceField(choices=('ACTIVE', 'CANCELLED'), required=False)
     page = QueryIntegerField(min_value=1, default=1)
     page_size = QueryIntegerField(min_value=1, max_value=100, default=20)
+
+
+class CampCancelInputSerializer(StrictInputSerializer):
+    """POST /camps/{id}/cancel: exactly one non-empty `reason` (1-240 after trimming)."""
+    reason = StrictStringField(min_length=1, max_length=240)

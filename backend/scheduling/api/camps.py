@@ -1,7 +1,7 @@
 """BB-20 camp endpoints. Role gates are the PROPOSED S2-04 matrix (see scheduling.permissions).
 
-POST/GET /api/v1/camps and PATCH /api/v1/camps/{camp_id}. Cancel (POST .../cancel) is NOT built:
-it waits for S2-05/S2-06 approval and the BB-21 appointment model.
+POST/GET /api/v1/camps, PATCH /api/v1/camps/{camp_id} and POST /api/v1/camps/{camp_id}/cancel
+(strict {reason}; atomic camp + appointment cancellation, see services.camps.cancel_camp).
 """
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_protect
@@ -10,11 +10,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core.parsers import StrictJSONParser
-from scheduling.camp_inputs import (CampCreateInputSerializer, CampListInputSerializer,
+from scheduling.camp_inputs import (CampCancelInputSerializer, CampCreateInputSerializer, CampListInputSerializer,
                                     CampUpdateInputSerializer)
 from scheduling.permissions import require_camp_role
 from scheduling.selectors.camps import list_camps
-from scheduling.services.camps import create_camp, update_camp
+from scheduling.services.camps import cancel_camp, create_camp, update_camp
 
 
 @method_decorator(csrf_protect, name='dispatch')
@@ -51,3 +51,16 @@ class CampDetailView(APIView):
         serializer.is_valid(raise_exception=True)
         return Response(update_camp(actor=request.user, camp_id=camp_id,
                                     data=serializer.validated_data))
+
+
+@method_decorator(csrf_protect, name='dispatch')
+class CampCancelView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [StrictJSONParser]
+
+    def post(self, request, camp_id, *args, **kwargs):
+        require_camp_role(user=request.user, action='cancel')
+        serializer = CampCancelInputSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response(cancel_camp(actor=request.user, camp_id=camp_id,
+                                    reason=serializer.validated_data['reason']))

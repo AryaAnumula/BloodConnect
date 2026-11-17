@@ -1,18 +1,20 @@
 """BB-20 camp services. Return JSON-ready DTOs, never ORM instances.
 
-Role checks go through scheduling.permissions (PENDING S2-04).
-Not implemented yet and waiting on approvals / BB-21:
-  - cancel_camp (S2-05 / S2-06: cancels appointments and creates notification intents)
-  - refusing a capacity reduction below active bookings, or a time change that strands
-    slots: done in _check_bookings (BB-21 models)
+Role checks go through scheduling.permissions (BC-D001: active non-superuser STAFF/ADMIN).
+Camp cancellation (BC-D008/D009, S2-05/S2-06) is cancel_camp below; refusing a capacity
+reduction below confirmed bookings or a time change that strands slots is _check_bookings.
 """
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
 from django.utils import timezone
 from rest_framework.exceptions import APIException, NotFound, ValidationError
 
+from core.errors import DecisionRequired
+from donors.models import DonorProfile
+from notification_adapter.services.reminders import (cancel_appointment_reminders,
+                                                     enqueue_camp_cancellation)
 from scheduling.dto import camp_dto
-from scheduling.exceptions import CapacityConflict, ScheduleConflict
+from scheduling.exceptions import CapacityConflict, ReminderUnavailable, ScheduleConflict
 from scheduling.models import Appointment, Camp, Slot
 from scheduling.permissions import require_camp_role
 
@@ -20,7 +22,7 @@ EDITABLE_FIELDS = ('name', 'location', 'starts_at', 'ends_at', 'capacity')
 
 
 class CampNotEditable(APIException):
-    # ASSUMPTION to confirm with Arya: a cancelled camp cannot be edited.
+    # BC-D003..D007: editing a CANCELLED camp is 422.
     status_code = 422
     default_code = 'invalid_transition'
     default_detail = 'A cancelled camp cannot be changed.'
@@ -47,10 +49,11 @@ def create_camp(*, actor, data: dict) -> dict:
 
 
 def _check_bookings(camp, changes) -> None:
-    """Contract (PATCH /camps): do not cut capacity below active bookings or strand appointments.
+    """Contract (PATCH /camps), BC-D005/D007: runs under the camp row lock.
 
-    Runs under the camp row lock. Only slots that have CONFIRMED bookings block a time change;
-    empty slots outside the new times are not checked here (open question for Arya).
+    Capacity may not drop below the CONFIRMED appointment count (equality is allowed), and every
+    linked slot, whether open, empty, cancelled or historical, must stay inside a moved camp
+    interval (409 slot_conflict). Slots are never moved or deleted silently.
     """
     confirmed = Appointment.objects.filter(slot__camp=camp, status=Appointment.Status.CONFIRMED)
     if 'capacity' in changes and changes['capacity'] < confirmed.count():
@@ -91,3 +94,57 @@ def update_camp(*, actor, camp_id, data: dict) -> dict:
             setattr(camp, field, value)
         camp.save(update_fields=[*changes, 'updated_at'])
     return camp_dto(camp)
+
+
+def cancel_camp(*, actor, camp_id, reason, now=None) -> dict:
+    """Cancel an ACTIVE camp and every CONFIRMED appointment in it, atomically (S2-05/S2-06).
+
+    One transaction, lock order Camp -> ALL linked slots (UUID order) -> affected appointments
+    (UUID order). The donor profile is never locked here (and so never after an appointment
+    lock). The cancellation time is read once, after every lock is held, persisted on the camp and
+    reused for every appointment and notification intent, so a replay never invents a new time.
+
+    For each newly cancelled appointment: pending/blocked/leased reminders are invalidated and
+    exactly ONE durable APPOINTMENT_CANCELLED intent is stored for the donor ACCOUNT id, in this
+    same transaction. Any failure (domain write, invalidation, intent persistence) rolls
+    back the whole operation. Delivery happens later, after commit, through the existing
+    provider; a send already in flight cannot be recalled and mock delivery is not real
+    SMS/email. Slots and appointments are kept for history. An already CANCELLED camp is returned
+    unchanged (original reason/time) with no new effects.
+    """
+    require_camp_role(user=actor, action='cancel')
+    reason = reason.strip() if isinstance(reason, str) else ''
+    if not 1 <= len(reason) <= 240:
+        raise ValidationError({'reason': ['Enter a reason of 1 to 240 characters.']})
+    with transaction.atomic():
+        try:
+            camp = Camp.objects.select_for_update().get(pk=camp_id)
+        except (Camp.DoesNotExist, DjangoValidationError, ValueError):
+            raise NotFound() from None
+        if camp.status == Camp.Status.CANCELLED:
+            return camp_dto(camp)  # replay: original reason/time kept, no new effects
+        list(Slot.objects.select_for_update().filter(camp=camp).order_by('pk').values_list('pk', flat=True))
+        affected = list(Appointment.objects.select_for_update()
+                        .filter(slot__camp=camp, status=Appointment.Status.CONFIRMED)
+                        .order_by('pk').values_list('pk', 'donor_id'))
+        # Clock read after all locks are held.
+        cancelled_at = now or timezone.now()
+        accounts = dict(DonorProfile.objects.filter(pk__in={donor for _, donor in affected})
+                        .values_list('pk', 'user_id'))  # plain read: no donor lock
+        try:
+            camp.status = Camp.Status.CANCELLED
+            camp.cancel_reason = reason
+            camp.cancelled_at = cancelled_at
+            camp.save(update_fields=['status', 'cancel_reason', 'cancelled_at', 'updated_at'])
+            for appointment_id, donor_id in affected:
+                Appointment.objects.filter(pk=appointment_id).update(
+                    status=Appointment.Status.CANCELLED, cancelled_at=cancelled_at,
+                    updated_at=cancelled_at)
+                cancel_appointment_reminders(appointment_id=appointment_id)
+                enqueue_camp_cancellation(appointment_id=appointment_id,
+                                          donor_user_id=accounts[donor_id],
+                                          cancelled_at=cancelled_at)
+        except DecisionRequired:
+            raise ReminderUnavailable(
+                'Notification delivery is not configured; the camp was not cancelled.') from None
+        return camp_dto(camp)
