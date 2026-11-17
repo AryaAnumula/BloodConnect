@@ -38,3 +38,7 @@ class StockPage(IntakePage):
 
 class AlertPage(IntakePage):
     template_name = 'inventory/alerts.html'
+
+
+class AlertPage(IntakePage):
+    template_name = 'inventory/alerts.html'
