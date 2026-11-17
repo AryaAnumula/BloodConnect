@@ -1,18 +1,24 @@
-"""Read-only scheduling summary consumed by the BB-23 dashboard provider.
+"""BB23 read-only camp summary; existing scheduling models remain authoritative.
 
-Contract (COMMON/INTEGRATION_CONTRACTS): upcoming_camp_count(*, now) -> int, the number of real
-ACTIVE camps whose start is at or after the aware `now`. CANCELLED camps are never counted, so a
-camp cancellation lowers the count. No writes, no network, no personal data, no reporting-owned
-camp model.
+Internal trusted selector consumed after reporting's ADMIN gate. No write service,
+inventory dependency or duplicate camp model. A missing app is unavailable, not zero.
 """
 from datetime import datetime
 
+from django.apps import apps
 from django.utils import timezone
+from rest_framework.exceptions import ValidationError
 
-from scheduling.models import Camp
+from core.errors import DecisionRequired
 
 
 def upcoming_camp_count(*, now) -> int:
     if not isinstance(now, datetime) or timezone.is_naive(now):
-        raise ValueError('An aware timestamp is required.')
-    return Camp.objects.filter(status=Camp.Status.ACTIVE, starts_at__gte=now).count()
+        raise ValidationError({'now': ['An aware server timestamp is required.']})
+    try:
+        Camp = apps.get_model('scheduling', 'Camp')
+    except LookupError:
+        raise DecisionRequired('Camp summary requires the actual scheduling application.') from None
+    # BC-D036 dashboard definition: ACTIVE camps starting at/after the snapshot instant.
+    # Database/storage errors propagate to the reporting provider's redacted boundary.
+    return Camp.objects.filter(status='ACTIVE', starts_at__gte=now).count()

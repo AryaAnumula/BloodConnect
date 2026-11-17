@@ -422,8 +422,15 @@ class CancelCampSideEffectTests(TransactionTestCase):
         from datetime import datetime
         from scheduling.selectors.summary import upcoming_camp_count
         for bad in (datetime(2026, 1, 1), '2026-01-01T00:00:00Z', None):
-            with self.subTest(bad=bad), self.assertRaises(ValueError):
+            with self.subTest(bad=bad), self.assertRaises(ValidationError):
                 upcoming_camp_count(now=bad)
+
+    def test_upcoming_camp_count_missing_scheduling_app_is_unavailable_not_zero(self):
+        from core.errors import DecisionRequired
+        from scheduling.selectors.summary import upcoming_camp_count
+        with patch('scheduling.selectors.summary.apps.get_model', side_effect=LookupError):
+            with self.assertRaises(DecisionRequired):
+                upcoming_camp_count(now=timezone.now())
 
     def test_reminder_context_reports_cancelled_camp_so_dispatch_blocks_nothing_new(self):
         from scheduling.selectors.reminders import reminder_context
