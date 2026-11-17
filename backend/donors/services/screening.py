@@ -99,10 +99,10 @@ def screen_donor(*, actor, donor_id: UUID, answers: dict):
         # makes this result history-stale afterwards (never silently missed).
         confirmed = (DonorProfile.objects.select_for_update(no_key=True)
                      .values_list('last_confirmed_collection_date', flat=True).get(pk=profile.pk))
-        # S2-10: the later of the self-reported and the confirmed date, with the configured gap.
-        effective_last = max((d for d in (last, confirmed) if d is not None), default=None)
+        # S2-10: the evaluator picks the later of the self-reported and confirmed dates itself.
         status, codes, reasons = evaluate(age_years=age, weight_kg=weight,
-                                          last_donation_date=effective_last,
+                                          last_donation_date=last,
+                                          confirmed_collection_date=confirmed,
                                           today=today, rules=rules)
         return EligibilityResult.objects.create(
             donor=profile, age_years=age, weight_kg=weight, last_donation_date=last,

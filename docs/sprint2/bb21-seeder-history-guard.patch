@@ -1,0 +1,85 @@
+diff --git a/backend/core/management/commands/seed_project_demo.py b/backend/core/management/commands/seed_project_demo.py
+--- a/backend/core/management/commands/seed_project_demo.py	2026-11-16 16:57:22.563979904 +0000
++++ b/backend/core/management/commands/seed_project_demo.py	2026-11-16 16:57:22.566386385 +0000
+@@ -84,12 +84,25 @@
+                     _, fresh = save_new(DonorProfile, source['id'], defaults)
+                     created['donors'] += fresh
+                 for donor_id, source in screens.items():
++                    # Actual-history guard: the dataset marks these donors uncollected, but the
++                    # donor-owned projection in THIS database is the authority. A donor that already
++                    # has confirmed collection history is never re-screened from stale fixture data.
++                    actual_confirmed = (DonorProfile.objects.filter(pk=donor_id)
++                                        .values_list('last_confirmed_collection_date', flat=True).get())
++                    if actual_confirmed is not None:
++                        raise CommandError('A seeded donor already has confirmed collection history; '
++                                           'preserved. Use a separate fresh demo database.')
+                     last_date = datetime.fromisoformat(source['last_donation_date']).date() if source['last_donation_date'] else None
+                     assessment_date = datetime.fromisoformat(source['assessed_at']).astimezone(LOCAL).date()
+                     status, codes, reasons = evaluate(age_years=source['age_years'], weight_kg=Decimal(source['weight_kg']),
+-                                                      last_donation_date=last_date, today=assessment_date, rules=rules)
++                                                      last_donation_date=last_date,
++                                                      confirmed_collection_date=actual_confirmed,
++                                                      today=assessment_date, rules=rules)
++                    # The result stores the original self-report plus the confirmed-date SNAPSHOT
++                    # actually used, so a replay compares it and later history makes it stale.
+                     defaults = dict(donor_id=donor_id, age_years=source['age_years'], weight_kg=Decimal(source['weight_kg']),
+-                                    last_donation_date=last_date, status=status, reason_codes=codes, reasons=reasons,
++                                    last_donation_date=last_date, confirmed_collection_date=actual_confirmed,
++                                    status=status, reason_codes=codes, reasons=reasons,
+                                     rules_version=rules['rules_version'])
+                     row, fresh = save_new(EligibilityResult, uid('foundation-screening', donor_id), defaults)
+                     assessed_at = datetime.fromisoformat(source['assessed_at'])
+diff --git a/backend/core/tests/test_demo_dataset_seeding.py b/backend/core/tests/test_demo_dataset_seeding.py
+--- a/backend/core/tests/test_demo_dataset_seeding.py	2026-11-16 16:57:22.575286567 +0000
++++ b/backend/core/tests/test_demo_dataset_seeding.py	2026-11-16 16:57:22.577288908 +0000
+@@ -115,3 +115,50 @@
+             with self.assertRaisesRegex(CommandError, 'missing'):
+                 self.seed(password_env='DEMO_USER_PASSWORD')
+         self.assertFalse(get_user_model().objects.exists())
++
++    def test_seeded_results_snapshot_the_actual_confirmed_date_and_are_not_history_stale(self):
++        from donors.services.screening import is_history_stale
++        self.seed()
++        for result in EligibilityResult.objects.select_related('donor'):
++            self.assertIsNone(result.confirmed_collection_date)
++            self.assertIsNone(result.donor.last_confirmed_collection_date)
++            self.assertFalse(is_history_stale(
++                result_confirmed_date=result.confirmed_collection_date,
++                profile_confirmed_date=result.donor.last_confirmed_collection_date))
++
++    def test_replay_refuses_a_donor_that_now_has_actual_confirmed_history(self):
++        from datetime import date
++        self.seed()
++        result = EligibilityResult.objects.first()
++        DonorProfile.objects.filter(pk=result.donor_id).update(last_confirmed_collection_date=date(2026, 1, 5))
++        before = EligibilityResult.objects.count()
++        with self.assertRaisesRegex(CommandError, 'confirmed collection history'):
++            self.seed()
++        self.assertEqual(EligibilityResult.objects.count(), before)
++        self.assertEqual(DonorProfile.objects.get(pk=result.donor_id).last_confirmed_collection_date, date(2026, 1, 5))
++        result.refresh_from_db()
++        self.assertIsNone(result.confirmed_collection_date)  # old assessment never rewritten
++
++    def test_replay_rejects_a_modified_confirmed_date_snapshot(self):
++        from datetime import date
++        self.seed()
++        row = EligibilityResult.objects.first()
++        EligibilityResult.objects.filter(pk=row.pk).update(confirmed_collection_date=date(2026, 1, 5))
++        with self.assertRaisesRegex(CommandError, 'preserved'):
++            self.seed()
++        row.refresh_from_db()
++        self.assertEqual(row.confirmed_collection_date, date(2026, 1, 5))
++
++    def test_guard_failure_rolls_back_new_accounts_profiles_and_results(self):
++        from datetime import date
++        self.seed()
++        victim = EligibilityResult.objects.first()
++        EligibilityResult.objects.filter(pk=victim.pk).delete()  # make a would-be NEW row exist
++        DonorProfile.objects.filter(pk=victim.donor_id).update(last_confirmed_collection_date=date(2026, 1, 5))
++        counts = (get_user_model().objects.count(), DonorProfile.objects.count(),
++                  EligibilityResult.objects.count())
++        with self.assertRaises(CommandError):
++            self.seed()
++        self.assertEqual(counts, (get_user_model().objects.count(), DonorProfile.objects.count(),
++                                  EligibilityResult.objects.count()))
++

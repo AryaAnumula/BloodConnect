@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Appointments — BloodConnect{% endblock %}
+
+{% block content %}
+<h1>Appointments</h1>
+
+<p class="notice">
+  Donors can book an open slot and cancel their own appointment before it starts. Booking needs a
+  current eligible screening result. Staff and admin accounts can add slots. The server checks
+  your role on every request. Reminders are mock notifications only in this demo.
+  <a href="/camps">Camps</a>
+</p>
+
+<h2>Open slots</h2>
+<button type="button" id="reload-slots">Refresh slots</button>
+<p id="slot-count"></p>
+<div style="overflow-x:auto">
+  <table>
+    <thead>
+      <tr>
+        <th scope="col">Where</th>
+        <th scope="col">Starts (UTC)</th>
+        <th scope="col">Ends (UTC)</th>
+        <th scope="col">Places left</th>
+        <th scope="col">Availability</th>
+        <th scope="col">Action</th>
+      </tr>
+    </thead>
+    <tbody id="slot-results-body"></tbody>
+  </table>
+</div>
+
+<h2>My appointments</h2>
+<button type="button" id="reload-appointments">Refresh my appointments</button>
+<p id="appointment-count"></p>
+<div style="overflow-x:auto">
+  <table>
+    <thead>
+      <tr>
+        <th scope="col">Time (UTC)</th>
+        <th scope="col">Status</th>
+        <th scope="col">Reminder</th>
+        <th scope="col">Cancelled at</th>
+        <th scope="col">Action</th>
+      </tr>
+    </thead>
+    <tbody id="appointment-results-body"></tbody>
+  </table>
+</div>
+
+<h2>Add a slot (staff and admin)</h2>
+<p>Leave the camp ID empty for a walk-in slot.</p>
+<form id="slot-create-form">
+  <label for="slot-camp">Camp ID (optional)</label>
+  <input id="slot-camp" name="camp_id" type="text">
+
+  <label for="slot-location">Location</label>
+  <input id="slot-location" name="location" type="text" maxlength="120" required>
+
+  <label for="slot-starts">Start (your local time)</label>
+  <input id="slot-starts" name="starts_at" type="datetime-local" required>
+
+  <label for="slot-ends">End (your local time)</label>
+  <input id="slot-ends" name="ends_at" type="datetime-local" required>
+
+  <label for="slot-capacity">Capacity</label>
+  <input id="slot-capacity" name="capacity" type="number" min="1" step="1" required>
+
+  <button type="submit">Add slot</button>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script type="module" src="{% static 'js/pages/appointments.js' %}"></script>
+{% endblock %}

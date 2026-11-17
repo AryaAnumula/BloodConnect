@@ -13,6 +13,7 @@ urlpatterns = [
     path('login', TemplateView.as_view(template_name='login.html'), name='login-page'),
     path('register', TemplateView.as_view(template_name='register.html'), name='register-page'),
     path('camps', TemplateView.as_view(template_name='camps.html'), name='camps-page'),
+    path('appointments', TemplateView.as_view(template_name='appointments.html'), name='appointments-page'),
     path('screening', TemplateView.as_view(template_name='screening.html'), name='screening-page'),
     path('eligibility', TemplateView.as_view(template_name='eligibility.html'), name='result-page'),
     path('staff/donors', TemplateView.as_view(template_name='search.html'), name='search-page'),

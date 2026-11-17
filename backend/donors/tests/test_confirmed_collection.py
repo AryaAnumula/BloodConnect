@@ -205,3 +205,54 @@ class HistoryStaleTests(TestCase):
         saved = self.saved()
         self.assertEqual(saved['id'], str(newest.pk))
         self.assertFalse(saved['is_history_stale'])
+
+
+class CollectionHistoryFacadeTests(TestCase):
+    """BC-D047: collection_history is only a keyword-mapping facade over the one writer."""
+
+    def test_facade_delegates_to_the_existing_writer_with_mapped_keyword(self):
+        from unittest import mock
+        from donors.services import collection_history
+        with mock.patch('donors.services.collections.record_confirmed_collection',
+                        return_value=date(2026, 1, 2)) as writer:
+            out = collection_history.record_confirmed_collection(
+                donor_id='X', collection_date=date(2026, 1, 2))
+        writer.assert_called_once_with(donor_id='X', collected_on=date(2026, 1, 2))
+        self.assertEqual(out, date(2026, 1, 2))
+
+    def test_facade_updates_the_real_projection_and_never_moves_it_back(self):
+        from django.db import transaction
+        from donors.services import collection_history
+        _, profile = make_donor()
+        with transaction.atomic():
+            first = collection_history.record_confirmed_collection(
+                donor_id=profile.pk, collection_date=date(2026, 6, 1))
+            second = collection_history.record_confirmed_collection(
+                donor_id=profile.pk, collection_date=date(2026, 5, 1))
+        profile.refresh_from_db()
+        self.assertEqual((first, second), (date(2026, 6, 1), date(2026, 6, 1)))
+        self.assertEqual(profile.last_confirmed_collection_date, date(2026, 6, 1))
+
+    def test_facade_keeps_writer_errors(self):
+        from uuid import uuid4
+        from django.db import transaction
+        from rest_framework.exceptions import NotFound, ValidationError
+        from donors.services import collection_history
+        from donors.services.collections import TransactionRequired
+        _, profile = make_donor()
+        with transaction.atomic():
+            with self.assertRaises(NotFound):
+                collection_history.record_confirmed_collection(
+                    donor_id=uuid4(), collection_date=date(2026, 1, 1))
+            with self.assertRaises(ValidationError):
+                collection_history.record_confirmed_collection(
+                    donor_id=profile.pk, collection_date='2026-01-01')
+
+
+class CollectionHistoryFacadeNoTransactionTests(TransactionTestCase):
+    def test_outside_a_transaction_the_facade_raises_transaction_required(self):
+        from donors.services import collection_history
+        _, profile = make_donor()
+        with self.assertRaises(TransactionRequired):
+            collection_history.record_confirmed_collection(
+                donor_id=profile.pk, collection_date=date(2026, 1, 1))
