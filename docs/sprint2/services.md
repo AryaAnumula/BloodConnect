@@ -284,3 +284,23 @@ def reminder_context(*, appointment_id) -> dict: ...
 ```
 
 Read-only internal selector; no transaction ownership/network/notification writes. Return appointment_id, donor_user_id, slot_id, starts_at (aware UTC), appointment_status, camp_status (nullable for walk-in) and revision/reference sufficient to reject canceled/rescheduled reminders. No health answers/contact payload. Exceptions: NotFound, DecisionRequired; caller Arya BB22 dispatcher rechecks before sending. Do not use a browser endpoint for this backend call. Coordinate exact added DTO/revision semantics before implementation; no selector implementation supplied in pack.
+
+## BB19 requester tracking and closure — BC-D035
+
+Owner Arya, reassigned from Arnav under BC-D023. Arnav retains BB16–18. Reuse the existing request model and single collection route.
+
+```python
+from blood_requests.selectors.tracking import own_requests, request_detail
+own_requests(*, actor, status=None, page=1, page_size=20) -> dict  # RequestPage
+request_detail(*, actor, request_id) -> dict  # BloodRequest
+from blood_requests.services.closure import close_request
+close_request(*, actor, request_id) -> dict  # BloodRequest
+```
+
+Reads are owner-scoped for requester; STAFF may read minimized detail. Closure requires owning requester, owns atomic request lock, full ISSUED->CLOSED, CLOSED replay read-only. No new schema/notification/stock writer. Reuse DRF NotFound/PermissionDenied/ValidationError and feature CloseInvalidTransition/StorageUnavailable through the existing error handler. See [BB19 decisions](bb19-decisions.md).
+
+## 16November2026 implemented reporting/reminder boundaries
+
+`notification_adapter.services.reminders.public_reminder_state(*,appointment_id)` maps real PENDING/BLOCKED/LEASED to publicPENDING and preserves terminal states; missing raisesLookupError and scheduling maps to503. Raw reminder_state remains unchanged.
+
+BB23 dashboard and BB24 activity services have moved out of this PR into independent team/arya-bb23 and team/arya-bb24 story PRs, both based directly on testing (BC-D037). This PR supplies no reporting app/API/UI or reporting-owned domain summary selectors. Proposed source contracts remain in the story handoffs; missing providers must not become fabricated totals. Preserve the BB22 provider mapping above.

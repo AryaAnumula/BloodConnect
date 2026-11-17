@@ -67,6 +67,7 @@ test('BB17 sends exactly the four fields with a numeric whole quantity to the ag
     { blood_group: 'O-', component_type: 'RBC', urgency_level: 'URGENT', quantity: 2 });
   h.calls[0].resolve(savedResponse());
   await pending;
+  assert.equal(h.get('#out-request-link').href, `/requests/${SAVED_ID}`);
 });
 
 test('BB17 never sends owner, status or other server-controlled fields even if present in the form', async () => {

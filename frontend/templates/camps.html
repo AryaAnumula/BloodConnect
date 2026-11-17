@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Donation Camps — BloodConnect{% endblock %}
+
+{% block content %}
+<h1>Donation camps</h1>
+
+<p class="notice">
+  Anyone signed in as a donor, staff or admin account can view camps. Only active staff and
+  admin accounts can create or change them; the server checks this on every request.
+  Cancelling a camp is not available yet. Donors do not see cancelled camps in the default list.
+</p>
+
+<form id="camp-filter-form">
+  <label for="camp-status">Status</label>
+  <select id="camp-status" name="status">
+    <option value="">Default list</option>
+    <option value="ACTIVE">Active</option>
+    <option value="CANCELLED">Cancelled</option>
+  </select>
+
+  <label for="camp-page-size">Camps per page</label>
+  <select id="camp-page-size" name="page_size">
+    <option value="10">10</option>
+    <option value="20" selected>20</option>
+    <option value="50">50</option>
+    <option value="100">100</option>
+  </select>
+
+  <button type="submit">Show camps</button>
+</form>
+
+<section id="camp-results" aria-labelledby="camp-results-heading" hidden>
+  <h2 id="camp-results-heading">Camps</h2>
+  <p id="camp-count"></p>
+  <div style="overflow-x:auto">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Camp ID</th>
+          <th scope="col">Name</th>
+          <th scope="col">Location</th>
+          <th scope="col">Starts (UTC)</th>
+          <th scope="col">Ends (UTC)</th>
+          <th scope="col">Capacity</th>
+          <th scope="col">Status</th>
+        </tr>
+      </thead>
+      <tbody id="camp-results-body"></tbody>
+    </table>
+  </div>
+  <nav aria-label="Camp pages">
+    <button type="button" id="previous-page" disabled>Previous</button>
+    <span id="page-indicator">Page 1</span>
+    <button type="button" id="next-page" disabled>Next</button>
+  </nav>
+</section>
+
+<h2>Create a camp</h2>
+<form id="camp-create-form">
+  <label for="create-name">Name</label>
+  <input id="create-name" name="name" type="text" maxlength="120" required>
+
+  <label for="create-location">Location</label>
+  <input id="create-location" name="location" type="text" maxlength="120" required>
+
+  <label for="create-starts">Start (your local time)</label>
+  <input id="create-starts" name="starts_at" type="datetime-local" required>
+
+  <label for="create-ends">End (your local time)</label>
+  <input id="create-ends" name="ends_at" type="datetime-local" required>
+
+  <label for="create-capacity">Capacity</label>
+  <input id="create-capacity" name="capacity" type="number" min="1" step="1" required>
+
+  <button type="submit">Create camp</button>
+</form>
+
+<h2>Update a camp</h2>
+<p>Fill in only the fields you want to change. A cancelled camp cannot be changed.</p>
+<form id="camp-update-form">
+  <label for="update-id">Camp ID</label>
+  <input id="update-id" name="camp_id" type="text" required>
+
+  <label for="update-name">Name</label>
+  <input id="update-name" name="name" type="text" maxlength="120">
+
+  <label for="update-location">Location</label>
+  <input id="update-location" name="location" type="text" maxlength="120">
+
+  <label for="update-starts">Start (your local time)</label>
+  <input id="update-starts" name="starts_at" type="datetime-local">
+
+  <label for="update-ends">End (your local time)</label>
+  <input id="update-ends" name="ends_at" type="datetime-local">
+
+  <label for="update-capacity">Capacity</label>
+  <input id="update-capacity" name="capacity" type="number" min="1" step="1">
+
+  <button type="submit">Update camp</button>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script type="module" src="{% static 'js/pages/camps.js' %}"></script>
+{% endblock %}

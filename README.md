@@ -112,6 +112,14 @@ No repository was supplied to patch and no GitHub remote, branch, PR, approval o
 Additional evidence guides: [testing levels](docs/testing.md) and [requirement traceability](docs/traceability.md).
 
 
+## BB-22 reminder provider checkpoint
+
+See [BB-22 provider and appointment handoff](docs/handoffs/BB-22.md). Durable reminder intents, real booking/donor-cancellation integration and opt-in private Node mock receipts are implemented under the recorded scoped demo approvals. Camp-wide cancellation, coordinated history initialization, final integration review and acceptance remain pending.
+
 ## Sprint 2 contract-first planning
 
 See [Sprint 2 design foundation](docs/sprint2/README.md) for proposed APIs, ownership, service interfaces and decision gates. Applying the foundation does not implement Sprint 2 routes. Approve relevant decisions before feature branches diverge.
+
+## Synthetic mini-project data
+
+The [complete generated dataset](datasets/synthetic/bloodconnect-demo-v1/README.md) contains500 donors,500 units and linked screening, collection, request, issue, scheduling and mock-notification history. JSON/CSV, expected totals, a field dictionary, a reproducible validator and a local foundation seeder are included. [Field/owner mapping](docs/data/synthetic-dataset.md). No real-person data is required.

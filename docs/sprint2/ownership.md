@@ -8,18 +8,18 @@
 | BB-16 | Arnav Chaudhary | 8 | High | Yashwitha (inventory); Ankitha (access); Arya (transactions) |
 | BB-17 | Arnav Chaudhary | 5 | High | Ankitha (requester access); Yashwitha (UI) |
 | BB-18 | Arnav Chaudhary | 5 | High | Ankitha (role checks); Arya (transitions) |
-| BB-19 | Arnav Chaudhary | 3 | High | Ankitha (ownership); Yashwitha (UI) |
+| BB-19 | Anumula Arya | 3 | High | Ankitha (ownership); Yashwitha (UI) |
 | BB-20 | Ankitha Lakshmmi Mohan | 5 | Medium | Arya (role matrix/notification interface); Yashwitha (UI) |
 | BB-21 | Ankitha Lakshmmi Mohan | 8 | High | Arnav (locking/capacity); Arya (reminder integration) |
 | BB-22 | Anumula Arya | 5 | Medium | Arnav (durability); Ankitha (privacy) |
 | BB-23 | Anumula Arya | 5 | Medium | Yashwitha (stock); Arnav (requests); Ankitha (admin) |
 | BB-24 | Anumula Arya | 5 | Low | Arnav (issues); Yashwitha (donation/wastage records) |
 
-Revised allocation approved by Arya's request: Ankitha BB-20/21; Yashwitha BB-13/14/15; Arnav BB-16/17/18/19; Arya BB-22/23/24 and final integration. Ankitha owns two complete outcomes, not merely reviews. Existing points/priorities, requirements and acceptance criteria are unchanged. Supporting tasks remain optional and are not counted as extra user stories. Story counts do not imply equal effort; booking and issue concurrency need paired review.
+Revised allocation approved by Arya's request: Ankitha BB-20/21; Yashwitha BB-13/14/15; Arnav BB-16/17/18 only; Arya BB-19/22/23/24 and final integration. Ankitha owns two complete outcomes, not merely reviews. Existing points/priorities, requirements and acceptance criteria are unchanged. Supporting tasks remain optional and are not counted as extra user stories. Story counts do not imply equal effort; booking and issue concurrency need paired review.
 
 ## Files
 - Shared controlled by Arya after reviewer agreement: backend/config/settings.py, backend/config/urls.py, root dependencies, compose.yaml, existing CI workflow, scripts/check.sh, shared core error/validation contracts and frontend API client. Feature owner requests narrow addition; do not copy/replace entire shared files.
-- Feature modules: backend/inventory/** Yashwitha; backend/blood_requests/** Arnav (never call it requests); backend/scheduling/** Ankitha; backend/reporting/**, notification_adapter new models/services and notification-service/** Arya.
+- Feature modules: backend/inventory/** Yashwitha; backend/blood_requests/** shared: Arnav owns submission/review/issue (BB16–18), Arya owns requester tracking/close (BB19), reusing the same models/collection route (never call the app requests); backend/scheduling/** Ankitha; backend/reporting/**, notification_adapter new models/services and notification-service/** Arya.
 - Independent: feature-specific API/view/serializer/service/selector/tests and frontend pages under unique feature names; no giant shared views.py or app.js. Per-model files plus per-feature modules; export names intentionally.
 - Existing donors/accounts runtime: Ankitha/Arnav retain primary ownership from Sprint1; Sprint2 consumers call current interfaces. Any new helper review is coordinated, not a replacement auth scheme.
 - Proposed operational permission support file backend/core/sprint2_permissions.py: Ankitha may implement ONLY after S2-04 approved and Arya agrees file ownership. Do not change clinical permission semantics.
@@ -33,3 +33,5 @@ Synchronize by MERGE, not rebase/force push: git fetch origin; git merge origin/
 ## Scheduling ↔ notification boundary
 
 Ankitha exclusively owns scheduling models/migrations/services/APIs/UI and camp/slot summaries. Arya exclusively owns outbox, dispatch/retry, Node mock delivery and reports/dashboard. Ankitha calls Arya’s enqueue_intent inside the same atomic appointment/cancellation transaction. Arya publishes this durable provider early. Neither implements a competing copy or edits the other's domain models without coordination. Arnav reviews locking. No network call while booking transaction locks held. BB22 reminder scheduling consumes approved appointment public selector/projection, not uncontrolled cross-module writes.
+
+BB19 implementation branch: team/arya-bb19, based on testing. New feature PRs target testing; manual checks only. Only Arya performs merges (BC-D028/033). BC-D023 reassigned BB19 on15Nov2026; historical source planning is preserved, acceptance unchanged.
