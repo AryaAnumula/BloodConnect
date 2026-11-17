@@ -11,6 +11,8 @@ urlpatterns = [
     path('api/v1/', include(('donors.urls', 'donors'))),
     path('api/v1/', include(('blood_requests.urls', 'blood_requests'))),
     path('api/v1/', include(('scheduling.urls', 'scheduling'))),
+    path('api/v1/', include('inventory.urls')),
+    path('', include('inventory.page_urls')),
     path('', TemplateView.as_view(template_name='index.html'), name='home'),
     path('login', TemplateView.as_view(template_name='login.html'), name='login-page'),
     path('register', TemplateView.as_view(template_name='register.html'), name='register-page'),

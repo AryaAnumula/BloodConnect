@@ -115,3 +115,49 @@ class DemoSeederTests(TestCase):
             with self.assertRaisesRegex(CommandError, 'missing'):
                 self.seed(password_env='DEMO_USER_PASSWORD')
         self.assertFalse(get_user_model().objects.exists())
+
+    def test_seeded_results_snapshot_the_actual_confirmed_date_and_are_not_history_stale(self):
+        from donors.services.screening import is_history_stale
+        self.seed()
+        for result in EligibilityResult.objects.select_related('donor'):
+            self.assertIsNone(result.confirmed_collection_date)
+            self.assertIsNone(result.donor.last_confirmed_collection_date)
+            self.assertFalse(is_history_stale(
+                result_confirmed_date=result.confirmed_collection_date,
+                profile_confirmed_date=result.donor.last_confirmed_collection_date))
+
+    def test_replay_refuses_a_donor_that_now_has_actual_confirmed_history(self):
+        from datetime import date
+        self.seed()
+        result = EligibilityResult.objects.first()
+        DonorProfile.objects.filter(pk=result.donor_id).update(last_confirmed_collection_date=date(2026, 1, 5))
+        before = EligibilityResult.objects.count()
+        with self.assertRaisesRegex(CommandError, 'confirmed collection history'):
+            self.seed()
+        self.assertEqual(EligibilityResult.objects.count(), before)
+        self.assertEqual(DonorProfile.objects.get(pk=result.donor_id).last_confirmed_collection_date, date(2026, 1, 5))
+        result.refresh_from_db()
+        self.assertIsNone(result.confirmed_collection_date)  # old assessment never rewritten
+
+    def test_replay_rejects_a_modified_confirmed_date_snapshot(self):
+        from datetime import date
+        self.seed()
+        row = EligibilityResult.objects.first()
+        EligibilityResult.objects.filter(pk=row.pk).update(confirmed_collection_date=date(2026, 1, 5))
+        with self.assertRaisesRegex(CommandError, 'preserved'):
+            self.seed()
+        row.refresh_from_db()
+        self.assertEqual(row.confirmed_collection_date, date(2026, 1, 5))
+
+    def test_guard_failure_rolls_back_new_accounts_profiles_and_results(self):
+        from datetime import date
+        self.seed()
+        victim = EligibilityResult.objects.first()
+        EligibilityResult.objects.filter(pk=victim.pk).delete()  # make a would-be NEW row exist
+        DonorProfile.objects.filter(pk=victim.donor_id).update(last_confirmed_collection_date=date(2026, 1, 5))
+        counts = (get_user_model().objects.count(), DonorProfile.objects.count(),
+                  EligibilityResult.objects.count())
+        with self.assertRaises(CommandError):
+            self.seed()
+        self.assertEqual(counts, (get_user_model().objects.count(), DonorProfile.objects.count(),
+                                  EligibilityResult.objects.count()))
