@@ -4,7 +4,7 @@ from rest_framework import serializers
 
 from core.input_schemas import BLOOD_GROUPS
 from core.validation import (StrictInputSerializer, StrictStringField, StrictChoiceField,
-                             StrictIntegerField, ISODateField)
+                             StrictIntegerField, ISODateField, QueryIntegerField)
 from inventory.services.policy import SUPPORTED_COMPONENTS
 
 
@@ -23,3 +23,19 @@ class BloodUnitCreate(StrictInputSerializer):
     component_type = StrictChoiceField(choices=SUPPORTED_COMPONENTS)
     collection_date = ISODateField()
     quantity = StrictIntegerField(min_value=1, max_value=1)
+
+
+class StockQuery(StrictInputSerializer):
+    blood_group = StrictChoiceField(choices=BLOOD_GROUPS, required=False)
+    component_type = StrictChoiceField(choices=SUPPORTED_COMPONENTS, required=False)
+    page = QueryIntegerField(min_value=1, default=1)
+    page_size = QueryIntegerField(min_value=1, max_value=100, default=20)
+
+
+class UnitQuery(StockQuery):
+    status = StrictChoiceField(choices=('AVAILABLE', 'ISSUED', 'DISCARDED', 'QUARANTINED', 'EXPIRED'), required=False)
+
+
+class DispositionCreate(StrictInputSerializer):
+    status = StrictChoiceField(choices=('DISCARDED', 'QUARANTINED'))
+    reason = StrictStringField(min_length=1, max_length=240)

@@ -56,6 +56,22 @@ class InventoryConcurrencyTests(InventoryFixture, TransactionTestCase):
         with self.assertRaises(TransactionRequired):
             allocate_units(actor=self.staff, unit_ids=[], blood_group='A+', component_type='RBC', issued_at=timezone.now())
 
+    def test_disposition_competition_preserves_one_terminal_history(self):
+        from inventory.exceptions import InvalidTransition
+        from inventory.models import InventoryDisposition
+        from inventory.services.dispositions import record_disposition
+        first = self.intake()
+        def dispose(index):
+            try:
+                return record_disposition(actor=self.staff, unit_id=first['id'],
+                    data={'status': ('DISCARDED','QUARANTINED')[index], 'reason':'Synthetic race'})
+            except InvalidTransition:
+                return 'invalid_transition'
+        results = self.race(dispose)
+        self.assertEqual(sum(isinstance(result,dict) for result in results),1)
+        self.assertIn('invalid_transition',results)
+        self.assertEqual(InventoryDisposition.objects.count(),1)
+
     def test_waiting_allocator_checks_clock_after_lock(self):
         first = self.intake()
         expiry = self.today + timedelta(days=1)

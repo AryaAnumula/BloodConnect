@@ -23,10 +23,14 @@ from inventory.services.policy import calculate_expiry_date
 KOLKATA = ZoneInfo('Asia/Kolkata')
 
 
-def unit_dto(unit):
-    return {name: str(getattr(unit, name)) for name in
+def unit_dto(unit, *, today=None):
+    today = today or timezone.localdate(timezone=KOLKATA)
+    dto = {name: str(getattr(unit, name)) for name in
             ('id', 'unit_code', 'donor_id', 'collection_event_id', 'blood_group',
              'component_type', 'collection_date', 'expiry_date', 'status')} | {'quantity': unit.quantity}
+    if unit.status == 'AVAILABLE' and today >= unit.expiry_date:
+        dto['status'] = 'EXPIRED'
+    return dto
 
 
 def _authorize_collection(donor, collection_date, today):

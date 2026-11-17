@@ -28,3 +28,9 @@ class InventoryUnavailable(APIException):
 
 class TransactionRequired(RuntimeError):
     """Allocation requires its caller's transaction."""
+
+
+class InvalidTransition(APIException):
+    status_code = 422
+    default_code = 'invalid_transition'
+    default_detail = 'This unit cannot make the requested transition.'

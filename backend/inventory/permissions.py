@@ -15,3 +15,17 @@ class IsInventoryStaff(BasePermission):
     def has_permission(self, request, view):
         require_staff(request.user)
         return True
+
+
+def require_stock_reader(actor):
+    if not (actor is not None and getattr(actor, 'is_authenticated', False)
+            and getattr(actor, 'is_active', False)
+            and not getattr(actor, 'is_superuser', False)
+            and getattr(actor, 'role', None) in ('STAFF', 'ADMIN')):
+        raise PermissionDenied()
+
+
+class IsStockReader(BasePermission):
+    def has_permission(self, request, view):
+        require_stock_reader(request.user)
+        return True
