@@ -84,12 +84,25 @@ class Command(BaseCommand):
                     _, fresh = save_new(DonorProfile, source['id'], defaults)
                     created['donors'] += fresh
                 for donor_id, source in screens.items():
+                    # Actual-history guard: the dataset marks these donors uncollected, but the
+                    # donor-owned projection in THIS database is the authority. A donor that already
+                    # has confirmed collection history is never re-screened from stale fixture data.
+                    actual_confirmed = (DonorProfile.objects.filter(pk=donor_id)
+                                        .values_list('last_confirmed_collection_date', flat=True).get())
+                    if actual_confirmed is not None:
+                        raise CommandError('A seeded donor already has confirmed collection history; '
+                                           'preserved. Use a separate fresh demo database.')
                     last_date = datetime.fromisoformat(source['last_donation_date']).date() if source['last_donation_date'] else None
                     assessment_date = datetime.fromisoformat(source['assessed_at']).astimezone(LOCAL).date()
                     status, codes, reasons = evaluate(age_years=source['age_years'], weight_kg=Decimal(source['weight_kg']),
-                                                      last_donation_date=last_date, today=assessment_date, rules=rules)
+                                                      last_donation_date=last_date,
+                                                      confirmed_collection_date=actual_confirmed,
+                                                      today=assessment_date, rules=rules)
+                    # The result stores the original self-report plus the confirmed-date SNAPSHOT
+                    # actually used, so a replay compares it and later history makes it stale.
                     defaults = dict(donor_id=donor_id, age_years=source['age_years'], weight_kg=Decimal(source['weight_kg']),
-                                    last_donation_date=last_date, status=status, reason_codes=codes, reasons=reasons,
+                                    last_donation_date=last_date, confirmed_collection_date=actual_confirmed,
+                                    status=status, reason_codes=codes, reasons=reasons,
                                     rules_version=rules['rules_version'])
                     row, fresh = save_new(EligibilityResult, uid('foundation-screening', donor_id), defaults)
                     assessed_at = datetime.fromisoformat(source['assessed_at'])
