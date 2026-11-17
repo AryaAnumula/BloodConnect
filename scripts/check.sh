@@ -8,8 +8,8 @@ python backend/manage.py check
 python backend/manage.py test inventory.tests notification_adapter.tests scheduling.tests --verbosity 2
 node --test tests/frontend-camps.test.mjs tests/frontend-request-tracking.test.mjs
 python backend/manage.py makemigrations --check --dry-run
-python backend/manage.py test core.tests accounts.tests audit.tests donors.tests blood_requests.tests --verbosity 2
-node --test notification-service/tests/*.test.mjs tests/frontend-api.test.mjs tests/frontend-input-safety.test.mjs tests/frontend-registration.test.mjs tests/frontend-registration-behavior.test.mjs tests/frontend-eligibility.test.mjs tests/frontend-search.test.mjs tests/frontend-search-behavior.test.mjs tests/frontend-request-create.test.mjs tests/frontend-staff-requests.test.mjs
+python backend/manage.py test core.tests accounts.tests audit.tests donors.tests blood_requests.tests reporting.tests --verbosity 2
+node --test notification-service/tests/*.test.mjs tests/frontend-api.test.mjs tests/frontend-input-safety.test.mjs tests/frontend-registration.test.mjs tests/frontend-registration-behavior.test.mjs tests/frontend-eligibility.test.mjs tests/frontend-search.test.mjs tests/frontend-search-behavior.test.mjs tests/frontend-request-create.test.mjs tests/frontend-staff-requests.test.mjs tests/frontend-dashboard.test.mjs
 python -m unittest discover -s tests -p "test_availability.py" -v
 python scripts/generate_synthetic_dataset.py --check
 python -m unittest discover -s tests -p "test_synthetic_dataset.py" -v
