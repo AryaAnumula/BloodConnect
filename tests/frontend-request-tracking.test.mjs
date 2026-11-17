@@ -33,7 +33,7 @@ function setup({ detail = false, requestId = ID } = {}) {
     filter: status => { get('#tracking-status').value = status; get('#tracking-filter').events.submit({ preventDefault() {} }); } };
 }
 const tick = () => new Promise(resolve => setImmediate(resolve));
-function identity(h, index, role = 'REQUESTER', id = OWNER) { h.calls[index].resolve({ user: { role, id } }); }
+function identity(h, index, role = 'REQUESTER', id = OWNER) { h.calls[index].resolve({ role, id, email: 'requester@example.test' }); }
 function page(results, count = results.length, number = 1) { return { results, count, page: number, page_size: 20 }; }
 async function loadedList(rows = [item()], count) {
   const h = setup(); identity(h, 0); h.calls[1].resolve(page(rows, count)); await tick(); return h;
