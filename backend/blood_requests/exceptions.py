@@ -16,3 +16,36 @@ class StorageUnavailable(APIException):
     status_code = 503
     default_code = 'storage_unavailable'
     default_detail = 'Request storage is temporarily unavailable. Nothing was changed.'
+
+
+class IssueInvalidTransition(APIException):
+    status_code = 422
+    default_code = 'invalid_transition'
+    default_detail = 'Only an approved request can have blood issued against it.'
+
+
+class Oversupply(APIException):
+    status_code = 422
+    default_code = 'oversupply'
+    default_detail = 'More units were selected than the request still needs. Nothing was issued.'
+
+
+class UnitConflict(APIException):
+    status_code = 409
+    default_code = 'unit_conflict'
+    default_detail = 'A selected unit has already been issued. Nothing was issued.'
+
+
+class InventoryUnavailable(APIException):
+    """Fail-closed when the inventory provider module is absent."""
+    status_code = 503
+    default_code = 'inventory_unavailable'
+    default_detail = 'Issuing is not available: inventory is unavailable. Nothing was issued.'
+
+
+class UnsafeUnit(APIException):
+    """Shared contract v1.1: a selected unit is not usable (expired, quarantined, discarded,
+    already used, or not an exact group/component match)."""
+    status_code = 422
+    default_code = 'unsafe_unit'
+    default_detail = 'A selected unit cannot be issued for this request. Nothing was issued.'

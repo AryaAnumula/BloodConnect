@@ -181,7 +181,10 @@ test('BB18 decided rows have no controls; rejected rows show the saved reason as
   const h = await loaded([item(A, { status: 'REJECTED', rejection_reason: HOSTILE }), item(B, { status: 'APPROVED' })]);
   assert.equal(findButton(rows(h)[0], 'Approve'), undefined);
   assert.equal(actionCell(rows(h)[0]).children[0].textContent, `Reason: ${HOSTILE}`);
-  assert.equal(actionCell(rows(h)[1]).children.length, 0);
+  // BB-16: an APPROVED row has no review buttons, only the issue control.
+  assert.equal(findButton(rows(h)[1], 'Approve'), undefined);
+  assert.equal(findButton(rows(h)[1], 'Reject'), undefined);
+  assert.ok(findButton(rows(h)[1], 'Issue units'));
 });
 
 test('BB18 rows with a non-UUID id get no decision controls (no crafted paths)', async () => {
@@ -214,4 +217,80 @@ test('BB18 a slow older load cannot overwrite a newer one', async () => {
   await tick();
   assert.equal(rows(h).length, 1);
   assert.equal(rows(h)[0].children[6].textContent, B);
+});
+
+// ---- BB-16 issue controls (TEST-ONLY fake apiFetch; real issuing needs the inventory provider) ----
+const issueInput = row => actionCell(row).children.find(node => node.tag === 'textarea');
+const approved = (id, overrides = {}) => item(id, { status: 'APPROVED', quantity: 3, fulfilled_quantity: 1, ...overrides });
+const U1 = '00000000-0000-4000-8000-0000000000c1';
+const U2 = '00000000-0000-4000-8000-0000000000c2';
+
+test('BB16 approved rows show progress and an issue control; others do not', async () => {
+  const h = await loaded([approved(A), item(B)]);
+  assert.equal(actionCell(rows(h)[0]).children[0].textContent, 'Issued 1 of 3 units.');
+  assert.ok(findButton(rows(h)[0], 'Issue units'));
+  assert.equal(findButton(rows(h)[1], 'Issue units'), undefined);
+  const full = await loaded([approved(A, { fulfilled_quantity: 3, status: 'ISSUED' })]);
+  assert.equal(findButton(rows(full)[0], 'Issue units'), undefined);
+});
+
+test('BB16 issue sends exactly {unit_ids} by POST and reloads after the server confirms', async () => {
+  const h = await loaded([approved(A)]);
+  issueInput(rows(h)[0]).value = `${U2.toUpperCase()}\n ${U1} \n`;
+  findButton(rows(h)[0], 'Issue units').events.click();
+  const call = h.calls[1];
+  assert.equal(call.path, `/api/v1/requests/${A}/issues`);
+  assert.equal(call.options.method, 'POST');
+  assert.deepEqual(JSON.parse(JSON.stringify(call.options.body)), { unit_ids: [U2, U1] });
+  call.resolve({ issues: [{}, {}], fulfilled_quantity: 3, request_status: 'ISSUED' });
+  await tick();
+  assert.match(h.status.at(-1), /Issued 2 units/);
+  assert.equal(h.calls.length, 3);
+});
+
+test('BB16 client checks unit ids, duplicates and remaining count before sending', async () => {
+  const h = await loaded([approved(A)]);
+  const row = rows(h)[0];
+  for (const [value, message] of [['', /one or more unit IDs/], ['not-a-uuid', /one or more unit IDs/],
+    [`${U1}\n${U1.toUpperCase()}`, /only once/], [`${U1}\n${U2}\n${B}`, /needs only 2 more units/]]) {
+    issueInput(row).value = value;
+    findButton(row, 'Issue units').events.click();
+    assert.equal(h.calls.length, 1, value);
+    assert.match(rowError(row).textContent, message);
+  }
+});
+
+test('BB16 unavailable, unsafe and unknown units are reported honestly and nothing is claimed', async () => {
+  for (const [status, code, message] of [
+    [503, 'inventory_unavailable', /Inventory is unavailable right now\. Nothing was issued/],
+    [422, 'unsafe_unit', /cannot be issued for this request .*Nothing was issued/],
+    [404, 'not_found', /was not found\. Nothing was issued/]]) {
+    const h = await loaded([approved(A)]);
+    issueInput(rows(h)[0]).value = U1;
+    findButton(rows(h)[0], 'Issue units').events.click();
+    h.calls[1].reject(Object.assign(new Error(HOSTILE), { status, code, fields: {} }));
+    await tick();
+    assert.match(h.status.at(-1), message, code);
+    assert.ok(!h.status.some(text => text.includes(HOSTILE)), code);
+    assert.equal(findButton(rows(h)[0], 'Issue units').disabled, false, code);
+    assert.equal(h.calls.length, 2, code);
+  }
+});
+
+test('BB16 unit conflict and stale state reload; field errors render as text', async () => {
+  for (const code of ['unit_conflict', 'invalid_transition']) {
+    const h = await loaded([approved(A)]);
+    issueInput(rows(h)[0]).value = U1;
+    findButton(rows(h)[0], 'Issue units').events.click();
+    h.calls[1].reject(Object.assign(new Error('x'), { code, fields: {} }));
+    await tick();
+    assert.equal(h.calls.length, 3, code);
+  }
+  const h = await loaded([approved(A)]);
+  const row = rows(h)[0];
+  issueInput(row).value = U1;
+  findButton(row, 'Issue units').events.click();
+  h.calls[1].reject(Object.assign(new Error('x'), { status: 400, code: 'validation_error', fields: { unit_ids: [HOSTILE] } }));
+  await tick();
+  assert.equal(rowError(row).textContent, HOSTILE);
 });
