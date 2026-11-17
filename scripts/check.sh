@@ -1,6 +1,8 @@
 
 #!/usr/bin/env sh
 set -eu
+node --test tests/frontend-activity.test.mjs
+python backend/manage.py test reporting.tests --verbosity 2
 python scripts/validate_repository.py
 python backend/manage.py check
 python backend/manage.py test inventory.tests notification_adapter.tests scheduling.tests --verbosity 2

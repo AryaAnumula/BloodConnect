@@ -11,7 +11,7 @@ if len(SECRET_KEY) < 40 or SECRET_KEY.startswith('CHANGE_ME'):
 DEBUG = os.environ.get('DJANGO_DEBUG', '0') == '1'
 ALLOWED_HOSTS = [x.strip() for x in os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',') if x.strip()]
 CSRF_TRUSTED_ORIGINS = [x.strip() for x in os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS', '').split(',') if x.strip()]
-INSTALLED_APPS = ['django.contrib.auth', 'django.contrib.contenttypes', 'django.contrib.sessions', 'django.contrib.staticfiles', 'rest_framework', 'accounts', 'donors', 'audit', 'notification_adapter', 'core', 'blood_requests']
+INSTALLED_APPS = ['django.contrib.auth', 'django.contrib.contenttypes', 'django.contrib.sessions', 'django.contrib.staticfiles', 'rest_framework', 'accounts', 'donors', 'audit', 'notification_adapter', 'core', 'blood_requests', 'reporting.apps.ReportingConfig']
 MIDDLEWARE = ['django.middleware.security.SecurityMiddleware', 'core.middleware.RequestIDMiddleware', 'django.contrib.sessions.middleware.SessionMiddleware', 'django.middleware.common.CommonMiddleware', 'django.middleware.csrf.CsrfViewMiddleware', 'django.contrib.auth.middleware.AuthenticationMiddleware']
 ROOT_URLCONF = 'config.urls'
 # BB22 shared scheduling baseline; keep separately from reporting's app registration.
@@ -49,3 +49,6 @@ SESSION_SAVE_EVERY_REQUEST = False
 CSRF_FAILURE_VIEW = 'core.errors.csrf_failure'
 REST_FRAMEWORK = {'DEFAULT_AUTHENTICATION_CLASSES': ['rest_framework.authentication.SessionAuthentication'], 'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.IsAuthenticated'], 'DEFAULT_RENDERER_CLASSES': ['rest_framework.renderers.JSONRenderer'], 'EXCEPTION_HANDLER': 'core.errors.exception_handler', 'DEFAULT_PARSER_CLASSES': ['rest_framework.parsers.JSONParser']}
 # No CORS wildcard: frontend and backend share an origin.
+# Explicit mini-project snapshot mode; source selection is never a missing-provider fallback.
+BLOODCONNECT_REPORT_SOURCE = os.environ.get('BLOODCONNECT_REPORT_SOURCE', 'domain')
+BLOODCONNECT_DEMO_DATASET_PATH = os.environ.get('BLOODCONNECT_DEMO_DATASET_PATH', '')

@@ -338,6 +338,18 @@
           "applies_to": [
             "Sprint 2 scoped policy"
           ]
+        },
+        {
+          "id": "BC-D037",
+          "status": "APPROVED",
+          "clause": "BB-23 and BB-24 keep separate story PRs; preserve active non-superuser ADMIN access and approved source/date/aggregate rules. Missing or malformed sources return503, never fake totals. No merge or whole-story acceptance approval.",
+          "approved_by": "Arya, explicit16 November2026 separate-story PR instruction",
+          "approved_at": "2026-11-16",
+          "evidence": "docs/sprint2/reporting-source-decisions.md; central BC-D037",
+          "applies_to": [
+            "BB-23",
+            "BB-24"
+          ]
         }
       ]
     },
@@ -499,6 +511,30 @@
           "evidence": "docs/sprint2/shared-rules.md v1.1 and docs/sprint2/decision-provenance.md; approved scope and unresolved items are stated in the clause",
           "applies_to": [
             "Sprint 2 scoped policy"
+          ]
+        },
+        {
+          "id": "BC-D037",
+          "status": "APPROVED",
+          "clause": "BB-23 and BB-24 keep separate story PRs; preserve active non-superuser ADMIN access and approved source/date/aggregate rules. Missing or malformed sources return503, never fake totals. No merge or whole-story acceptance approval.",
+          "approved_by": "Arya, explicit16 November2026 separate-story PR instruction",
+          "approved_at": "2026-11-16",
+          "evidence": "docs/sprint2/reporting-source-decisions.md; central BC-D037",
+          "applies_to": [
+            "BB-23",
+            "BB-24"
+          ]
+        },
+        {
+          "id": "BC-D039",
+          "status": "APPROVED",
+          "clause": "BB-23 and BB-24: user authorizes dataset integration. Explicit DEBUG-only read-only canonical source with verified manifest; compute all aggregates from one snapshot and label source. Default domain selectors stay separate and fail closed; no expected.json totals at runtime, silent fallback, duplicate models, whole-story or merge approval.",
+          "approved_by": "Arya, explicit16November2026 dataset integration instruction",
+          "approved_at": "2026-11-16",
+          "evidence": "docs/sprint2/reporting-source-decisions.md; central BC-D039",
+          "applies_to": [
+            "BB-23",
+            "BB-24"
           ]
         }
       ],
