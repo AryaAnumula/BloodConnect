@@ -1,0 +1,1 @@
+{% load static %}{% if request.user.is_authenticated %}<span class="session-logout"><button type="button" id="session-logout">Log out</button><span id="session-logout-status" role="status" aria-live="polite"></span></span><script type="module" src="{% static 'js/pages/logout.js' %}"></script>{% endif %}
