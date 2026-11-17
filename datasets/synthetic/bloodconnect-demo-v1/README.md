@@ -61,6 +61,17 @@ The explicit DEBUG-only command seeds **515 non-superuser accounts,500 profiles,
 
 This foundation subset matches models actually present on testing. The complete dataset already includes all collection/unit/issue/camp/notification data, but the importer does not manufacture unimplemented application models or create fulfilled requests without their issue history. Collected-donor assessments are deferred with collection history; derived foundation assessments for uncollected donors use the current demo rule version without rewriting source history. Teammates map the remaining CSV/JSON tables into their own actual model/services when those land. Do not run loaddata on the canonical neutral JSON; it is not a Django model fixture.
 
+## Show inventory in a local demo
+
+The foundation seed does not load inventory by itself. After running it in the same dedicated local DEBUG database, preview and then import the compatible historical inventory records:
+
+```powershell
+python backend/manage.py import_inventory_demo --dataset datasets/synthetic/bloodconnect-demo-v1/dataset.json
+python backend/manage.py import_inventory_demo --dataset datasets/synthetic/bloodconnect-demo-v1/dataset.json --apply
+```
+
+Open **Inventory** as staff or **Dashboard** as admin to see the imported stock. Sign in as `requester-000@demo.example.test` to see that account's seeded requests. Set `DEMO_USER_PASSWORD` privately and pass `--password-env DEMO_USER_PASSWORD` on the initial foundation import to enable the four dataset logins. The importer excludes events with issued units because the associated issue records are not imported. It preserves existing records and aborts on conflicting fixtures. Camp, appointment, notification, and issue history from the source dataset are not imported by these commands. Dataset snapshot totals therefore differ from the application's live totals. Database contents are local and are not transferred by merging a pull request.
+
 ## Source and numerical choices
 
 The field structure was checked against primary sources: [WHO](https://www.who.int/news-room/fact-sheets/detail/blood-safety-and-availability) describes component processing; [ICCBBA](https://iccbba.org/faq/) identifies donation reference, ABO/Rh, product and expiry as label information. We model donor/event/unit lineage with project-specific codes; no real donation labels or externally sourced rows are used. Django's [initial-data documentation](https://docs.djangoproject.com/en/5.2/howto/initial-data/) informed explicit local seeding rather than an automatic migration.

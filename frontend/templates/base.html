@@ -1,4 +1,40 @@
 {% load static %}
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{% block title %}BloodConnect{% endblock %}</title><link rel="stylesheet" href="{% static 'css/app.css' %}"></head>
-<body><header><a href="/">BloodConnect</a><nav aria-label="Main"><a href="/login">Login</a><a href="/register">Register</a><a href="/screening">Screening</a><a href="/staff/donors">Staff search</a>{% include "session_logout.html" %}</nav></header>
-<main><p class="notice"><strong>College demonstration:</strong> some features may still be unfinished. Page access does not grant API permissions. Do not enter real donor health data.</p>{% block content %}{% endblock %}<p id="status" role="status" aria-live="polite"></p></main>{% block scripts %}{% endblock %}</body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{% block title %}BloodConnect{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Sidebar">
+      <a class="brand" href="/"><span class="brand-mark" aria-hidden="true">♥</span><span>BloodConnect<small>Blood bank management</small></span></a>
+      <nav class="sidebar-nav" aria-label="Main navigation">
+        <a class="nav-link" href="/">Home</a>
+        {% if request.user.is_authenticated and request.user.is_active and not request.user.is_superuser %}
+          {% if request.user.role == 'ADMIN' %}
+            <span class="nav-heading">Administration</span>
+            <a class="nav-link" href="/dashboard">Dashboard</a><a class="nav-link" href="/reports">Reports</a><a class="nav-link" href="/camps">Camps</a><a class="nav-link" href="/staff/inventory">Inventory</a>
+          {% elif request.user.role == 'STAFF' %}
+            <span class="nav-heading">Staff workspace</span>
+            <a class="nav-link" href="/staff/requests">Review requests</a><a class="nav-link" href="/staff/inventory">Inventory</a><a class="nav-link" href="/staff/inventory/alerts">Inventory alerts</a><a class="nav-link" href="/camps">Camps</a><a class="nav-link" href="/staff/donors">Donor search</a><a class="nav-link" href="/screening">Screening</a>
+          {% elif request.user.role == 'REQUESTER' %}
+            <span class="nav-heading">Requests</span>
+            <a class="nav-link" href="/requests/new">Submit request</a><a class="nav-link" href="/requests">My requests</a>
+          {% elif request.user.role == 'DONOR' %}
+            <span class="nav-heading">Donor workspace</span>
+            <a class="nav-link" href="/screening">Screening</a><a class="nav-link" href="/eligibility">Saved eligibility result</a><a class="nav-link" href="/camps">Camps</a><a class="nav-link" href="/appointments">Appointments</a>
+          {% endif %}
+        {% else %}
+          <span class="nav-heading">Get started</span><a class="nav-link" href="/login">Sign in</a><a class="nav-link" href="/register">Register as a donor</a>
+        {% endif %}
+      </nav>
+      {% if request.user.is_authenticated %}<div class="sidebar-account"><span class="account-label">Signed in as</span><strong>{{ request.user.email }}</strong><span class="account-role">{{ request.user.role|title }}</span>{% include 'session_logout.html' %}</div>{% endif %}
+    </aside>
+    <main id="main-content" class="main-content" tabindex="-1">{% block content %}{% endblock %}<p id="status" role="status" aria-live="polite"></p></main>
+  </div>
+  <script type="module" src="{% static 'js/navigation.js' %}"></script>
+  {% block scripts %}{% endblock %}
+</body></html>
