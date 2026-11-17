@@ -1,0 +1,7 @@
+{
+  "version": "1.1",
+  "decision": "BC-D047",
+  "source_name": "SHARED_IMPLEMENTATION_CONTRACT3.md",
+  "sha256": "779347bf82ac5c6a218dfd938cc9ffc1e9a5fce7ee50178dd1de92bfe166a9b9",
+  "precedence": "Shared models/interfaces/arguments/DTOs/errors/migrations/work order; unaffected security and acceptance rules retained"
+}
