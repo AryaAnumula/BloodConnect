@@ -69,6 +69,7 @@ function isSavedRequest(payload) {
 }
 
 function showConfirmation(saved) {
+  document.querySelector('#out-request-link').href = `/requests/${saved.id}`;
   for (const [key, selector] of Object.entries(OUTPUTS)) {
     const value = saved[key];
     document.querySelector(selector).textContent =

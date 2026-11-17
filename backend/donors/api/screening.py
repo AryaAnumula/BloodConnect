@@ -14,7 +14,8 @@ from core.input_schemas import ScreeningInputSerializer
 from core.parsers import StrictJSONParser
 from core.stubs import AuthenticatedPostStub
 from donors.configuration import approved_screening_rules
-from donors.services.screening import ScreeningAccessDenied, is_stale, screen_donor
+from donors.models import DonorProfile
+from donors.services.screening import ScreeningAccessDenied, is_history_stale, is_stale, screen_donor
 
 
 def _error(request, status, code, message):
@@ -26,6 +27,7 @@ def _error(request, status, code, message):
 
 def result_payload(result, rules):
     """Exact EligibilityResult contract shape; no health answers are echoed back."""
+    profile_date = DonorProfile.objects.values_list('last_confirmed_collection_date', flat=True).get(pk=result.donor_id)
     return {
         'id': str(result.id),
         'donor_id': str(result.donor_id),
@@ -34,7 +36,8 @@ def result_payload(result, rules):
         'reasons': list(result.reasons),
         'assessed_at': result.assessed_at.isoformat(),
         'rules_version': result.rules_version,
-        'is_stale': is_stale(result, rules),
+        'is_stale': is_stale(result, rules) or is_history_stale(
+            result_confirmed_date=result.confirmed_collection_date, profile_confirmed_date=profile_date),
     }
 
 

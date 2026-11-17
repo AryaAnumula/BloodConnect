@@ -137,7 +137,7 @@ class QueueAccessTests(TestCase):
     def test_anonymous_and_wrong_roles_cannot_read_the_queue(self):
         make_request(make_user('REQUESTER'))
         self.assert_denied(Client(), 'authentication_required')
-        for user in (make_user('REQUESTER'), make_user('DONOR'), make_user('ADMIN'),
+        for user in (make_user('DONOR'), make_user('ADMIN'),
                      make_user('STAFF', is_superuser=True, is_staff=True),
                      make_user('ADMIN', is_superuser=True, is_staff=True)):
             with self.subTest(role=user.role, superuser=user.is_superuser):

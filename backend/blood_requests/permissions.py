@@ -41,6 +41,13 @@ class IsReviewStaff(BasePermission):
         return may_review_requests(user=request.user)
 
 
+class IsRequestReader(BasePermission):
+    """BB-19 collection/detail: requester ownership is enforced in the selector."""
+
+    def has_permission(self, request, view):
+        return may_submit_request(user=request.user) or may_review_requests(user=request.user)
+
+
 def may_issue_requests(*, user) -> bool:
     """BB-16 (BC-D026): authenticated, active, non-superuser STAFF; no clinical permission needed."""
     return _active_non_superuser_with_role(user, 'STAFF')

@@ -30,4 +30,4 @@ def latest_eligibility_result(*, actor, donor_id: UUID):
     result = read_saved_results(donor_ids=[profile.pk]).get(str(profile.pk))
     if result is None:
         raise NotFound()
-    return result
+    return {**result, 'is_stale': result['is_stale'] or result['is_history_stale']}

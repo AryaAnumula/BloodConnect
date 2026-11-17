@@ -27,7 +27,8 @@ def search_donors(*, actor, blood_group=None, location=None, eligibility_status=
     summaries = []
     for profile in profiles:
         assessment = saved.get(str(profile.pk))
-        state = 'NOT_SCREENED' if assessment is None else ('STALE' if assessment['is_stale'] else assessment['status'])
+        state = ('NOT_SCREENED' if assessment is None else
+                 'STALE' if assessment['is_stale'] or assessment['is_history_stale'] else assessment['status'])
         if state not in ('ELIGIBLE', 'INELIGIBLE', 'NOT_SCREENED', 'STALE'):
             raise ValidationError({'non_field_errors': ['Invalid saved assessment state.']})
         if data.get('eligibility_status') and state != data['eligibility_status']:

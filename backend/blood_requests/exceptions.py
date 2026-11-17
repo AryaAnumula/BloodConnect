@@ -18,6 +18,12 @@ class StorageUnavailable(APIException):
     default_detail = 'Request storage is temporarily unavailable. Nothing was changed.'
 
 
+class CloseInvalidTransition(APIException):
+    status_code = 422
+    default_code = 'invalid_transition'
+    default_detail = 'Only a fully issued request can be closed.'
+
+
 class IssueInvalidTransition(APIException):
     status_code = 422
     default_code = 'invalid_transition'
@@ -37,10 +43,10 @@ class UnitConflict(APIException):
 
 
 class InventoryUnavailable(APIException):
-    """Fail-closed when the inventory provider module is absent."""
+    """Fail-closed while the real inventory provider / issue-record model is not integrated."""
     status_code = 503
     default_code = 'inventory_unavailable'
-    default_detail = 'Issuing is not available: inventory is unavailable. Nothing was issued.'
+    default_detail = 'Issuing is not available: inventory is not connected. Nothing was issued.'
 
 
 class UnsafeUnit(APIException):

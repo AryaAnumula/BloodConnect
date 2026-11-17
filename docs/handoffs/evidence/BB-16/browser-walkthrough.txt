@@ -14,9 +14,9 @@
 14. requester detail (partial): close button visible=False; College demonstration: some features may still be unfinished. Page access does not grant API permissions. Do not enter real donor health data. |  | Request status |  | My requests · Submit a request |  | Refresh to see the latest saved decision and f
 15. staff issues reuse-good-1-on-other-request: HTTP 409 unit_conflict; page says: "A selected unit has already been issued. Nothing was issued; the queue has been refreshed."
 16. staff issues good-2-completes: HTTP 201 ISSUED fulfilled=2; page says: "Issued 1 unit. Request b72b2abb-060f-4e12-8e25-9b80ca40e6b9 is now issued (2 issued)."
-17. issued queue: Routine	A+	Red blood cells (RBC)	2	Issued	2026-11-16T20:06:51.106853+00:00	b72b2abb-060f-4e12-8e25-9b80ca40e6b9	
-18. stock page (after): 
+17. issued queue: Routine	A+	Red blood cells (RBC)	2	Issued	2026-11-16T20:06:51.106853+00:00	b72b2abb-060f-4e12-8e25-9b80ca40e6b9
+18. stock page (after):
 19. requester detail (issued, BB-19 page): close button visible=False; page says: "Your account is not permitted to view these requests."
 20. requester closes (HTTP from browser session): {"first": 200, "status": "CLOSED", "updated": null, "replay": 200, "same_updated": true}
 21. staff issue after close: {"status": 422, "code": "invalid_transition"}
-22. stock page (after-close): 
+22. stock page (after-close):
