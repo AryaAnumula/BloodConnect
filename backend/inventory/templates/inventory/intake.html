@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Record blood unit · BloodConnect{% endblock %}
+{% block content %}
+<h1>Record blood unit</h1><p>Expiry is calculated from the collection date.</p>
+<form id="intake">{% csrf_token %}
+<label>Unit code<input name="unit_code" required maxlength="64"></label>
+<label>Donor profile UUID<input name="donor_id" required></label>
+<label for="blood-group">Blood group</label><select id="blood-group" name="blood_group"><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option></select>
+<label for="component-type">Component</label><select id="component-type" name="component_type"><option>WHOLE_BLOOD</option><option>RBC</option><option>PLASMA</option><option>PLATELETS</option></select>
+<label>Collection date<input name="collection_date" type="date" required></label>
+<label>Existing collection event UUID (optional)<input name="collection_event_id"></label>
+<p>Quantity: 1 unit</p><button type="submit">Record unit</button></form>
+<pre id="result" role="status" aria-live="polite">No unit recorded yet.</pre>
+{% endblock %}
+{% block scripts %}
+<script>
+const form=document.getElementById('intake'), result=document.getElementById('result');
+form.addEventListener('submit',async event=>{
+ event.preventDefault(); const button=form.querySelector('button'); button.disabled=true;
+ const fields=new FormData(form), body={quantity:1};
+ for(const key of ['unit_code','donor_id','blood_group','component_type','collection_date']) body[key]=fields.get(key);
+ if(fields.get('collection_event_id').trim()) body.collection_event_id=fields.get('collection_event_id').trim();
+ try {
+  const response=await fetch('/api/v1/blood-units',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-CSRFToken':fields.get('csrfmiddlewaretoken')},body:JSON.stringify(body)});
+  const data=await response.json();
+  result.textContent=response.ok ? 'Unit saved.\n'+JSON.stringify(data,null,2) : 'Unable to record unit.\n'+JSON.stringify(data.error || {},null,2);
+ } catch(error) { result.textContent='Unable to reach inventory. Check the recorded result before retrying.'; }
+ finally {button.disabled=false;}
+});
+</script>
+{% endblock %}

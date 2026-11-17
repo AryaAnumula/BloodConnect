@@ -31,6 +31,11 @@ def is_stale(result, rules) -> bool:
     return result.rules_version != rules['rules_version']
 
 
+def is_history_stale(*, result_confirmed_date, profile_confirmed_date) -> bool:
+    """Any mismatch between the assessment snapshot and current projection is stale."""
+    return result_confirmed_date != profile_confirmed_date
+
+
 def _validated_answers(answers, today):
     """Return (age_years, weight_kg, last_donation_date) or raise ValidationError."""
     if not isinstance(answers, dict):
@@ -88,11 +93,19 @@ def screen_donor(*, actor, donor_id: UUID, answers: dict):
 
     today = timezone.localdate()
     age, weight, last = _validated_answers(answers, today)
-    status, codes, reasons = evaluate(age_years=age, weight_kg=weight, last_donation_date=last,
-                                      today=today, rules=rules)
 
     with transaction.atomic():
+        # Lock the profile so a collection confirmed at the same moment is either seen here or
+        # makes this result history-stale afterwards (never silently missed).
+        confirmed = (DonorProfile.objects.select_for_update(no_key=True)
+                     .values_list('last_confirmed_collection_date', flat=True).get(pk=profile.pk))
+        # S2-10: the evaluator picks the later of the self-reported and confirmed dates itself.
+        status, codes, reasons = evaluate(age_years=age, weight_kg=weight,
+                                          last_donation_date=last,
+                                          confirmed_collection_date=confirmed,
+                                          today=today, rules=rules)
         return EligibilityResult.objects.create(
             donor=profile, age_years=age, weight_kg=weight, last_donation_date=last,
+            confirmed_collection_date=confirmed,
             status=status, reason_codes=codes, reasons=reasons,
             rules_version=rules['rules_version'])

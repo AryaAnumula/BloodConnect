@@ -81,6 +81,54 @@
       "evidence": null,
       "scoped_approvals": [
         {
+          "id": "BC-D035-a",
+          "title": "Requester tracking",
+          "clause": "GET /api/v1/requests dispatches STAFF to unchanged staff_queue (default SUBMITTED) and active non-superuser REQUESTER to own_requests (default all own statuses). Owner filtering precedes status/order/count/page. Strict status/page/page_size only; default20, size1..100, page>=1, repeated/blank/unknown400. Urgency CRITICAL,URGENT,ROUTINE then created_at/id ascending; no client requester_id or sort. Shared POST requester submission and review PATCH stay unchanged.",
+          "status": "APPROVED",
+          "approved_by": "Project decision under Arya's delegated authority; implementation requested by Arya on 2026-11-15",
+          "approved_at": "2026-11-15",
+          "evidence": "BB19 detailed plan (15Nov2026), explicit implementation request, central PROJECT_DECISION_LOG.md BC-D035",
+          "applies_to": [
+            "BB-19"
+          ]
+        },
+        {
+          "id": "BC-D035-b",
+          "title": "Detail and privacy",
+          "clause": "GET /api/v1/requests/{request_id} permits active non-superuser REQUESTER for own records or active non-superuser STAFF for minimized operational detail. Foreign-owner and missing valid UUID use the same404 envelope/message; direct selectors repeat role and ownership. All superusers, ADMIN and DONOR denied. Existing BloodRequest/RequestPage DTOs unchanged; own rejection reason shown as text, no clinical/contact/reviewer internals.",
+          "status": "APPROVED",
+          "approved_by": "Project decision under Arya's delegated authority; implementation requested by Arya on 2026-11-15",
+          "approved_at": "2026-11-15",
+          "evidence": "BB19 detailed plan (15Nov2026), explicit implementation request, central PROJECT_DECISION_LOG.md BC-D035",
+          "applies_to": [
+            "BB-19"
+          ]
+        },
+        {
+          "id": "BC-D035-c",
+          "title": "Closure",
+          "clause": "POST /api/v1/requests/{request_id}/close requires owning active non-superuser REQUESTER and session+CSRF; no body (even{} rejected400) or query fields. close_request owns atomic owner-scoped request row lock; only ISSUED with fulfilled_quantity==quantity changes to CLOSED. CLOSED replay200 without a save/updated_at change. Other states or incomplete ISSUED422 invalid_transition; foreign/missing404. Only status/updated_at change; no new model/migration/closed_at, no issue/stock/notification writer. Expected storage failure503 after rollback; existing review messages remain unchanged.",
+          "status": "APPROVED",
+          "approved_by": "Project decision under Arya's delegated authority; implementation requested by Arya on 2026-11-15",
+          "approved_at": "2026-11-15",
+          "evidence": "BB19 detailed plan (15Nov2026), explicit implementation request, central PROJECT_DECISION_LOG.md BC-D035",
+          "applies_to": [
+            "BB-19"
+          ]
+        },
+        {
+          "id": "BC-D035-d",
+          "title": "Scope, tests and integration",
+          "clause": "Arya owns BB19 (BC-D023); Arnav BB16/17/18 only. Implement own_requests/request_detail selectors and close_request service in blood_requests, shared collection per-method gates, detail/close URLs, /requests and /requests/{uuid} pages, feature tests and minimal shared runner/routes/contracts. BB17/18 integration is real; ISSUED/partial/CLOSED test fixtures do not prove actual BB16 integration. Full acceptance waits real BB16/inventory issue-to-track-to-close demo. Manual CI unchanged (BC-D028); ONLY ARYA merges (BC-D033); existing Git identity, no assistant coauthor/access changes.",
+          "status": "APPROVED",
+          "approved_by": "Project decision under Arya's delegated authority; implementation requested by Arya on 2026-11-15",
+          "approved_at": "2026-11-15",
+          "evidence": "BB19 detailed plan (15Nov2026), explicit implementation request, central PROJECT_DECISION_LOG.md BC-D035",
+          "applies_to": [
+            "BB-19"
+          ]
+        },
+        {
           "clause": "REQUESTER accounts are provisioned through a restricted local management command only; no public requester registration or role assignment.",
           "approved_by": "Codex assistant acting under Arya's explicitly delegated project-decision authority",
           "approved_at": "2026-11-15",
@@ -229,6 +277,17 @@
           "applies_to": [
             "Sprint 2 scoped policy"
           ]
+        },
+        {
+          "id": "BC-D039",
+          "status": "APPROVED",
+          "clause": "BB19 dataset verification uses real submit/review/own tracking APIs for supported source rows; no fixture issue-linked status writes, competing model or fake BB16 completion. Existing lifecycle/schema/DTO/permissions remain unchanged. Keep separate PR53; only Arya merges.",
+          "approved_by": "Arya, explicit16November2026 dataset integration instruction",
+          "approved_at": "2026-11-16",
+          "evidence": "docs/sprint2/bb19-dataset-integration.md; central BC-D039",
+          "applies_to": [
+            "BB-19"
+          ]
         }
       ],
       "scoped_approval_note": "See shared-rules.md for approved scope and unresolved matters; parent status and runtime gates are unchanged.",
@@ -248,12 +307,48 @@
       "proposal_note": "Historical proposal; superseded where it conflicts with scoped decisions in docs/sprint2/shared-rules.md. Parent status remains unchanged; implementation and policy gates are separate.",
       "scoped_approvals": [
         {
+          "id": "BC-D035-b",
+          "title": "Detail and privacy",
+          "clause": "GET /api/v1/requests/{request_id} permits active non-superuser REQUESTER for own records or active non-superuser STAFF for minimized operational detail. Foreign-owner and missing valid UUID use the same404 envelope/message; direct selectors repeat role and ownership. All superusers, ADMIN and DONOR denied. Existing BloodRequest/RequestPage DTOs unchanged; own rejection reason shown as text, no clinical/contact/reviewer internals.",
+          "status": "APPROVED",
+          "approved_by": "Project decision under Arya's delegated authority; implementation requested by Arya on 2026-11-15",
+          "approved_at": "2026-11-15",
+          "evidence": "BB19 detailed plan (15Nov2026), explicit implementation request, central PROJECT_DECISION_LOG.md BC-D035",
+          "applies_to": [
+            "BB-19"
+          ]
+        },
+        {
+          "id": "BC-D036",
+          "status": "APPROVED",
+          "clause": "BB-22 only in this PR: actual provider PENDING/BLOCKED/LEASED -> public PENDING; DELIVERED/FAILED/CANCELLED preserved; missing intent/policy/storage returns503. Projection participates in booking/cancellation atomic transaction. BB23/24 implementation is in separate independent story PRs under BC-D037. No whole-story acceptance or merge approval.",
+          "approved_by": "Arya's 2026-11-16 implementation instruction, applying existing delegated project decisions",
+          "approved_at": "2026-11-16",
+          "evidence": "docs/sprint2/arya-work-2026-11-16.md; central PROJECT_DECISION_LOG.md BC-D036",
+          "applies_to": [
+            "BB-22",
+            "shared reminder integration"
+          ]
+        },
+        {
           "clause": "**Approved [BC-D001, D002, D020, D029]:** active authenticated non-superuser STAFF and ADMIN may create, update and cancel camps and set up slots. DONOR, STAFF and ADMIN may list permitted camps/slots. Only DONOR books and cancels their own appointment. REQUESTER, anonymous, inactive and all superusers have no scheduling access through these gates. Camp management grants no clinical-data permission and requires no clinical permission. For donor camp lists, exclude CANCELLED before filtering, count and pagination; `status=CANCELLED` returns 200 with an empty page. Staff/admin can list and filter both states. Invalid filter remains 400; own cancelled appointment history remains accessible.\n\nInventory and request review/issue use active non-superuser STAFF; requester submission uses active non-superuser REQUESTER. Dashboard/report access is ADMIN under the demo policy. Shared operational helpers must not weaken existing clinical access rules. Negative tests cover inactive, wrong role, anonymous and superuser users.",
           "approved_by": "Codex assistant acting under Arya's explicitly delegated project-decision authority",
           "approved_at": "2026-11-15",
           "evidence": "docs/sprint2/shared-rules.md v1.1 and docs/sprint2/decision-provenance.md; approved scope and unresolved items are stated in the clause",
           "applies_to": [
             "Sprint 2 scoped policy"
+          ]
+        },
+        {
+          "id": "BC-D037",
+          "status": "APPROVED",
+          "clause": "BB-23 and BB-24 keep separate story PRs; preserve active non-superuser ADMIN access and approved source/date/aggregate rules. Missing or malformed sources return503, never fake totals. No merge or whole-story acceptance approval.",
+          "approved_by": "Arya, explicit16 November2026 separate-story PR instruction",
+          "approved_at": "2026-11-16",
+          "evidence": "docs/sprint2/reporting-source-decisions.md; central BC-D037",
+          "applies_to": [
+            "BB-23",
+            "BB-24"
           ]
         }
       ]
@@ -270,6 +365,15 @@
       "evidence": null,
       "proposal_note": "Historical proposal; superseded where it conflicts with scoped decisions in docs/sprint2/shared-rules.md. Parent status remains unchanged; implementation and policy gates are separate.",
       "scoped_approvals": [
+        {
+          "clause": "BB-21 overlap decision (15 November 2026): confirmed appointments for the same donor may not overlap, including across camps and walk-ins; adjacent half-open intervals are allowed, and cancelled appointments do not block. Check under the donor profile lock and return 409 appointment_conflict. See docs/sprint2/appointment-overlap-decision.md for lock order and test requirements. This does not approve clinical rules or a merge.",
+          "approved_by": "Codex assistant acting under Arya's explicitly delegated project-decision authority",
+          "approved_at": "2026-11-15",
+          "evidence": "docs/sprint2/appointment-overlap-decision.md, delegated by Arya on 15 November 2026",
+          "applies_to": [
+            "BB-21"
+          ]
+        },
         {
           "clause": "**Approved [BC-D003–D007, D014]:** new camp start is strictly after server now; when changing a start, the replacement must be after now, while resubmitting an unchanged historical start does not block an unrelated edit. Require start < end. CANCELLED camp edits return 422. Every linked slot, including empty, cancelled and historical slots, must remain wholly within a changed camp interval: `camp.start <= slot.start < slot.end <= camp.end`; otherwise 409 `slot_conflict`. Never silently move or delete slots. Capacity is positive and cannot be reduced below confirmed appointments; equality is allowed.\n\nBook only an available slot whose start is strictly after a fresh server time read after locks; at or after start return 409 `slot_unavailable`. Reject cancelled slots/camps, stale or non-ELIGIBLE assessments, duplicate confirmed donor/slot and slot/camp over-capacity. Walk-ins have no camp. Check saved assessment rule version **and** confirmed-history snapshot under the donor lock. Only CONFIRMED appointments consume capacity.\n\nDonor cancellation: `POST /api/v1/appointments/{id}/cancel` with strict `{}`; own CONFIRMED appointment can be cancelled only before start. Already CANCELLED own appointment returns unchanged 200 even after start. Foreign/missing is identical 404; other invalid transitions are 422. Change status and invalidate pending/blocked/leased reminders atomically; failure of the in-transaction reminder invalidation rolls back status and capacity release. Delivered receipts cannot be unsent. No donor-cancellation notification is required. [BC-D006, D008]\n\n**NEW — camp-wide cancellation:** active non-superuser STAFF or ADMIN may cancel an ACTIVE camp; lock camp, all linked slots in UUID order and affected appointments in UUID order; reread state under lock. One transaction sets camp CANCELLED, changes every CONFIRMED linked appointment to CANCELLED (including started appointments still CONFIRMED), records cancellation time, invalidates each pending/blocked/leased reminder and creates one durable camp-cancellation notification intent per affected appointment. Keep slot and appointment records for history; slots need not change status because a cancelled camp cannot accept bookings. Each intent references only the donor/appointment and safe camp details needed for delivery; never include health data. If an in-transaction database write, reminder invalidation, or durable intent persistence call fails, roll back the whole transaction and retain the previous camp and appointment states and capacity. After commit, dispatch and delivery occur separately; a delivery failure cannot roll back the committed cancellation. Record the failure and retry the durable intent according to the delivery policy without duplicating effects. A repeat on an already CANCELLED camp returns current representation without duplicate effects; no new appointments or cancellation intents. Delivery happens after commit through the single provider, never during locks. This settles a demo product policy, not proof that PR #44 currently supports a camp-cancellation event; Arya must publish/review that provider contract and tests before merge. For large camps an atomic synchronous operation may need later redesign; do not silently replace atomicity with partial batches.\n\nLock order where eligibility is checked: camp → slots sorted UUID → donor profile → appointments. Cancellation may omit the donor lock; never acquire it after an appointment lock. Inventory uses donor profile → event → units and never takes scheduling locks. Use PostgreSQL races for booking versus booking/edit/cancel and camp cancellation; test rollback and repeat cancellation. [BC-D012/014]",
           "approved_by": "Codex assistant acting under Arya's explicitly delegated project-decision authority",
@@ -295,6 +399,29 @@
       "proposal_note": "Historical proposal; superseded where it conflicts with scoped decisions in docs/sprint2/shared-rules.md. Parent status remains unchanged; implementation and policy gates are separate.",
       "scoped_approvals": [
         {
+          "id": "BC-D036",
+          "status": "APPROVED",
+          "clause": "BB-22 only in this PR: actual provider PENDING/BLOCKED/LEASED -> public PENDING; DELIVERED/FAILED/CANCELLED preserved; missing intent/policy/storage returns503. Projection participates in booking/cancellation atomic transaction. BB23/24 implementation is in separate independent story PRs under BC-D037. No whole-story acceptance or merge approval.",
+          "approved_by": "Arya's 2026-11-16 implementation instruction, applying existing delegated project decisions",
+          "approved_at": "2026-11-16",
+          "evidence": "docs/sprint2/arya-work-2026-11-16.md; central PROJECT_DECISION_LOG.md BC-D036",
+          "applies_to": [
+            "BB-22",
+            "shared reminder integration"
+          ]
+        },
+        {
+          "id": "BC-D039",
+          "status": "APPROVED",
+          "clause": "BB22 dataset integration: local DEBUG-only fresh bookings use approved services and actual current screenings; never import fictional DELIVERED/receipt rows. Bounded manual watch preserves existing25h target/24h receipt and at-least-hourly demo operation policy. No camp-service takeover, installed scheduler, automatic CI or merge approval.",
+          "approved_by": "Arya, explicit16November2026 dataset integration instruction",
+          "approved_at": "2026-11-16",
+          "evidence": "docs/sprint2/bb22-dataset-integration.md; central BC-D039",
+          "applies_to": [
+            "BB-22"
+          ]
+        },
+        {
           "clause": "**NEW — demo alert configuration:** require explicit non-negative integer per-group/component minimum and positive near-expiry-days values in versioned configuration; synthetic demo values are test data, not clinical thresholds. Missing or invalid config fails closed and emits no fabricated alert. Low stock means usable quantity strictly less than minimum; equality is not low. Near expiry means `0 < expiry_date - local_date <= configured_days`; exclude expired/non-AVAILABLE units. Evaluate using the same stock selector as the UI. Deduplicate one durable alert per condition and configured threshold episode; resolve the episode once the condition ceases, allowing a later new episode. Concurrent sweeps must not duplicate an episode.\n\n**NEW — delivery architecture:** Arya owns a single Django transactional outbox with retry and idempotency; a controlled manual management command dispatches to the Node mock. Node receipt is simulated and idempotent, never represented as real SMS/email. Configure synthetic recipients outside public APIs. The domain transaction creates durable intent; no network or `on_commit` replacement for persistence. A failure to persist a required intent in the domain transaction rolls back that transaction. A post-commit dispatch or delivery failure does not undo committed domain changes; record it and retry the durable intent without duplicating receipts; distinguish queued, leased/blocked, delivered and failed facts. Cancellation marks pending/blocked/leased reminders ineligible for any new dispatch, and the dispatcher rechecks live appointment/camp state before send. A send already in flight can race with cancellation and its accepted mock receipt cannot be recalled; record that limitation and do not claim cancellation guarantees prevention of an already-started send. Coordinate provider event types and exact state transitions before integration. [BC-D008, D009]",
           "approved_by": "Codex assistant acting under Arya's explicitly delegated project-decision authority",
           "approved_at": "2026-11-15",
@@ -304,7 +431,13 @@
           ]
         }
       ],
-      "scoped_approval_note": "See shared-rules.md for approved scope and unresolved matters; parent status and runtime gates are unchanged."
+      "scoped_approval_note": "See shared-rules.md for approved scope and unresolved matters; parent status and runtime gates are unchanged.",
+      "notification_provider_scope": {
+        "status": "APPROVED",
+        "approved_by": "Codex assistant acting under Arya's explicitly delegated project-decision authority",
+        "approved_at": "2026-11-15",
+        "evidence": "docs/sprint2/shared-rules.md v1.1; BC-D008 and BC-D009; scoped provider policy only"
+      }
     },
     {
       "id": "S2-07",
@@ -319,6 +452,29 @@
       "proposal_note": "Historical proposal; superseded where it conflicts with scoped decisions in docs/sprint2/shared-rules.md. Parent status remains unchanged; implementation and policy gates are separate.",
       "scoped_approvals": [
         {
+          "id": "BC-D036",
+          "status": "APPROVED",
+          "clause": "BB-22 only in this PR: actual provider PENDING/BLOCKED/LEASED -> public PENDING; DELIVERED/FAILED/CANCELLED preserved; missing intent/policy/storage returns503. Projection participates in booking/cancellation atomic transaction. BB23/24 implementation is in separate independent story PRs under BC-D037. No whole-story acceptance or merge approval.",
+          "approved_by": "Arya's 2026-11-16 implementation instruction, applying existing delegated project decisions",
+          "approved_at": "2026-11-16",
+          "evidence": "docs/sprint2/arya-work-2026-11-16.md; central PROJECT_DECISION_LOG.md BC-D036",
+          "applies_to": [
+            "BB-22",
+            "shared reminder integration"
+          ]
+        },
+        {
+          "id": "BC-D039",
+          "status": "APPROVED",
+          "clause": "BB22 dataset integration: local DEBUG-only fresh bookings use approved services and actual current screenings; never import fictional DELIVERED/receipt rows. Bounded manual watch preserves existing25h target/24h receipt and at-least-hourly demo operation policy. No camp-service takeover, installed scheduler, automatic CI or merge approval.",
+          "approved_by": "Arya, explicit16November2026 dataset integration instruction",
+          "approved_at": "2026-11-16",
+          "evidence": "docs/sprint2/bb22-dataset-integration.md; central BC-D039",
+          "applies_to": [
+            "BB-22"
+          ]
+        },
+        {
           "clause": "**NEW — demo schedule:** for a booking made at least 25 hours before start, target `starts_at - 25 hours` so an hourly manual/scheduled dispatcher has a one-hour safety margin; run it at least hourly in the demonstrated operating window and record actual dispatch/receipt timestamps. A successful receipt at least 24 hours before start is required as evidence; an intent alone is not evidence of delivery. A booking with less than 25 hours lead, including exactly 24 hours, is tagged late/insufficient-lead and queued immediately as best effort, and is tracked separately; only an actual receipt at or before start minus 24 hours counts as meeting the timing criterion. At exactly 25 hours it is immediately due. Dispatch downtime, retries or manual operation can miss the target: report the miss honestly rather than claiming a guarantee. This choice does not change the adopted FR-020 criterion.\n\nCancellation or changed time invalidates old pending intents; a changed confirmed appointment requires a new revision and deduplicated intent. **NEW — response mapping:** expose the current reminder intent state using the provider vocabulary `PENDING`, `LEASED`, `BLOCKED`, `DELIVERED`, `FAILED`, `CANCELLED`; do not collapse states or fabricate a state when no real intent exists. On cancellation after delivery retain `DELIVERED` because the receipt is historical; appointment cancellation is represented separately by appointment status. A missing intent for a confirmed appointment is an integration error, not a fake PENDING value. Provider and OpenAPI must implement and test this mapping together. `DELIVERED` requires a receipt. Until provider mapping and timing contract are implemented and validated, omission remains an explicitly documented draft deviation, not merge-ready final behavior. [BC-D008–D009] Camp cancellation uses S2-05 and S2-06; donor cancellation does not send a separate cancellation message.",
           "approved_by": "Codex assistant acting under Arya's explicitly delegated project-decision authority",
           "approved_at": "2026-11-15",
@@ -328,7 +484,13 @@
           ]
         }
       ],
-      "scoped_approval_note": "See shared-rules.md for approved scope and unresolved matters; parent status and runtime gates are unchanged."
+      "scoped_approval_note": "See shared-rules.md for approved scope and unresolved matters; parent status and runtime gates are unchanged.",
+      "notification_provider_scope": {
+        "status": "APPROVED",
+        "approved_by": "Codex assistant acting under Arya's explicitly delegated project-decision authority",
+        "approved_at": "2026-11-15",
+        "evidence": "docs/sprint2/shared-rules.md v1.1; BC-D008 and BC-D009; scoped provider policy only"
+      }
     },
     {
       "id": "S2-08",
@@ -349,6 +511,30 @@
           "evidence": "docs/sprint2/shared-rules.md v1.1 and docs/sprint2/decision-provenance.md; approved scope and unresolved items are stated in the clause",
           "applies_to": [
             "Sprint 2 scoped policy"
+          ]
+        },
+        {
+          "id": "BC-D037",
+          "status": "APPROVED",
+          "clause": "BB-23 and BB-24 keep separate story PRs; preserve active non-superuser ADMIN access and approved source/date/aggregate rules. Missing or malformed sources return503, never fake totals. No merge or whole-story acceptance approval.",
+          "approved_by": "Arya, explicit16 November2026 separate-story PR instruction",
+          "approved_at": "2026-11-16",
+          "evidence": "docs/sprint2/reporting-source-decisions.md; central BC-D037",
+          "applies_to": [
+            "BB-23",
+            "BB-24"
+          ]
+        },
+        {
+          "id": "BC-D039",
+          "status": "APPROVED",
+          "clause": "BB-23 and BB-24: user authorizes dataset integration. Explicit DEBUG-only read-only canonical source with verified manifest; compute all aggregates from one snapshot and label source. Default domain selectors stay separate and fail closed; no expected.json totals at runtime, silent fallback, duplicate models, whole-story or merge approval.",
+          "approved_by": "Arya, explicit16November2026 dataset integration instruction",
+          "approved_at": "2026-11-16",
+          "evidence": "docs/sprint2/reporting-source-decisions.md; central BC-D039",
+          "applies_to": [
+            "BB-23",
+            "BB-24"
           ]
         }
       ],

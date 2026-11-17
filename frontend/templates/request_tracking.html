@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}My blood requests — BloodConnect{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/request-tracking.css' %}">
+<section id="tracking-page" data-view="list" aria-labelledby="tracking-heading">
+  <h1 id="tracking-heading">My blood requests</h1>
+  <p>See your saved request status and fulfilment. Refresh to see staff decisions and issue updates.</p>
+  <p><a href="/requests/new">Submit a blood request</a></p>
+  <form id="tracking-filter">
+    <label for="tracking-status">Status</label>
+    <select id="tracking-status" name="status">
+      <option value="">All my requests</option>
+      <option value="SUBMITTED">Submitted</option><option value="APPROVED">Approved</option>
+      <option value="REJECTED">Rejected</option><option value="ISSUED">Issued</option>
+      <option value="CLOSED">Closed</option>
+    </select>
+    <button type="submit">Apply filter</button>
+  </form>
+  <button type="button" id="tracking-refresh">Refresh requests</button>
+  <p id="tracking-summary" aria-live="polite"></p>
+  <div id="tracking-records" class="tracking-records"></div>
+  <nav aria-label="My request pages">
+    <button type="button" id="tracking-prev" disabled>Previous page</button>
+    <span id="tracking-page-label"></span>
+    <button type="button" id="tracking-next" disabled>Next page</button>
+  </nav>
+</section>
+{% endblock %}
+{% block scripts %}<script type="module" src="{% static 'js/pages/request-tracking.js' %}"></script>{% endblock %}

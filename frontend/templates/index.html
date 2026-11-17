@@ -1,1 +1,6 @@
-{% extends 'base.html' %}{% block content %}<h1>BloodConnect Sprint 1 foundation</h1><p>Shared scaffold for BB-01–BB-12. Read <code>README.md</code> and your story prompt before implementing features.</p><ul><li><a href="/api/v1/health/live">Process liveness</a></li><li><a href="/api/v1/health/ready">Database readiness</a></li></ul>{% endblock %}
+{% extends 'base.html' %}
+{% block title %}Home · BloodConnect{% endblock %}
+{% block content %}
+<section class="welcome"><span class="eyebrow">Welcome to BloodConnect</span><h1>Every connection counts.</h1><p>Manage donations, blood requests and camps in one place.</p>
+{% if not request.user.is_authenticated %}<div class="welcome-actions"><a class="button-link" href="/login">Sign in</a><a class="button-link button-secondary" href="/register">Register as a donor</a></div>{% else %}<p class="welcome-hint">Choose an option from the navigation to get started.</p>{% endif %}</section>
+{% endblock %}

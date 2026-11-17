@@ -1,0 +1,13 @@
+{% extends 'base.html' %}{% load static %}
+{% block title %}Administrator dashboard — BloodConnect{% endblock %}
+{% block content %}
+<h1>Administrator dashboard</h1>
+{% if reporting_synthetic %}<p class="notice">Read-only synthetic snapshot. Refresh reloads the dataset; application record changes are not included in this view.</p>{% endif %}
+<p>Current available stock, submitted requests and active upcoming camps.</p>
+<section id="reporting-page" data-view="dashboard">
+  <button type="button" id="reporting-refresh">Refresh dashboard</button>
+  <p id="reporting-summary" aria-live="polite"></p>
+  <div id="reporting-results"></div>
+</section>
+{% endblock %}
+{% block scripts %}<script type="module" src="{% static 'js/pages/dashboard.js' %}"></script>{% endblock %}

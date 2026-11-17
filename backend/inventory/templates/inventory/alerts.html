@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+{% block title %}Inventory alerts · BloodConnect{% endblock %}
+{% block content %}
+<h1>Inventory alert history</h1><p>Alerts are recorded by the controlled inventory evaluation command. Pending notifications have not been received. Delivered means the private mock service acknowledged the notification.</p><button id="refresh">Refresh</button><p id="message" role="status"></p><table><thead><tr><th>Kind</th><th>Group</th><th>Component</th><th>Unit</th><th>Recorded</th><th>Notification</th></tr></thead><tbody id="rows"></tbody></table><button id="prev">Previous</button><span id="page"></span><button id="next">Next</button>
+{% endblock %}
+{% block scripts %}
+<script>let page=1,count=0;const message=document.getElementById('message');async function refresh(){const rows=document.getElementById('rows');try{const r=await fetch('/api/v1/stock/alerts?page='+page,{credentials:'same-origin'}),d=await r.json();if(!r.ok)throw new Error(d.error?.message||'Alerts unavailable');rows.replaceChildren();count=d.count;for(const row of d.results){const tr=document.createElement('tr');for(const key of ['kind','blood_group','component_type','unit_id','created_at','notification_state']){const td=document.createElement('td');td.textContent=row[key]??'—';tr.append(td);}rows.append(tr);}document.getElementById('page').textContent=' Page '+page+' ';message.textContent=count?count+' retained alerts.':'No recorded alerts.';}catch(e){rows.replaceChildren();message.textContent=e.message;}}document.getElementById('refresh').onclick=refresh;document.getElementById('prev').onclick=()=>{if(page>1){page--;refresh();}};document.getElementById('next').onclick=()=>{if(page*20<count){page++;refresh();}};refresh();</script>
+{% endblock %}

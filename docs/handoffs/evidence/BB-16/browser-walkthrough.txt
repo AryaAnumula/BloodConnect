@@ -1,0 +1,22 @@
+01. login: bb16-walk-requester@example.test -> HTTP 200
+02. requester submits: A+ RBC x2 -> HTTP 201 SUBMITTED id=b72b2abb-060f-4e12-8e25-9b80ca40e6b9
+03. requester submits: A+ RBC x1 -> HTTP 201 SUBMITTED id=a6683711-0773-40d5-96bb-bfe1a4ee5447
+04. login: bb16-walk-staff@example.test -> HTTP 200
+05. stock page (before): A+	RBC	2
+06. staff approves: b72b2abb-060f-4e12-8e25-9b80ca40e6b9 -> HTTP 200
+07. staff approves: a6683711-0773-40d5-96bb-bfe1a4ee5447 -> HTTP 200
+08. approved queue: Routine	A+	Red blood cells (RBC)	2	Approved	2026-11-16T20:06:51.106853+00:00	b72b2abb-060f-4e12-8e25-9b80ca40e6b9	 |  | Issued 0 of 2 units. |  | Unit IDs to issue (one per line, up to 2) | Issue units |  |  | Routine	A+	Red blood cells (RBC)	1	Approved	2026-11-16T20:06:51.283270+00:00	a6683711-0773
+09. staff issues expires-today: HTTP 422 unsafe_unit; page says: "A selected unit cannot be issued for this request (expired, quarantined, discarded or not matching). Nothing was issued."
+10. staff issues quarantined: HTTP 422 unsafe_unit; page says: "A selected unit cannot be issued for this request (expired, quarantined, discarded or not matching). Nothing was issued."
+11. staff issues unknown-unit: HTTP 404 not_found; page says: "A selected unit was not found. Nothing was issued."
+12. staff issues mixed-good-and-quarantined: HTTP 422 unsafe_unit; page says: "A selected unit cannot be issued for this request (expired, quarantined, discarded or not matching). Nothing was issued."
+13. staff issues good-1-partial: HTTP 201 APPROVED fulfilled=1; page says: "Issued 1 unit. Request b72b2abb-060f-4e12-8e25-9b80ca40e6b9 is now approved (1 issued)."
+14. requester detail (partial): close button visible=False; College demonstration: some features may still be unfinished. Page access does not grant API permissions. Do not enter real donor health data. |  | Request status |  | My requests · Submit a request |  | Refresh to see the latest saved decision and f
+15. staff issues reuse-good-1-on-other-request: HTTP 409 unit_conflict; page says: "A selected unit has already been issued. Nothing was issued; the queue has been refreshed."
+16. staff issues good-2-completes: HTTP 201 ISSUED fulfilled=2; page says: "Issued 1 unit. Request b72b2abb-060f-4e12-8e25-9b80ca40e6b9 is now issued (2 issued)."
+17. issued queue: Routine	A+	Red blood cells (RBC)	2	Issued	2026-11-16T20:06:51.106853+00:00	b72b2abb-060f-4e12-8e25-9b80ca40e6b9
+18. stock page (after):
+19. requester detail (issued, BB-19 page): close button visible=False; page says: "Your account is not permitted to view these requests."
+20. requester closes (HTTP from browser session): {"first": 200, "status": "CLOSED", "updated": null, "replay": 200, "same_updated": true}
+21. staff issue after close: {"status": 422, "code": "invalid_transition"}
+22. stock page (after-close):

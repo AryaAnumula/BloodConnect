@@ -5,17 +5,14 @@
 
 {% block content %}
 <h1>Eligibility screening</h1>
-<p class="notice">
-  <strong>Demonstration rules only.</strong> This screening applies simplified rules for a
-  college project. It is not a statement that anyone is medically fit to donate blood and
-  it is not medical advice.
-</p>
+<p>Screening results are informational and do not determine medical eligibility to donate.</p>
 
 <form id="screening-form">
   <label for="donor-id">Donor profile UUID</label>
   <input
     id="donor-id"
     name="donor_id"
+    {% if request.user.is_authenticated and request.user.role == "DONOR" and request.user.donor_profile %}value="{{ request.user.donor_profile.id }}" readonly{% endif %}
     type="text"
     required
     maxlength="36"
@@ -23,7 +20,7 @@
     placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
     aria-describedby="donor-id-help"
   >
-  <p id="donor-id-help">Enter the donor profile ID, not the account ID.</p>
+  <p id="donor-id-help">{% if request.user.is_authenticated and request.user.role == "DONOR" and request.user.donor_profile %}Your donor profile ID is filled in automatically.{% else %}Enter the donor profile ID, not the account ID. Donors can sign in to fill this automatically.{% endif %}</p>
 
   <label for="age-years">Age in years</label>
   <input id="age-years" name="age_years" type="number" required min="0" max="150" step="1" inputmode="numeric">
@@ -47,7 +44,7 @@
     <dt>Rules version</dt><dd id="out-rules-version"></dd>
     <dt>Stale assessment</dt><dd id="out-stale"></dd>
   </dl>
-  <p class="notice">Demonstration rules only. Not medical advice.</p>
+  <p>Final eligibility is determined by qualified staff.</p>
 </section>
 {% endblock %}
 

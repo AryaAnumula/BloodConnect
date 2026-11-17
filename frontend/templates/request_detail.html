@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Request status — BloodConnect{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/request-tracking.css' %}">
+<section id="tracking-page" data-view="detail" data-request-id="{{ view.kwargs.request_id }}"
+         aria-labelledby="tracking-heading">
+  <h1 id="tracking-heading">Request status</h1>
+  <p><a href="/requests">My requests</a> · <a href="/requests/new">Submit a request</a></p>
+  <p>Refresh to see the latest saved decision and fulfilment. Only a fully issued request can be closed.</p>
+  <button type="button" id="tracking-refresh">Refresh status</button>
+  <div id="tracking-records" class="tracking-records"></div>
+  <button type="button" id="tracking-close" hidden>Close completed request</button>
+</section>
+{% endblock %}
+{% block scripts %}<script type="module" src="{% static 'js/pages/request-tracking.js' %}"></script>{% endblock %}
