@@ -94,7 +94,7 @@ async function load() {
   try {
     const [identity, data] = await Promise.all([apiFetch('/api/v1/auth/me'), apiFetch(path)]);
     if (loadId !== state.loadId) return;
-    const user = identity?.user;
+    const user = identity;
     if (!user || (!detail && user.role !== 'REQUESTER')) {
       throw Object.assign(new Error('Wrong account.'), { code: 'forbidden' });
     }
